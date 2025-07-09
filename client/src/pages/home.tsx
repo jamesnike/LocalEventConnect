@@ -7,6 +7,8 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import SwipeCard from "@/components/SwipeCard";
 import EventDetailCard from "@/components/EventDetailCard";
+import EventContentCard from "@/components/EventContentCard";
+import CelebrationAnimation from "@/components/CelebrationAnimation";
 import CreateEvent from "@/components/CreateEvent";
 import EventDetail from "@/components/EventDetail";
 import BottomNav from "@/components/BottomNav";
@@ -20,6 +22,8 @@ export default function Home() {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [swipedEvents, setSwipedEvents] = useState<Set<number>>(new Set());
   const [showDetailCard, setShowDetailCard] = useState(false);
+  const [showContentCard, setShowContentCard] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,7 +79,12 @@ export default function Home() {
 
   const handleSwipeLeft = () => {
     if (!currentEvent || isTransitioning) return;
-    if (showDetailCard) {
+    if (showContentCard) {
+      // From content card, go back to main and move to next event
+      setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+      setCurrentEventIndex(prev => prev + 1);
+      setShowContentCard(false);
+    } else if (showDetailCard) {
       // From detail card, go back to main card
       setIsTransitioning(true);
       setTimeout(() => {
@@ -89,16 +98,26 @@ export default function Home() {
     }
   };
 
-  const handleSwipeRight = () => {
+  const handleContentSwipeRight = () => {
+    // From content card, move to next event
+    setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+    setCurrentEventIndex(prev => prev + 1);
+    setShowContentCard(false);
+  };
+
+  const handleSwipeRight = async () => {
     if (!currentEvent || isTransitioning) return;
     if (showDetailCard) {
-      // From detail card, RSVP and move to next event
+      // From detail card, RSVP and show celebration
       if (user) {
-        rsvpMutation.mutate({ eventId: currentEvent.id, status: 'attending' });
+        try {
+          await rsvpMutation.mutateAsync({ eventId: currentEvent.id, status: 'attending' });
+          setShowCelebration(true);
+          setShowDetailCard(false);
+        } catch (error) {
+          console.error('Error during RSVP:', error);
+        }
       }
-      setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-      setCurrentEventIndex(prev => prev + 1);
-      setShowDetailCard(false);
     } else {
       // From main card, show detail card
       setIsTransitioning(true);
@@ -107,6 +126,11 @@ export default function Home() {
         setIsTransitioning(false);
       }, 150);
     }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    setShowContentCard(true);
   };
 
   const handleUndo = () => {
@@ -226,6 +250,21 @@ export default function Home() {
                 />
               </div>
             </div>
+
+            {/* Content Card */}
+            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
+            }`}>
+              <div className="flex items-center justify-center h-full">
+                <EventContentCard
+                  event={currentEvent}
+                  onSwipeLeft={handleSwipeLeft}
+                  onSwipeRight={handleContentSwipeRight}
+                  isActive={showContentCard}
+                  similarEvents={availableEvents.filter(e => e.id !== currentEvent?.id && e.category === currentEvent?.category).slice(0, 3)}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -238,7 +277,7 @@ export default function Home() {
             disabled={!currentEvent || isTransitioning}
             className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {showDetailCard ? (
+            {showContentCard || showDetailCard ? (
               <ArrowLeft className="w-6 h-6" />
             ) : (
               <X className="w-6 h-6" />
@@ -246,7 +285,7 @@ export default function Home() {
           </button>
           
           <button
-            onClick={handleSwipeRight}
+            onClick={showContentCard ? handleContentSwipeRight : handleSwipeRight}
             disabled={!currentEvent || isTransitioning}
             className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
           >
@@ -261,10 +300,10 @@ export default function Home() {
         {/* Action Labels */}
         <div className="flex justify-center space-x-16 mt-2">
           <span className="text-xs text-gray-600 w-14 text-center">
-            {showDetailCard ? 'Back' : 'Skip'}
+            {showContentCard ? 'Back' : showDetailCard ? 'Back' : 'Skip'}
           </span>
           <span className="text-xs text-gray-600 w-14 text-center">
-            {showDetailCard ? 'RSVP' : 'Details'}
+            {showContentCard ? 'Next' : showDetailCard ? 'RSVP' : 'Details'}
           </span>
         </div>
       </div>
@@ -279,6 +318,12 @@ export default function Home() {
 
       {/* Bottom Navigation */}
       <BottomNav currentPage="home" />
+
+      {/* Celebration Animation */}
+      <CelebrationAnimation 
+        isVisible={showCelebration} 
+        onComplete={handleCelebrationComplete}
+      />
 
       {/* Modals */}
       {showCreateEvent && (
