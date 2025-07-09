@@ -133,6 +133,17 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         {/* Event Image */}
         <div className="h-96 bg-gradient-to-br from-purple-400 to-pink-400 relative">
           <div className="absolute inset-0 bg-black/20" />
+          
+          {/* Organizer Profile Photo - Top Left */}
+          <div className="absolute top-4 left-4 flex items-center space-x-2 bg-black/40 backdrop-blur-sm rounded-full p-2 pr-3">
+            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
+            <span className="text-white text-xs font-medium">
+              {event.organizer.firstName || event.organizer.lastName 
+                ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
+                : 'Anonymous'}
+            </span>
+          </div>
+          
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
             <button onClick={onInfoClick}>
               <Info className="w-4 h-4 text-gray-700" />
@@ -168,14 +179,22 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
 
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center space-x-3">
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
+              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
               <div>
                 <p className="text-sm font-medium text-gray-800">
                   {event.organizer.firstName || event.organizer.lastName 
                     ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
                     : 'Anonymous Organizer'}
                 </p>
-                <p className="text-xs text-gray-500">{event.rsvpCount} attending</p>
+                <div className="flex items-center space-x-2 text-xs text-gray-500">
+                  <span>{event.rsvpCount} attending</span>
+                  {event.organizer.interests && event.organizer.interests.length > 0 && (
+                    <>
+                      <span>•</span>
+                      <span>{event.organizer.interests.slice(0, 2).join(', ')}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-2">
