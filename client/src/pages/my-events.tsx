@@ -9,6 +9,7 @@ import { queryClient } from "@/lib/queryClient";
 import BottomNav from "@/components/BottomNav";
 import EventCard from "@/components/EventCard";
 import EventDetail from "@/components/EventDetail";
+import CreateEvent from "@/components/CreateEvent";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function MyEvents() {
@@ -16,6 +17,7 @@ export default function MyEvents() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'organized' | 'attending'>('organized');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   const { data: organizedEvents } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized"],
@@ -162,9 +164,16 @@ export default function MyEvents() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav currentPage="my-events" />
+      <BottomNav 
+        currentPage="my-events" 
+        onCreateEvent={() => setShowCreateEvent(true)}
+      />
 
-      {/* Event Detail Modal */}
+      {/* Modals */}
+      {showCreateEvent && (
+        <CreateEvent onClose={() => setShowCreateEvent(false)} />
+      )}
+      
       {selectedEvent && (
         <EventDetail 
           event={selectedEvent} 

@@ -7,6 +7,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import AnimeAvatar from "@/components/AnimeAvatar";
 import BottomNav from "@/components/BottomNav";
+import CreateEvent from "@/components/CreateEvent";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Profile() {
@@ -16,6 +17,7 @@ export default function Profile() {
   const [showProfile, setShowProfile] = useState(false);
   const [editingInterests, setEditingInterests] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -337,7 +339,15 @@ export default function Profile() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav currentPage="profile" />
+      <BottomNav 
+        currentPage="profile" 
+        onCreateEvent={() => setShowCreateEvent(true)}
+      />
+
+      {/* Create Event Modal */}
+      {showCreateEvent && (
+        <CreateEvent onClose={() => setShowCreateEvent(false)} />
+      )}
     </div>
   );
 }
