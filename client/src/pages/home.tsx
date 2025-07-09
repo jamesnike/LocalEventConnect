@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Bell, Plus } from "lucide-react";
+import { MapPin, Bell, Plus, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import EventCard from "@/components/EventCard";
 import CategoryFilter from "@/components/CategoryFilter";
@@ -15,6 +15,19 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
+
+  const availableInterests = [
+    { id: 'music', name: 'Music', icon: Music },
+    { id: 'sports', name: 'Sports', icon: Activity },
+    { id: 'arts', name: 'Arts', icon: Palette },
+    { id: 'food', name: 'Food', icon: UtensilsCrossed },
+    { id: 'tech', name: 'Tech', icon: Laptop },
+    { id: 'photography', name: 'Photography', icon: Activity },
+    { id: 'travel', name: 'Travel', icon: Activity },
+    { id: 'fitness', name: 'Fitness', icon: Activity },
+    { id: 'gaming', name: 'Gaming', icon: Activity },
+    { id: 'reading', name: 'Reading', icon: Activity },
+  ];
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events", selectedCategory === "all" ? undefined : selectedCategory],
@@ -40,15 +53,38 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-gray-800">
-              {user?.location || "San Francisco, CA"}
-            </span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Bell className="w-5 h-5 text-gray-600" />
+          {/* User Avatar */}
+          <div className="flex items-center space-x-3">
             <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="sm" />
+            
+            {/* User Interests */}
+            <div className="flex items-center space-x-1">
+              {user?.interests && user.interests.length > 0 ? (
+                user.interests.slice(0, 2).map((interest) => {
+                  const interestData = availableInterests.find(i => i.id === interest);
+                  const Icon = interestData?.icon || Activity;
+                  
+                  return (
+                    <div key={interest} className="flex items-center bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                      <Icon className="w-3 h-3" />
+                    </div>
+                  );
+                })
+              ) : (
+                <span className="text-xs text-gray-500">Set interests</span>
+              )}
+            </div>
+          </div>
+          
+          {/* Location and Notifications */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-gray-800">
+                {user?.location || "San Francisco, CA"}
+              </span>
+            </div>
+            <Bell className="w-5 h-5 text-gray-600" />
           </div>
         </div>
       </header>
