@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { status } = req.body;
       
-      if (!['going', 'maybe', 'not_going'].includes(status)) {
+      if (!['going', 'maybe', 'not_going', 'attending'].includes(status)) {
         return res.status(400).json({ message: "Invalid RSVP status" });
       }
       
