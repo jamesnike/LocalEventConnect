@@ -34,10 +34,8 @@ export default function Browse() {
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="w-5 h-5"></div>
-        <h2 className="text-lg font-semibold">Browse Events</h2>
-        <Search className="w-5 h-5 text-gray-600" />
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center">
+        <h2 className="text-lg font-semibold">I am free in ...</h2>
       </header>
 
       {/* Category Filter */}
