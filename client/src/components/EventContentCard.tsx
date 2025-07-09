@@ -150,7 +150,7 @@ export default function EventContentCard({
     setTimeout(() => {
       onSwipeRight();
       setIsButtonClicked(false);
-    }, 300);
+    }, 800);
   };
 
   return (
@@ -320,7 +320,7 @@ export default function EventContentCard({
         <div className="absolute bottom-32 right-4 z-30">
           <button
             onClick={handleKeepExploring}
-            className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-300 ${
+            className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
               isButtonClicked ? 'scale-125 rotate-12 bg-green-500' : 'hover:scale-105'
             }`}
           >
