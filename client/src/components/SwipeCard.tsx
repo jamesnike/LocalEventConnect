@@ -16,12 +16,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [scrollOffset, setScrollOffset] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const lastTapTime = useRef(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
@@ -51,31 +47,10 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const deltaX = clientX - startPos.current.x;
     const deltaY = clientY - startPos.current.y;
     
-    // If already expanded, only allow vertical scrolling to close
-    if (scrollOffset > 0) {
-      if (deltaY < 0) {
-        // Allow scrolling up to close
-        setIsScrolling(true);
-        setScrollOffset(Math.max(0, 200 + deltaY));
-      }
-      return;
-    }
-    
-    // Determine if this is a horizontal swipe or vertical scroll
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-    
-    if (absY > absX && deltaY > 10) {
-      // Vertical scroll down - show more details
-      setIsScrolling(true);
-      setScrollOffset(Math.max(0, Math.min(deltaY - 10, 200))); // Limit scroll to 200px
-    } else if (absX > absY && absX > 10) {
-      // Horizontal swipe - card movement
-      setIsScrolling(false);
-      const newRotation = deltaX * 0.1;
-      setDragOffset({ x: deltaX, y: deltaY });
-      setRotation(newRotation);
-    }
+    // Only horizontal swiping for card movement
+    const newRotation = deltaX * 0.1;
+    setDragOffset({ x: deltaX, y: deltaY });
+    setRotation(newRotation);
   };
 
   const handleMouseUp = () => {
@@ -91,62 +66,24 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const handleDragEnd = () => {
     setIsDragging(false);
     
-    if (isScrolling) {
-      // Handle scroll end - snap to either closed or expanded state
-      if (scrollOffset > 40) {
-        setScrollOffset(200); // Snap to expanded details view
-      } else {
-        setScrollOffset(0); // Snap back to closed
-      }
-      setIsScrolling(false);
+    const threshold = 120;
+    if (dragOffset.x > threshold) {
+      onSwipeRight();
+    } else if (dragOffset.x < -threshold) {
+      onSwipeLeft();
     } else {
-      // Handle swipe end
-      const threshold = 120;
-      if (dragOffset.x > threshold) {
-        onSwipeRight();
-      } else if (dragOffset.x < -threshold) {
-        onSwipeLeft();
-      } else {
-        // Snap back to center
-        setDragOffset({ x: 0, y: 0 });
-        setRotation(0);
-      }
+      // Snap back to center
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
     }
   };
 
   useEffect(() => {
-    if (!isDragging && !isScrolling) {
+    if (!isDragging) {
       setDragOffset({ x: 0, y: 0 });
       setRotation(0);
     }
-  }, [isDragging, isScrolling]);
-
-  const closeExpanded = () => {
-    setScrollOffset(0);
-  };
-
-  const handleDoubleTab = () => {
-    if (scrollOffset === 0) {
-      setScrollOffset(200); // Expand
-    } else {
-      setScrollOffset(0); // Close
-    }
-  };
-
-  const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
-    e.preventDefault(); // Prevent default behavior
-    const now = Date.now();
-    const timeDiff = now - lastTapTime.current;
-    
-    if (timeDiff < 500 && timeDiff > 50) {
-      // Double tap detected (increased window and minimum time)
-      handleDoubleTab();
-      lastTapTime.current = 0; // Reset to prevent triple-tap issues
-    } else {
-      lastTapTime.current = now;
-    }
-  };
+  }, [isDragging]);
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     const date = new Date(`${dateStr}T${timeStr}`);
@@ -180,10 +117,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         ref={cardRef}
         className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing"
         style={{
-          height: scrollOffset > 0 ? `calc(100% + ${Math.min(scrollOffset, 200)}px)` : '100%',
-          transform: isScrolling || scrollOffset > 0
-            ? `translateY(${-scrollOffset}px)` 
-            : `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
+          height: '100%',
+          transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
           opacity: isActive ? 1 : 0.5,
           overflow: 'visible',
@@ -235,182 +170,119 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           </div>
         </div>
 
-        {/* Event Details */}
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">{event.location}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
-              </span>
-            </div>
-          </div>
-
-          <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
-            {event.description}
-          </p>
-
-          <div className="flex items-center justify-between pt-4">
-            <div className="flex items-center space-x-3">
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
-              <div>
-                <p className="text-sm font-medium text-gray-800">
-                  {event.organizer.firstName || event.organizer.lastName 
-                    ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
-                    : 'Anonymous Organizer'}
-                </p>
-                <div className="flex items-center space-x-2 text-xs text-gray-500">
-                  <span>{event.rsvpCount} attending</span>
-                  {event.organizer.interests && event.organizer.interests.length > 0 && (
-                    <>
-                      <span>•</span>
-                      <span>{event.organizer.interests.slice(0, 2).join(', ')}</span>
-                    </>
-                  )}
-                </div>
+        {/* Event Details - All shown at once */}
+        <div className="p-4 space-y-4">
+          {/* Basic Info Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">{event.location}</span>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                event.category === 'music' ? 'bg-purple-100 text-purple-800' :
-                event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
-                event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
-                event.category === 'food' ? 'bg-orange-100 text-orange-800' :
-                event.category === 'tech' ? 'bg-green-100 text-green-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {event.category}
-              </div>
-            </div>
-          </div>
-          
-          {/* Scroll Down Indicator - Only show when not expanded */}
-          {scrollOffset === 0 && (
-            <div 
-              className="text-center pt-2 pb-1 cursor-pointer hover:bg-gray-50 rounded-md transition-colors relative z-20"
-              onClick={handleTap}
-              onTouchEnd={handleTap}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              style={{ pointerEvents: 'auto' }}
-            >
-              <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
-                <span>Double tap for more details</span>
-                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Additional Details Section - Revealed on Scroll */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-4 rounded-b-2xl">
-          <div className="text-center">
-            <button 
-              onClick={closeExpanded}
-              className="inline-block w-12 h-1 bg-gray-300 rounded-full mb-4 hover:bg-gray-400 transition-colors"
-            ></button>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Event Details</h3>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Full Description</h4>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                {event.description}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Event Information</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">
-                    {formatDateTime(event.date, event.time)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">{event.location}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">
-                    {event.isFree || parseFloat(event.price) === 0 ? 'Free Event' : `$${parseFloat(event.price).toFixed(2)}`}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">
+                  {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
+                </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Organizer</h4>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {event.description}
+            </p>
+
+            <div className="flex items-center justify-between pt-2">
               <div className="flex items-center space-x-3">
                 <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
-                <div className="flex-1">
+                <div>
                   <p className="text-sm font-medium text-gray-800">
                     {event.organizer.firstName || event.organizer.lastName 
                       ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
                       : 'Anonymous Organizer'}
                   </p>
-                  {event.organizer.interests && event.organizer.interests.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {event.organizer.interests.map((interest, index) => (
-                        <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-2 text-xs text-gray-500">
+                    <span>{event.rsvpCount} attending</span>
+                    {event.organizer.interests && event.organizer.interests.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{event.organizer.interests.slice(0, 2).join(', ')}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Event Details</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Attending</span>
-                  <span className="font-medium text-gray-800">{event.rsvpCount} people</span>
+              <div className="flex items-center space-x-2">
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  event.category === 'music' ? 'bg-purple-100 text-purple-800' :
+                  event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
+                  event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
+                  event.category === 'food' ? 'bg-orange-100 text-orange-800' :
+                  event.category === 'tech' ? 'bg-green-100 text-green-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {event.category}
                 </div>
-                {event.capacity && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Capacity</span>
-                    <span className="font-medium text-gray-800">{event.capacity} people</span>
-                  </div>
-                )}
-                {event.duration && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Duration</span>
-                    <span className="font-medium text-gray-800">{event.duration}</span>
-                  </div>
-                )}
-                {event.meetingPoint && (
-                  <div>
-                    <span className="text-gray-600 block">Meeting Point</span>
-                    <span className="font-medium text-gray-800">{event.meetingPoint}</span>
-                  </div>
-                )}
-                {event.parkingInfo && (
-                  <div>
-                    <span className="text-gray-600 block">Parking</span>
-                    <span className="font-medium text-gray-800">{event.parkingInfo}</span>
-                  </div>
-                )}
-                {event.specialNotes && (
-                  <div>
-                    <span className="text-gray-600 block">Special Notes</span>
-                    <span className="font-medium text-gray-800">{event.specialNotes}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
+
+          {/* Detailed Information */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <h4 className="font-medium text-gray-800 text-sm">Event Details</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-gray-600 block">Attending</span>
+                <span className="font-medium text-gray-800">{event.rsvpCount} people</span>
+              </div>
+              {event.capacity && (
+                <div>
+                  <span className="text-gray-600 block">Capacity</span>
+                  <span className="font-medium text-gray-800">{event.capacity} people</span>
+                </div>
+              )}
+              {event.duration && (
+                <div>
+                  <span className="text-gray-600 block">Duration</span>
+                  <span className="font-medium text-gray-800">{event.duration}</span>
+                </div>
+              )}
+            </div>
+            
+            {event.meetingPoint && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Meeting Point</span>
+                <span className="font-medium text-gray-800">{event.meetingPoint}</span>
+              </div>
+            )}
+            
+            {event.parkingInfo && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Parking</span>
+                <span className="font-medium text-gray-800">{event.parkingInfo}</span>
+              </div>
+            )}
+            
+            {event.specialNotes && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Special Notes</span>
+                <span className="font-medium text-gray-800">{event.specialNotes}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Organizer Interests */}
+          {event.organizer.interests && event.organizer.interests.length > 0 && (
+            <div className="bg-blue-50 rounded-lg p-3">
+              <h4 className="font-medium text-gray-800 text-sm mb-2">Organizer's Interests</h4>
+              <div className="flex flex-wrap gap-1">
+                {event.organizer.interests.map((interest, index) => (
+                  <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
