@@ -226,8 +226,14 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             </div>
           </div>
 
-          {/* Detailed Information */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+          {/* Detailed Information - Clickable */}
+          <div 
+            className="bg-gray-50 rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-100 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfoClick();
+            }}
+          >
             <h4 className="font-medium text-gray-800 text-sm">Event Details</h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
@@ -268,6 +274,11 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
                 <span className="font-medium text-gray-800">{event.specialNotes}</span>
               </div>
             )}
+            
+            {/* Click indicator */}
+            <div className="text-xs text-gray-500 text-center mt-2">
+              Click for more details
+            </div>
           </div>
 
           {/* Organizer Interests */}
