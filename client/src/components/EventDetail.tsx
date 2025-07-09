@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle } from "lucide-react";
+import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -88,6 +88,19 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
     rsvpMutation.mutate(newStatus);
   };
 
+  const availableInterests = [
+    { id: 'music', name: 'Music', icon: Music },
+    { id: 'sports', name: 'Sports', icon: Activity },
+    { id: 'arts', name: 'Arts', icon: Palette },
+    { id: 'food', name: 'Food', icon: UtensilsCrossed },
+    { id: 'tech', name: 'Tech', icon: Laptop },
+    { id: 'photography', name: 'Photography', icon: Activity },
+    { id: 'travel', name: 'Travel', icon: Activity },
+    { id: 'fitness', name: 'Fitness', icon: Activity },
+    { id: 'gaming', name: 'Gaming', icon: Activity },
+    { id: 'reading', name: 'Reading', icon: Activity },
+  ];
+
   return (
     <div className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ${
       isClosing ? 'translate-y-full' : 'translate-y-0'
@@ -157,7 +170,7 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
           
           <div className="mb-6">
             <h3 className="font-semibold text-gray-800 mb-2">Organized by</h3>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-3">
               <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
               <div>
                 <p className="font-medium text-gray-800">
@@ -168,6 +181,21 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
                 <p className="text-sm text-gray-600">{event.organizer.location}</p>
               </div>
             </div>
+            {event.organizer.interests && event.organizer.interests.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {event.organizer.interests.slice(0, 3).map((interest) => {
+                  const interestData = availableInterests.find(i => i.id === interest);
+                  const Icon = interestData?.icon || Activity;
+                  
+                  return (
+                    <div key={interest} className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
+                      <Icon className="w-3 h-3" />
+                      <span>{interestData?.name || interest}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
           
           <div className="flex space-x-3 pb-6">

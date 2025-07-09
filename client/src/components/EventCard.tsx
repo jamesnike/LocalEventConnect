@@ -1,4 +1,4 @@
-import { MapPin, Heart, Clock, DollarSign } from "lucide-react";
+import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 
@@ -47,6 +47,19 @@ export default function EventCard({ event, onEventClick, showStatus }: EventCard
     };
     return icons[category.toLowerCase() as keyof typeof icons] || '📅';
   };
+
+  const availableInterests = [
+    { id: 'music', name: 'Music', icon: Music },
+    { id: 'sports', name: 'Sports', icon: Activity },
+    { id: 'arts', name: 'Arts', icon: Palette },
+    { id: 'food', name: 'Food', icon: UtensilsCrossed },
+    { id: 'tech', name: 'Tech', icon: Laptop },
+    { id: 'photography', name: 'Photography', icon: Activity },
+    { id: 'travel', name: 'Travel', icon: Activity },
+    { id: 'fitness', name: 'Fitness', icon: Activity },
+    { id: 'gaming', name: 'Gaming', icon: Activity },
+    { id: 'reading', name: 'Reading', icon: Activity },
+  ];
 
   return (
     <div className="bg-white shadow-sm cursor-pointer" onClick={onEventClick}>
@@ -111,6 +124,22 @@ export default function EventCard({ event, onEventClick, showStatus }: EventCard
             </span>
           </div>
         </div>
+        
+        {event.organizer.interests && event.organizer.interests.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {event.organizer.interests.slice(0, 2).map((interest) => {
+              const interestData = availableInterests.find(i => i.id === interest);
+              const Icon = interestData?.icon || Activity;
+              
+              return (
+                <div key={interest} className="flex items-center space-x-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                  <Icon className="w-3 h-3" />
+                  <span>{interestData?.name || interest}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         
         {showStatus && (
           <div className="mt-3 pt-3 border-t border-gray-100">

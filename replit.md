@@ -2,7 +2,7 @@
 
 ## Overview
 
-EventConnect is a mobile-first event discovery and management platform that allows users to find, create, and participate in local events. Built with React, Express, and PostgreSQL, it features a clean mobile interface with authentication, event management, and social features.
+EventConnect is a mobile-first event discovery and management platform that allows users to find, create, and participate in local events. Built with React, Express, and PostgreSQL, it features a clean mobile interface with authentication, event management, and social features. The app includes an interest selection system where users can choose up to 3 interests to display on their profile and share with other users.
 
 ## System Architecture
 
@@ -50,10 +50,11 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ### UI Components
 - **AnimeAvatar**: Consistent avatar generation
-- **EventCard**: Event display with status indicators
+- **EventCard**: Event display with status indicators and organizer interests
 - **CategoryFilter**: Event filtering by category
 - **BottomNav**: Mobile navigation interface
 - **CreateEvent**: Event creation modal
+- **InterestSelector**: User interest selection (up to 3 interests)
 
 ## Data Flow
 
