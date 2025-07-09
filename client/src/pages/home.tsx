@@ -9,6 +9,7 @@ import SwipeCard from "@/components/SwipeCard";
 import EventDetailCard from "@/components/EventDetailCard";
 import EventContentCard from "@/components/EventContentCard";
 import CelebrationAnimation from "@/components/CelebrationAnimation";
+import SkipAnimation from "@/components/SkipAnimation";
 import CreateEvent from "@/components/CreateEvent";
 import EventDetail from "@/components/EventDetail";
 import BottomNav from "@/components/BottomNav";
@@ -24,6 +25,7 @@ export default function Home() {
   const [showDetailCard, setShowDetailCard] = useState(false);
   const [showContentCard, setShowContentCard] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,10 +94,15 @@ export default function Home() {
         setIsTransitioning(false);
       }, 150);
     } else {
-      // From main card, skip this event
-      setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-      setCurrentEventIndex(prev => prev + 1);
+      // From main card, skip this event with animation
+      setShowSkipAnimation(true);
     }
+  };
+
+  const handleSkipAnimationComplete = () => {
+    setShowSkipAnimation(false);
+    setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+    setCurrentEventIndex(prev => prev + 1);
   };
 
   const handleContentSwipeRight = () => {
@@ -323,6 +330,12 @@ export default function Home() {
       <CelebrationAnimation 
         isVisible={showCelebration} 
         onComplete={handleCelebrationComplete}
+      />
+
+      {/* Skip Animation */}
+      <SkipAnimation 
+        isVisible={showSkipAnimation} 
+        onComplete={handleSkipAnimationComplete}
       />
 
       {/* Modals */}
