@@ -92,6 +92,18 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     });
   };
 
+  const getCategoryImageUrl = (category: string) => {
+    const categoryImages = {
+      music: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400',
+      sports: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400',
+      arts: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400',
+      food: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400',
+      tech: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400',
+    };
+    return categoryImages[category.toLowerCase() as keyof typeof categoryImages] || 
+           'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400';
+  };
+
   const getOverlayColor = () => {
     if (dragOffset.x > 60) return 'bg-green-500/20';
     if (dragOffset.x < -60) return 'bg-red-500/20';
@@ -131,8 +143,13 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="h-96 bg-gradient-to-br from-purple-400 to-pink-400 relative">
-          <div className="absolute inset-0 bg-black/20" />
+        <div className="h-96 relative overflow-hidden">
+          <img 
+            src={event.eventImageUrl || getCategoryImageUrl(event.category)}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/30" />
           
           {/* Organizer Profile Photo - Top Left */}
           <div className="absolute top-4 left-4 flex items-center space-x-2 bg-black/40 backdrop-blur-sm rounded-full p-2 pr-3">
