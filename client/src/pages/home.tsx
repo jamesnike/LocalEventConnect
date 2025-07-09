@@ -346,6 +346,10 @@ export default function Home() {
         <EventDetail 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
+          onNavigateToContent={() => {
+            setShowContentCard(true);
+            setCurrentEventIndex(availableEvents.findIndex(e => e.id === selectedEvent.id));
+          }}
         />
       )}
     </div>

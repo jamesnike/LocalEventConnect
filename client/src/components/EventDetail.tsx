@@ -7,17 +7,20 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
+import CelebrationAnimation from "./CelebrationAnimation";
 
 interface EventDetailProps {
   event: EventWithOrganizer;
   onClose: () => void;
+  onNavigateToContent?: () => void;
 }
 
-export default function EventDetail({ event, onClose }: EventDetailProps) {
+export default function EventDetail({ event, onClose, onNavigateToContent }: EventDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isClosing, setIsClosing] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -42,12 +45,18 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
     mutationFn: async (status: string) => {
       await apiRequest('POST', `/api/events/${event.id}/rsvp`, { status });
     },
-    onSuccess: () => {
-      toast({
-        title: "RSVP Updated",
-        description: "Your RSVP has been updated successfully.",
-      });
+    onSuccess: (_, status) => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      
+      // If user is RSVPing "going", show celebration animation
+      if (status === 'going') {
+        setShowCelebration(true);
+      } else {
+        toast({
+          title: "RSVP Updated",
+          description: "Your RSVP has been updated successfully.",
+        });
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -88,6 +97,15 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
 
     const newStatus = event.userRsvpStatus === 'going' ? 'not_going' : 'going';
     rsvpMutation.mutate(newStatus);
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    // Navigate to EventContent after celebration
+    if (onNavigateToContent) {
+      onNavigateToContent();
+    }
+    onClose();
   };
 
   const availableInterests = [
@@ -236,6 +254,12 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
           </div>
         </div>
       </div>
+      
+      {/* Celebration Animation */}
+      <CelebrationAnimation 
+        isVisible={showCelebration}
+        onComplete={handleCelebrationComplete}
+      />
     </div>
   );
 }
