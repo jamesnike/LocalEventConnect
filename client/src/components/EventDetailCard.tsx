@@ -131,7 +131,9 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
   }, [isDragging]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Parse the date string as local time to avoid timezone issues
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 

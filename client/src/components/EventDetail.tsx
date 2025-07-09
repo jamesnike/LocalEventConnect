@@ -20,7 +20,9 @@ export default function EventDetail({ event, onClose }: EventDetailProps) {
   const [isClosing, setIsClosing] = useState(false);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Parse the date string as local time to avoid timezone issues
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 

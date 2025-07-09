@@ -122,7 +122,10 @@ export default function EventContentCard({
   };
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
-    const date = new Date(`${dateStr}T${timeStr}`);
+    // Parse the date string as local time to avoid timezone issues
+    const [year, month, day] = dateStr.split('-');
+    const [hours, minutes] = timeStr.split(':');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
