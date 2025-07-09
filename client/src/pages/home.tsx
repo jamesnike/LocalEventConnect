@@ -208,21 +208,13 @@ export default function Home() {
 
       {/* Action Buttons - Floating over event card */}
       <div className="absolute bottom-24 left-0 right-0 px-4 py-4 flex-shrink-0 z-20">
-        <div className="flex justify-center space-x-8">
+        <div className="flex justify-center space-x-16">
           <button
             onClick={handleSwipeLeft}
             disabled={!currentEvent}
             className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-6 h-6" />
-          </button>
-          
-          <button
-            onClick={handleUndo}
-            disabled={swipedEvents.size === 0 && !showDetailCard}
-            className="w-12 h-12 bg-gray-400 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RotateCcw className="w-5 h-5" />
           </button>
           
           <button
@@ -235,12 +227,9 @@ export default function Home() {
         </div>
         
         {/* Action Labels */}
-        <div className="flex justify-center space-x-8 mt-2">
+        <div className="flex justify-center space-x-16 mt-2">
           <span className="text-xs text-gray-600 w-14 text-center">
             {showDetailCard ? 'Back' : 'Skip'}
-          </span>
-          <span className="text-xs text-gray-600 w-12 text-center">
-            {showDetailCard ? 'Back' : 'Undo'}
           </span>
           <span className="text-xs text-gray-600 w-14 text-center">
             {showDetailCard ? 'RSVP' : 'Details'}
