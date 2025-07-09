@@ -142,16 +142,15 @@ export default function EventContentCard({
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto">
+    <div className="relative w-full h-full">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 ${
+        className={`bg-white h-full overflow-hidden transform transition-all duration-300 ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
-          zIndex: isActive ? 10 : 1,
-          height: '600px'
+          zIndex: isActive ? 10 : 1
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -199,7 +198,7 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 h-96 overflow-hidden">
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div

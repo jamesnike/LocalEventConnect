@@ -262,7 +262,7 @@ export default function Home() {
             <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
               showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
-              <div className="flex items-center justify-center h-full">
+              <div className="w-full h-full">
                 <EventContentCard
                   event={currentEvent}
                   onSwipeLeft={handleSwipeLeft}
