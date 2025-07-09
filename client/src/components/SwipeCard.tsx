@@ -52,12 +52,12 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
     
-    if (absY > absX && deltaY > 0) {
-      // Vertical scroll down - show more details
+    if (absY > absX && deltaY > 50) {
+      // Vertical scroll down - show more details (require more movement)
       setIsScrolling(true);
-      setScrollOffset(Math.max(0, Math.min(deltaY, 200))); // Limit scroll to 200px
-    } else if (absX > absY) {
-      // Horizontal swipe - card movement
+      setScrollOffset(Math.max(0, Math.min(deltaY - 50, 300))); // Limit scroll to 300px
+    } else if (absX > absY && absX > 30) {
+      // Horizontal swipe - card movement (require more movement)
       setIsScrolling(false);
       const newRotation = deltaX * 0.1;
       setDragOffset({ x: deltaX, y: deltaY });
@@ -80,8 +80,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     
     if (isScrolling) {
       // Handle scroll end - keep scroll position if significant
-      if (scrollOffset > 50) {
-        setScrollOffset(200); // Snap to fully expanded
+      if (scrollOffset > 100) {
+        setScrollOffset(300); // Snap to fully expanded
       } else {
         setScrollOffset(0); // Snap back to closed
       }
@@ -133,18 +133,20 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
 
   return (
     <div 
-      className="absolute inset-0 p-4"
+      className="absolute inset-0 p-4 overflow-hidden"
       style={{ zIndex: isActive ? 10 : 1 }}
     >
       <div
         ref={cardRef}
-        className="relative w-full h-full bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing"
         style={{
+          height: scrollOffset > 0 ? `calc(100% + ${Math.min(scrollOffset, 300)}px)` : '100%',
           transform: isScrolling 
             ? `translateY(${-scrollOffset}px)` 
             : `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
           opacity: isActive ? 1 : 0.5,
+          overflow: 'visible',
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -160,7 +162,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="h-80 relative overflow-hidden">
+        <div className="h-80 relative overflow-hidden rounded-t-2xl">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -257,7 +259,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Additional Details Section - Revealed on Scroll */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-4">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-4 rounded-b-2xl">
           <div className="text-center">
             <div className="inline-block w-12 h-1 bg-gray-300 rounded-full mb-4"></div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Event Details</h3>
