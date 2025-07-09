@@ -270,6 +270,7 @@ export default function Home() {
                   onSwipeRight={handleContentSwipeRight}
                   isActive={showContentCard}
                   similarEvents={availableEvents.filter(e => e.id !== currentEvent?.id && e.category === currentEvent?.category).slice(0, 3)}
+                  onSimilarEventClick={(event) => setSelectedEvent(event)}
                 />
               </div>
             </div>

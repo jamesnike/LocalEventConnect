@@ -11,6 +11,7 @@ interface EventContentCardProps {
   onSwipeRight: () => void;
   isActive: boolean;
   similarEvents?: EventWithOrganizer[];
+  onSimilarEventClick?: (event: EventWithOrganizer) => void;
 }
 
 export default function EventContentCard({ 
@@ -18,7 +19,8 @@ export default function EventContentCard({
   onSwipeLeft, 
   onSwipeRight, 
   isActive, 
-  similarEvents = [] 
+  similarEvents = [],
+  onSimilarEventClick
 }: EventContentCardProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
   const [newMessage, setNewMessage] = useState('');
@@ -186,7 +188,13 @@ export default function EventContentCard({
                 <div className="space-y-4">
                   {similarEvents.length > 0 ? (
                     similarEvents.slice(0, 3).map((similarEvent) => (
-                      <div key={similarEvent.id} className="border border-gray-200 rounded-lg p-4">
+                      <button
+                        key={similarEvent.id}
+                        onClick={() => {
+                          onSimilarEventClick?.(similarEvent);
+                        }}
+                        className="w-full border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
+                      >
                         <div className="flex space-x-3">
                           <img
                             src={getEventImageUrl(similarEvent)}
@@ -194,7 +202,7 @@ export default function EventContentCard({
                             className="w-16 h-16 object-cover rounded-lg"
                           />
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-800 text-sm">{similarEvent.title}</h4>
+                            <h4 className="font-medium text-gray-800 text-sm hover:text-purple-600 transition-colors">{similarEvent.title}</h4>
                             <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                               <Clock className="w-3 h-3" />
                               <span>{formatDateTime(similarEvent.date, similarEvent.time)}</span>
@@ -219,7 +227,7 @@ export default function EventContentCard({
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))
                   ) : (
                     <div className="text-center py-8">
