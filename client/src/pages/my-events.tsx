@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import BottomNav from "@/components/BottomNav";
 import EventCard from "@/components/EventCard";
 import EventDetail from "@/components/EventDetail";
@@ -35,6 +37,34 @@ export default function MyEvents() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     enabled: !!user?.id,
+  });
+
+  const removeRsvpMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      await apiRequest("DELETE", `/api/events/${eventId}/rsvp`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      toast({
+        title: "Removed from attending",
+        description: "You're no longer attending this event.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Please Sign In",
+          description: "You need to sign in to remove events.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to remove event. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
@@ -124,6 +154,7 @@ export default function MyEvents() {
                 event={event} 
                 onEventClick={() => setSelectedEvent(event)}
                 showStatus={activeTab === 'organized' ? 'hosting' : 'attending'}
+                onRemoveClick={activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
               />
             ))}
           </div>

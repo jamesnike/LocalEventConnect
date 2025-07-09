@@ -1,4 +1,4 @@
-import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
+import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop, Trash2 } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
@@ -7,9 +7,10 @@ interface EventCardProps {
   event: EventWithOrganizer;
   onEventClick: () => void;
   showStatus?: 'hosting' | 'attending';
+  onRemoveClick?: () => void;
 }
 
-export default function EventCard({ event, onEventClick, showStatus }: EventCardProps) {
+export default function EventCard({ event, onEventClick, showStatus, onRemoveClick }: EventCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -71,7 +72,19 @@ export default function EventCard({ event, onEventClick, showStatus }: EventCard
           className="w-full h-48 object-cover"
         />
         <div className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md">
-          <Heart className="w-4 h-4 text-gray-400" />
+          {showStatus === 'attending' && onRemoveClick ? (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveClick();
+              }}
+              className="text-red-500 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <Heart className="w-4 h-4 text-gray-400" />
+          )}
         </div>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
           <span className={`inline-block ${getCategoryColor(event.category)} text-white text-xs px-2 py-1 rounded-full mb-2`}>
