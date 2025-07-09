@@ -155,7 +155,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="h-60 relative overflow-hidden rounded-t-2xl">
+        <div className="h-80 relative overflow-hidden rounded-t-2xl">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -165,47 +165,47 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           
 
           
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-3">
             <button onClick={onInfoClick}>
-              <Info className="w-4 h-4 text-gray-700" />
+              <Info className="w-5 h-5 text-gray-700" />
             </button>
           </div>
-          <div className="absolute bottom-3 left-3 right-3 text-white">
-            <h2 className="text-xl font-bold mb-1">{event.title}</h2>
-            <div className="flex items-center space-x-2 text-sm">
-              <Clock className="w-4 h-4" />
+          <div className="absolute bottom-4 left-4 right-4 text-white">
+            <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
+            <div className="flex items-center space-x-2 text-base">
+              <Clock className="w-5 h-5" />
               <span>{formatDateTime(event.date, event.time)}</span>
             </div>
           </div>
         </div>
 
         {/* Event Details - Simplified */}
-        <div className="p-3 space-y-2">
+        <div className="p-5 space-y-4">
           {/* Basic Info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">{event.location}</span>
+              <MapPin className="w-5 h-5 text-gray-500" />
+              <span className="text-base text-gray-600">{event.location}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <DollarSign className="w-5 h-5 text-gray-500" />
+              <span className="text-base text-gray-600">
                 {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
               </span>
             </div>
           </div>
 
           {/* Description - Truncated */}
-          <p className="text-gray-700 text-sm leading-relaxed line-clamp-2">
+          <p className="text-gray-700 text-base leading-relaxed line-clamp-2">
             {event.description}
           </p>
 
           {/* Bottom Info */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center space-x-2 text-base text-gray-600">
               <span>{event.rsvpCount} attending</span>
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            <div className={`px-4 py-2 rounded-full text-sm font-medium ${
               event.category === 'music' ? 'bg-purple-100 text-purple-800' :
               event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
               event.category === 'arts' ? 'bg-pink-100 text-pink-800' :

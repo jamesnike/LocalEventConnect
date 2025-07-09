@@ -135,7 +135,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         onTouchEnd={handleTouchEnd}
       >
         {/* Header with image */}
-        <div className="relative h-48">
+        <div className="relative h-64">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -143,9 +143,9 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-white font-bold text-xl mb-1">{event.title}</h2>
-            <div className="flex items-center text-white/90 text-sm">
-              <MapPin className="w-4 h-4 mr-1" />
+            <h2 className="text-white font-bold text-2xl mb-2">{event.title}</h2>
+            <div className="flex items-center text-white/90 text-base">
+              <MapPin className="w-5 h-5 mr-2" />
               <span>{event.location}</span>
             </div>
           </div>
@@ -156,23 +156,23 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center text-gray-600 mb-1">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span className="text-sm">{formatDate(event.date)}</span>
+              <div className="flex items-center text-gray-600 mb-2">
+                <Calendar className="w-5 h-5 mr-2" />
+                <span className="text-base">{formatDate(event.date)}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <Clock className="w-4 h-4 mr-2" />
-                <span className="text-sm">{formatTime(event.time)}</span>
+                <Clock className="w-5 h-5 mr-2" />
+                <span className="text-base">{formatTime(event.time)}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="flex items-center text-gray-600 mb-1">
-                <DollarSign className="w-4 h-4 mr-1" />
-                <span className="text-sm">
+              <div className="flex items-center text-gray-600 mb-2">
+                <DollarSign className="w-5 h-5 mr-2" />
+                <span className="text-base">
                   {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-base text-gray-600">
                 {event.rsvpCount} attending
               </div>
             </div>
@@ -180,8 +180,8 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
           {/* Description */}
           <div>
-            <h3 className="font-semibold text-gray-800 mb-2">About this event</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
+            <h3 className="font-semibold text-gray-800 text-lg mb-3">About this event</h3>
+            <p className="text-gray-700 text-base leading-relaxed">
               {event.description}
             </p>
           </div>
@@ -209,11 +209,11 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           </div>
 
           {/* Event Details Section */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-            <h4 className="font-semibold text-gray-800">Event Details</h4>
+          <div className="bg-gray-50 rounded-lg p-5 space-y-5">
+            <h4 className="font-semibold text-gray-800 text-lg">Event Details</h4>
             
             {/* Capacity and Duration */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-4 text-base">
               {event.capacity && (
                 <div>
                   <span className="text-gray-600 block">Capacity</span>
@@ -230,7 +230,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Meeting Point */}
             {event.meetingPoint && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Meeting Point</span>
                 <span className="font-medium text-gray-800">{event.meetingPoint}</span>
               </div>
@@ -238,7 +238,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Parking Information */}
             {event.parkingInfo && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Parking</span>
                 <span className="font-medium text-gray-800">{event.parkingInfo}</span>
               </div>
@@ -246,7 +246,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* What to Bring */}
             {event.whatToBring && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">What to Bring</span>
                 <span className="font-medium text-gray-800">{event.whatToBring}</span>
               </div>
@@ -254,7 +254,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Requirements */}
             {event.requirements && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Requirements</span>
                 <span className="font-medium text-gray-800">{event.requirements}</span>
               </div>
@@ -262,7 +262,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Special Notes */}
             {event.specialNotes && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Special Notes</span>
                 <span className="font-medium text-gray-800">{event.specialNotes}</span>
               </div>
@@ -270,7 +270,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Contact Information */}
             {event.contactInfo && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Contact Info</span>
                 <span className="font-medium text-gray-800">{event.contactInfo}</span>
               </div>
@@ -278,7 +278,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             
             {/* Cancellation Policy */}
             {event.cancellationPolicy && (
-              <div className="text-sm">
+              <div className="text-base">
                 <span className="text-gray-600 block">Cancellation Policy</span>
                 <span className="font-medium text-gray-800">{event.cancellationPolicy}</span>
               </div>
