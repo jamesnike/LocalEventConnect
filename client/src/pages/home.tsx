@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Bell, Plus, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft } from "lucide-react";
+import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -317,18 +317,11 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating Action Button - Only visible in main SwipeCard */}
-      {!showDetailCard && !showContentCard && !showCelebration && !showSkipAnimation && (
-        <button 
-          onClick={() => setShowCreateEvent(true)}
-          className="fixed bottom-24 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
-
       {/* Bottom Navigation */}
-      <BottomNav currentPage="home" />
+      <BottomNav 
+        currentPage="home" 
+        onCreateEvent={() => setShowCreateEvent(true)}
+      />
 
       {/* Celebration Animation */}
       <CelebrationAnimation 

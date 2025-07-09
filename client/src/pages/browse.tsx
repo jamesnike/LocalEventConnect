@@ -71,16 +71,11 @@ export default function Browse() {
         )}
       </div>
 
-      {/* Floating Action Button */}
-      <button 
-        onClick={() => setShowCreateEvent(true)}
-        className="fixed bottom-24 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-30 hover:bg-primary/90 transition-colors"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
-
       {/* Bottom Navigation */}
-      <BottomNav currentPage="browse" />
+      <BottomNav 
+        currentPage="browse" 
+        onCreateEvent={() => setShowCreateEvent(true)}
+      />
 
       {/* Modals */}
       {showCreateEvent && (

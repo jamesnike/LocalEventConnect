@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import AnimeAvatar from "@/components/AnimeAvatar";
+import BottomNav from "@/components/BottomNav";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Profile() {
@@ -334,6 +335,9 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav currentPage="profile" />
     </div>
   );
 }
