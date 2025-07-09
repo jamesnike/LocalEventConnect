@@ -308,10 +308,10 @@ export default function EventContentCard({
         </div>
 
         {/* Keep Exploring Button - Bottom right with spacing */}
-        <div className="absolute bottom-24 right-4 z-30">
+        <div className="absolute bottom-32 right-4 z-30">
           <button
             onClick={onSwipeRight}
-            className="bg-blue-500 text-white px-8 py-4 rounded-full text-base font-medium shadow-lg hover:bg-blue-600 transition-colors"
+            className="bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-colors"
           >
             Keep Exploring
           </button>
