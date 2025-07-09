@@ -149,13 +149,14 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto">
+    <div className="relative w-full max-w-sm mx-auto" style={{ height: 'calc(100% - 80px)' }}>
       <div
         ref={cardRef}
         className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
+          height: '100%',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
         }}
