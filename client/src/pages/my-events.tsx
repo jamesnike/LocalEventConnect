@@ -15,7 +15,7 @@ import { EventWithOrganizer } from "@shared/schema";
 export default function MyEvents() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'organized' | 'attending'>('organized');
+  const [activeTab, setActiveTab] = useState<'organized' | 'attending'>('attending');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
@@ -111,16 +111,6 @@ export default function MyEvents() {
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
           <button 
-            onClick={() => setActiveTab('organized')}
-            className={`flex-1 py-3 text-center font-medium ${
-              activeTab === 'organized' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-600'
-            }`}
-          >
-            Organized
-          </button>
-          <button 
             onClick={() => setActiveTab('attending')}
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === 'attending' 
@@ -129,6 +119,16 @@ export default function MyEvents() {
             }`}
           >
             Attending
+          </button>
+          <button 
+            onClick={() => setActiveTab('organized')}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeTab === 'organized' 
+                ? 'text-primary border-b-2 border-primary' 
+                : 'text-gray-600'
+            }`}
+          >
+            Organized
           </button>
         </div>
       </div>
