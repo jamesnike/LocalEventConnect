@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Plus } from "lucide-react";
 import EventCard from "@/components/EventCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import EventDetail from "@/components/EventDetail";
+import CreateEvent from "@/components/CreateEvent";
 import BottomNav from "@/components/BottomNav";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Browse() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events", selectedCategory === "all" ? undefined : selectedCategory],
@@ -69,10 +71,22 @@ export default function Browse() {
         )}
       </div>
 
+      {/* Floating Action Button */}
+      <button 
+        onClick={() => setShowCreateEvent(true)}
+        className="fixed bottom-24 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-30 hover:bg-primary/90 transition-colors"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
       {/* Bottom Navigation */}
       <BottomNav currentPage="browse" />
 
-      {/* Event Detail Modal */}
+      {/* Modals */}
+      {showCreateEvent && (
+        <CreateEvent onClose={() => setShowCreateEvent(false)} />
+      )}
+      
       {selectedEvent && (
         <EventDetail 
           event={selectedEvent} 

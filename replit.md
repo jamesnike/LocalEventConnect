@@ -115,6 +115,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 09, 2025. Redesigned home page with Bumble-style swipe interface, moved scrolling list to Browse page
 - July 08, 2025. Initial setup
 
 ## User Preferences
