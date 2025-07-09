@@ -16,9 +16,11 @@ export default function Browse() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events", selectedCategory],
     queryFn: async () => {
-      // For now, we'll show all events regardless of time filter
-      // In a real app, we'd filter by event date/time on the backend
-      const response = await fetch("/api/events?limit=50");
+      const params = new URLSearchParams({
+        timeFilter: selectedCategory,
+        limit: "50"
+      });
+      const response = await fetch(`/api/events?${params}`);
       return response.json() as Promise<EventWithOrganizer[]>;
     },
   });

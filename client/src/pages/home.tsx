@@ -46,6 +46,7 @@ export default function Home() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
     queryFn: async () => {
+      // For home page swipe interface, show all events for broader discovery
       const response = await fetch("/api/events?limit=50");
       return response.json() as Promise<EventWithOrganizer[]>;
     },

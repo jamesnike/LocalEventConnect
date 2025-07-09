@@ -11,7 +11,7 @@ import {
   type InsertRsvp,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, asc } from "drizzle-orm";
+import { eq, and, sql, desc, asc, gte, lte, between } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -20,7 +20,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Event operations
-  getEvents(userId?: string, category?: string, limit?: number): Promise<EventWithOrganizer[]>;
+  getEvents(userId?: string, category?: string, timeFilter?: string, limit?: number): Promise<EventWithOrganizer[]>;
   getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
@@ -59,8 +59,63 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // Helper function to parse time filter and get date/time conditions
+  private getTimeFilterConditions(timeFilter: string) {
+    if (!timeFilter) return undefined;
+    
+    // Parse the time filter format: "today_morning", "tomorrow_afternoon", "day2_night", etc.
+    const [dayPart, timePart] = timeFilter.split('_');
+    
+    // Calculate the target date
+    let dayOffset = 0;
+    if (dayPart === 'today') dayOffset = 0;
+    else if (dayPart === 'tomorrow') dayOffset = 1;
+    else if (dayPart.startsWith('day')) dayOffset = parseInt(dayPart.substring(3));
+    
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayOffset);
+    const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    // Define time ranges based on time period
+    let startTime: string, endTime: string;
+    switch (timePart) {
+      case 'morning':
+        startTime = '06:00:00';
+        endTime = '11:59:59';
+        break;
+      case 'afternoon':
+        startTime = '12:00:00';
+        endTime = '17:59:59';
+        break;
+      case 'night':
+        startTime = '18:00:00';
+        endTime = '23:59:59';
+        break;
+      default:
+        return undefined;
+    }
+    
+    return {
+      date: dateString,
+      startTime,
+      endTime
+    };
+  }
+
+  // Helper function to get WHERE conditions for time filtering
+  private getTimeFilterWhere(timeFilter: string) {
+    const conditions = this.getTimeFilterConditions(timeFilter);
+    if (!conditions) return [];
+    
+    return [
+      eq(events.date, conditions.date),
+      gte(events.time, conditions.startTime),
+      lte(events.time, conditions.endTime)
+    ];
+  }
+
   // Event operations
-  async getEvents(userId?: string, category?: string, limit = 20): Promise<EventWithOrganizer[]> {
+  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20): Promise<EventWithOrganizer[]> {
     const query = db
       .select({
         id: events.id,
@@ -110,7 +165,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(events.isActive, true),
-          category ? eq(events.category, category) : undefined
+          category ? eq(events.category, category) : undefined,
+          ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : [])
         )
       )
       .groupBy(events.id, users.id)

@@ -26,9 +26,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any)?.claims?.sub;
       const category = req.query.category as string | undefined;
+      const timeFilter = req.query.timeFilter as string | undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       
-      const events = await storage.getEvents(userId, category, limit);
+      const events = await storage.getEvents(userId, category, timeFilter, limit);
       res.json(events);
     } catch (error) {
       console.error("Error fetching events:", error);
