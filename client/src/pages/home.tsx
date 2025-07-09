@@ -347,8 +347,24 @@ export default function Home() {
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
           onNavigateToContent={() => {
-            setShowContentCard(true);
-            setCurrentEventIndex(availableEvents.findIndex(e => e.id === selectedEvent.id));
+            // Find the event in the full events array
+            const allEvents = events || [];
+            const eventIndex = allEvents.findIndex(e => e.id === selectedEvent.id);
+            
+            if (eventIndex !== -1) {
+              // Calculate the new available events after removing this event from swipedEvents
+              const newSwipedEvents = new Set(swipedEvents);
+              newSwipedEvents.delete(selectedEvent.id);
+              const newAvailableEvents = allEvents.filter(event => !newSwipedEvents.has(event.id));
+              
+              // Find the index of the selected event in the new available events
+              const newIndex = newAvailableEvents.findIndex(e => e.id === selectedEvent.id);
+              
+              // Update state
+              setSwipedEvents(newSwipedEvents);
+              setCurrentEventIndex(newIndex >= 0 ? newIndex : 0);
+              setShowContentCard(true);
+            }
           }}
         />
       )}
