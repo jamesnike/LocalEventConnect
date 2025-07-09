@@ -18,11 +18,10 @@ const getTimeOptions = () => {
   return [
     { id: 'today_morning', name: `${currentDay} AM`, icon: Sunrise },
     { id: 'today_afternoon', name: `${currentDay} PM`, icon: Sun },
-    { id: 'today_evening', name: `${currentDay} Evening`, icon: Sunset },
     { id: 'today_night', name: `${currentDay} Night`, icon: Moon },
     { id: 'tomorrow_morning', name: `${nextDayName} AM`, icon: Sunrise },
     { id: 'tomorrow_afternoon', name: `${nextDayName} PM`, icon: Sun },
-    { id: 'tomorrow_evening', name: `${nextDayName} Evening`, icon: Sunset },
+    { id: 'tomorrow_night', name: `${nextDayName} Night`, icon: Moon },
   ];
 };
 
