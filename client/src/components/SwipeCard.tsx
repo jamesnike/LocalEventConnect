@@ -123,7 +123,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     >
       <div
         ref={cardRef}
-        className="relative w-full h-full bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing flex flex-col"
+        className="relative w-full h-full bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
           transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
@@ -143,7 +143,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className="h-80 relative overflow-hidden">
           <img 
             src={event.eventImageUrl || getCategoryImageUrl(event.category)}
             alt={event.title}
@@ -176,7 +176,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Details */}
-        <div className="p-4 space-y-3 flex-shrink-0">
+        <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-gray-500" />
