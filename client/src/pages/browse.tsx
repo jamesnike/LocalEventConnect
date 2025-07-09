@@ -14,12 +14,11 @@ export default function Browse() {
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ["/api/events", selectedCategory === "all" ? undefined : selectedCategory],
+    queryKey: ["/api/events", selectedCategory],
     queryFn: async () => {
-      const url = selectedCategory === "all" 
-        ? "/api/events?limit=50" 
-        : `/api/events?category=${selectedCategory}&limit=50`;
-      const response = await fetch(url);
+      // For now, we'll show all events regardless of time filter
+      // In a real app, we'd filter by event date/time on the backend
+      const response = await fetch("/api/events?limit=50");
       return response.json() as Promise<EventWithOrganizer[]>;
     },
   });
@@ -51,7 +50,7 @@ export default function Browse() {
       <div className="flex-1 overflow-y-auto pb-20">
         {!events || events.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-600">No events found in this category.</p>
+            <p className="text-gray-600">No events found for this time period.</p>
           </div>
         ) : (
           <div className="space-y-2">
