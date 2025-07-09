@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -96,15 +96,8 @@ export default function MyEvents() {
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <button 
-          onClick={() => window.history.back()}
-          className="text-gray-600"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center">
         <h2 className="text-lg font-semibold">My Events</h2>
-        <div className="w-5 h-5"></div>
       </header>
 
       {/* Tab Navigation */}
