@@ -276,44 +276,46 @@ export default function Home() {
         )}
       </div>
 
-      {/* Action Buttons - Floating over event card */}
-      <div className="absolute bottom-24 left-0 right-0 px-4 py-4 flex-shrink-0 z-20">
-        <div className="flex justify-center space-x-16">
-          <button
-            onClick={handleSwipeLeft}
-            disabled={!currentEvent || isTransitioning}
-            className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            {showContentCard || showDetailCard ? (
-              <ArrowLeft className="w-6 h-6" />
-            ) : (
-              <X className="w-6 h-6" />
-            )}
-          </button>
+      {/* Action Buttons - Hidden when EventContent is active */}
+      {!showContentCard && (
+        <div className="absolute bottom-24 left-0 right-0 px-4 py-4 flex-shrink-0 z-20">
+          <div className="flex justify-center space-x-16">
+            <button
+              onClick={handleSwipeLeft}
+              disabled={!currentEvent || isTransitioning}
+              className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {showDetailCard ? (
+                <ArrowLeft className="w-6 h-6" />
+              ) : (
+                <X className="w-6 h-6" />
+              )}
+            </button>
+            
+            <button
+              onClick={handleSwipeRight}
+              disabled={!currentEvent || isTransitioning}
+              className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+            >
+              {showDetailCard ? (
+                <Heart className="w-6 h-6" />
+              ) : (
+                <ArrowRight className="w-6 h-6" />
+              )}
+            </button>
+          </div>
           
-          <button
-            onClick={showContentCard ? handleContentSwipeRight : handleSwipeRight}
-            disabled={!currentEvent || isTransitioning}
-            className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
-          >
-            {showDetailCard ? (
-              <Heart className="w-6 h-6" />
-            ) : (
-              <ArrowRight className="w-6 h-6" />
-            )}
-          </button>
+          {/* Action Labels */}
+          <div className="flex justify-center space-x-16 mt-2">
+            <span className="text-xs text-gray-600 w-14 text-center">
+              {showDetailCard ? 'Back' : 'Skip'}
+            </span>
+            <span className="text-xs text-gray-600 w-14 text-center">
+              {showDetailCard ? 'RSVP' : 'Details'}
+            </span>
+          </div>
         </div>
-        
-        {/* Action Labels */}
-        <div className="flex justify-center space-x-16 mt-2">
-          <span className="text-xs text-gray-600 w-14 text-center">
-            {showContentCard ? 'Back' : showDetailCard ? 'Back' : 'Skip'}
-          </span>
-          <span className="text-xs text-gray-600 w-14 text-center">
-            {showContentCard ? 'Next' : showDetailCard ? 'RSVP' : 'Details'}
-          </span>
-        </div>
-      </div>
+      )}
 
       {/* Floating Action Button - Only visible in main SwipeCard */}
       {!showDetailCard && !showContentCard && !showCelebration && !showSkipAnimation && (
