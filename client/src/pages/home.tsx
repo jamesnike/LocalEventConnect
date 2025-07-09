@@ -315,8 +315,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Floating Action Button - Always visible */}
-      {!showCelebration && !showSkipAnimation && (
+      {/* Floating Action Button - Only visible in main SwipeCard */}
+      {!showDetailCard && !showContentCard && !showCelebration && !showSkipAnimation && (
         <button 
           onClick={() => setShowCreateEvent(true)}
           className="fixed bottom-24 right-4 bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary/90 transition-colors"
