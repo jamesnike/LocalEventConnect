@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -52,6 +52,32 @@ export default function Home() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
   });
+
+  // Check for event ID from localStorage (when navigating from other pages)
+  useEffect(() => {
+    const eventContentId = localStorage.getItem('eventContentId');
+    if (eventContentId && events) {
+      const eventId = parseInt(eventContentId);
+      const eventIndex = events.findIndex(e => e.id === eventId);
+      
+      if (eventIndex !== -1) {
+        // Set up the interface to show EventContent for this event
+        setCurrentEventIndex(eventIndex);
+        setShowContentCard(true);
+        setShowDetailCard(false);
+        
+        // Remove from swipedEvents to ensure it's available
+        setSwipedEvents(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(eventId);
+          return newSet;
+        });
+        
+        // Clear the localStorage
+        localStorage.removeItem('eventContentId');
+      }
+    }
+  }, [events]);
 
   const rsvpMutation = useMutation({
     mutationFn: async ({ eventId, status }: { eventId: number; status: string }) => {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Calendar, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ export default function MyEvents() {
   const [activeTab, setActiveTab] = useState<'organized' | 'attending'>('attending');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [, setLocation] = useLocation();
 
   const { data: organizedEvents } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized"],
@@ -171,6 +173,12 @@ export default function MyEvents() {
         <EventDetail 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
+          onNavigateToContent={() => {
+            // Navigate to Home page with the event content
+            // Store the event ID in localStorage so Home page can pick it up
+            localStorage.setItem('eventContentId', selectedEvent.id.toString());
+            setLocation('/');
+          }}
         />
       )}
     </div>

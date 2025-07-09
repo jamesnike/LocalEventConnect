@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Search, Plus } from "lucide-react";
 import EventCard from "@/components/EventCard";
 import CategoryFilter from "@/components/CategoryFilter";
@@ -12,6 +13,7 @@ export default function Browse() {
   const [selectedCategory, setSelectedCategory] = useState("today_morning");
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [, setLocation] = useLocation();
 
   const { data: allEvents, isLoading } = useQuery({
     queryKey: ["/api/events"],
@@ -123,6 +125,12 @@ export default function Browse() {
         <EventDetail 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
+          onNavigateToContent={() => {
+            // Navigate to Home page with the event content
+            // Store the event ID in localStorage so Home page can pick it up
+            localStorage.setItem('eventContentId', selectedEvent.id.toString());
+            setLocation('/');
+          }}
         />
       )}
     </div>
