@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, ArrowLeft, Send } from "lucide-react";
+import { useState } from "react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,10 +20,6 @@ export default function EventContentCard({
   isActive, 
   similarEvents = [] 
 }: EventContentCardProps) {
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [rotation, setRotation] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startTime, setStartTime] = useState(0);
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
@@ -47,110 +43,6 @@ export default function EventContentCard({
       timestamp: "30 sec ago"
     }
   ]);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const startPos = useRef({ x: 0, y: 0 });
-
-  // Add global event listeners for drag events
-  useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !isActive) return;
-      e.preventDefault();
-      updatePosition(e.clientX, e.clientY);
-    };
-
-    const handleGlobalTouchMove = (e: TouchEvent) => {
-      if (!isDragging || !isActive) return;
-      e.preventDefault();
-      updatePosition(e.touches[0].clientX, e.touches[0].clientY);
-    };
-
-    const handleGlobalMouseUp = () => {
-      if (!isDragging || !isActive) return;
-      handleDragEnd();
-    };
-
-    const handleGlobalTouchEnd = () => {
-      if (!isDragging || !isActive) return;
-      handleDragEnd();
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
-      document.addEventListener('touchend', handleGlobalTouchEnd);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('touchmove', handleGlobalTouchMove);
-      document.removeEventListener('touchend', handleGlobalTouchEnd);
-    };
-  }, [isDragging, isActive, dragOffset.x, dragOffset.y]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isActive) return;
-    // Only start dragging if not clicking on interactive elements
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || 
-        target.closest('input') || target.closest('button') || target.closest('textarea')) {
-      return;
-    }
-    e.preventDefault();
-    setIsDragging(true);
-    setStartTime(Date.now());
-    startPos.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isActive) return;
-    // Only start dragging if not touching interactive elements
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || 
-        target.closest('input') || target.closest('button') || target.closest('textarea')) {
-      return;
-    }
-    e.preventDefault();
-    setIsDragging(true);
-    setStartTime(Date.now());
-    startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  const updatePosition = (clientX: number, clientY: number) => {
-    const deltaX = clientX - startPos.current.x;
-    const deltaY = clientY - startPos.current.y;
-    
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    if (distance > 5) {
-      const newRotation = deltaX * 0.1;
-      setDragOffset({ x: deltaX, y: deltaY });
-      setRotation(newRotation);
-    }
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    
-    const timeDiff = Date.now() - startTime;
-    const distance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
-    
-    if (timeDiff < 200 && distance < 10) {
-      setDragOffset({ x: 0, y: 0 });
-      setRotation(0);
-      return;
-    }
-    
-    const threshold = 120;
-    if (dragOffset.x > threshold) {
-      onSwipeRight();
-    } else if (dragOffset.x < -threshold) {
-      onSwipeLeft();
-    } else {
-      setDragOffset({ x: 0, y: 0 });
-      setRotation(0);
-    }
-  };
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -190,18 +82,13 @@ export default function EventContentCard({
   return (
     <div className="relative w-full h-full">
       <div
-        ref={cardRef}
         className={`bg-white overflow-hidden transform transition-all duration-300 ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
-        } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        }`}
         style={{
           height: 'calc(100% - 80px)',
-          transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
-          zIndex: isActive ? 10 : 1,
-          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+          zIndex: isActive ? 10 : 1
         }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
@@ -345,17 +232,6 @@ export default function EventContentCard({
             )}
           </AnimatePresence>
         </div>
-
-        {/* Swipe Indicators */}
-        {Math.abs(dragOffset.x) > 50 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className={`text-6xl font-bold ${
-              dragOffset.x > 0 ? 'text-green-400' : 'text-red-400'
-            } opacity-70`}>
-              {dragOffset.x > 0 ? '→' : '←'}
-            </div>
-          </div>
-        )}
 
         {/* Keep Exploring Button - Bottom right with spacing */}
         <div className="absolute bottom-32 right-4 z-30">
