@@ -149,7 +149,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto">
+    <div className="relative w-full max-w-sm mx-auto h-full">
       <div
         ref={cardRef}
         className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${
@@ -169,7 +169,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         onTouchEnd={handleTouchEnd}
       >
         {/* Header with image */}
-        <div className="relative h-64">
+        <div className="relative h-64 flex-shrink-0">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
