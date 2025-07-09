@@ -133,12 +133,16 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     }
   };
 
-  const handleTap = () => {
+  const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
     const now = Date.now();
     const timeDiff = now - lastTapTime.current;
     
-    if (timeDiff < 300) {
+    console.log('Tap detected:', { timeDiff, now, lastTap: lastTapTime.current });
+    
+    if (timeDiff < 300 && timeDiff > 0) {
       // Double tap detected
+      console.log('Double tap detected, expanding');
       handleDoubleTab();
     }
     
@@ -288,8 +292,9 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           {/* Scroll Down Indicator - Only show when not expanded */}
           {scrollOffset === 0 && (
             <div 
-              className="text-center pt-2 pb-1 cursor-pointer"
+              className="text-center pt-2 pb-1 cursor-pointer hover:bg-gray-50 rounded-md transition-colors"
               onClick={handleTap}
+              onTouchEnd={handleTap}
             >
               <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
                 <span>Double tap for more details</span>
