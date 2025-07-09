@@ -50,6 +50,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const deltaX = clientX - startPos.current.x;
     const deltaY = clientY - startPos.current.y;
     
+    console.log('updatePosition:', { deltaX, deltaY, scrollOffset, isScrolling });
+    
     // If already expanded, only allow vertical scrolling to close
     if (scrollOffset > 0) {
       if (deltaY < 0) {
@@ -64,12 +66,16 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
     
-    if (absY > absX && deltaY > 20) {
+    console.log('Movement detection:', { absX, absY, deltaYCondition: deltaY > 10 });
+    
+    if (absY > absX && deltaY > 10) {
       // Vertical scroll down - show more details
+      console.log('Triggering scroll down');
       setIsScrolling(true);
-      setScrollOffset(Math.max(0, Math.min(deltaY - 20, 200))); // Limit scroll to 200px
-    } else if (absX > absY && absX > 20) {
+      setScrollOffset(Math.max(0, Math.min(deltaY - 10, 200))); // Limit scroll to 200px
+    } else if (absX > absY && absX > 10) {
       // Horizontal swipe - card movement
+      console.log('Triggering horizontal swipe');
       setIsScrolling(false);
       const newRotation = deltaX * 0.1;
       setDragOffset({ x: deltaX, y: deltaY });
@@ -90,11 +96,15 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const handleDragEnd = () => {
     setIsDragging(false);
     
+    console.log('handleDragEnd:', { isScrolling, scrollOffset });
+    
     if (isScrolling) {
       // Handle scroll end - snap to either closed or expanded state
-      if (scrollOffset > 60) {
+      if (scrollOffset > 40) {
+        console.log('Snapping to expanded');
         setScrollOffset(200); // Snap to expanded details view
       } else {
+        console.log('Snapping to closed');
         setScrollOffset(0); // Snap back to closed
       }
       setIsScrolling(false);
