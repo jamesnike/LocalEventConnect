@@ -165,20 +165,12 @@ export default function EventContentCard({
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
-              <div>
-                <h3 className="font-semibold text-lg">{event.title}</h3>
-                <p className="text-sm opacity-90">{event.rsvpCount} members</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
+            <div>
+              <h3 className="font-semibold text-lg">{event.title}</h3>
+              <p className="text-sm opacity-90">{event.rsvpCount} members</p>
             </div>
-            <button
-              onClick={onSwipeRight}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-white text-sm font-medium transition-colors backdrop-blur-sm"
-            >
-              Keep Exploring
-            </button>
           </div>
         </div>
 
