@@ -305,6 +305,16 @@ export default function EventContentCard({
             )}
           </AnimatePresence>
         </div>
+
+        {/* Keep Exploring Button - Similar to Details button in EventCard */}
+        <div className="absolute bottom-4 right-4">
+          <button
+            onClick={onSwipeRight}
+            className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:bg-blue-600 transition-colors"
+          >
+            Keep Exploring
+          </button>
+        </div>
       </div>
     </div>
   );
