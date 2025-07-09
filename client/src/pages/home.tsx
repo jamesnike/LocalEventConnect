@@ -52,6 +52,7 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -82,7 +83,7 @@ export default function Home() {
   const handleSwipeRight = () => {
     if (!currentEvent) return;
     if (user) {
-      rsvpMutation.mutate({ eventId: currentEvent.id, status: 'going' });
+      rsvpMutation.mutate({ eventId: currentEvent.id, status: 'attending' });
     }
     setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
     setCurrentEventIndex(prev => prev + 1);

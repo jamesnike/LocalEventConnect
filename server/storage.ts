@@ -241,7 +241,7 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(events.isActive, true),
             eq(eventRsvps.userId, userId),
-            eq(eventRsvps.status, 'going')
+            eq(eventRsvps.status, 'attending')
           )
         )
         .groupBy(events.id, users.id, eventRsvps.status)
