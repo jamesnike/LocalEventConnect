@@ -48,14 +48,24 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const deltaX = clientX - startPos.current.x;
     const deltaY = clientY - startPos.current.y;
     
+    // If already expanded, only allow vertical scrolling to close
+    if (scrollOffset > 0) {
+      if (deltaY < 0) {
+        // Allow scrolling up to close
+        setIsScrolling(true);
+        setScrollOffset(Math.max(0, scrollOffset + deltaY));
+      }
+      return;
+    }
+    
     // Determine if this is a horizontal swipe or vertical scroll
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
     
-    if (absY > absX && deltaY > 50) {
+    if (absY > absX && deltaY > 30) {
       // Vertical scroll down - show more details (require more movement)
       setIsScrolling(true);
-      setScrollOffset(Math.max(0, Math.min(deltaY - 50, 300))); // Limit scroll to 300px
+      setScrollOffset(Math.max(0, Math.min(deltaY - 30, 200))); // Limit scroll to 200px
     } else if (absX > absY && absX > 30) {
       // Horizontal swipe - card movement (require more movement)
       setIsScrolling(false);
@@ -79,9 +89,9 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     setIsDragging(false);
     
     if (isScrolling) {
-      // Handle scroll end - keep scroll position if significant
-      if (scrollOffset > 100) {
-        setScrollOffset(300); // Snap to fully expanded
+      // Handle scroll end - snap to either closed or expanded state
+      if (scrollOffset > 80) {
+        setScrollOffset(200); // Snap to expanded details view
       } else {
         setScrollOffset(0); // Snap back to closed
       }
@@ -107,6 +117,10 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
       setRotation(0);
     }
   }, [isDragging, isScrolling]);
+
+  const closeExpanded = () => {
+    setScrollOffset(0);
+  };
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     const date = new Date(`${dateStr}T${timeStr}`);
@@ -140,8 +154,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         ref={cardRef}
         className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing"
         style={{
-          height: scrollOffset > 0 ? `calc(100% + ${Math.min(scrollOffset, 300)}px)` : '100%',
-          transform: isScrolling 
+          height: scrollOffset > 0 ? `calc(100% + ${Math.min(scrollOffset, 200)}px)` : '100%',
+          transform: isScrolling || scrollOffset > 0
             ? `translateY(${-scrollOffset}px)` 
             : `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
@@ -247,21 +261,26 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             </div>
           </div>
           
-          {/* Scroll Down Indicator */}
-          <div className="text-center pt-2 pb-1">
-            <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
-              <span>Scroll down for more details</span>
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          {/* Scroll Down Indicator - Only show when not expanded */}
+          {scrollOffset === 0 && (
+            <div className="text-center pt-2 pb-1">
+              <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
+                <span>Scroll down for more details</span>
+                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Additional Details Section - Revealed on Scroll */}
         <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-4 rounded-b-2xl">
           <div className="text-center">
-            <div className="inline-block w-12 h-1 bg-gray-300 rounded-full mb-4"></div>
+            <button 
+              onClick={closeExpanded}
+              className="inline-block w-12 h-1 bg-gray-300 rounded-full mb-4 hover:bg-gray-400 transition-colors"
+            ></button>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Event Details</h3>
           </div>
 
