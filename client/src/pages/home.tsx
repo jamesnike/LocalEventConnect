@@ -20,6 +20,7 @@ export default function Home() {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [swipedEvents, setSwipedEvents] = useState<Set<number>>(new Set());
   const [showDetailCard, setShowDetailCard] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -73,10 +74,14 @@ export default function Home() {
   const currentEvent = availableEvents[currentEventIndex];
 
   const handleSwipeLeft = () => {
-    if (!currentEvent) return;
+    if (!currentEvent || isTransitioning) return;
     if (showDetailCard) {
       // From detail card, go back to main card
-      setShowDetailCard(false);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowDetailCard(false);
+        setIsTransitioning(false);
+      }, 150);
     } else {
       // From main card, skip this event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
@@ -85,7 +90,7 @@ export default function Home() {
   };
 
   const handleSwipeRight = () => {
-    if (!currentEvent) return;
+    if (!currentEvent || isTransitioning) return;
     if (showDetailCard) {
       // From detail card, RSVP and move to next event
       if (user) {
@@ -96,14 +101,23 @@ export default function Home() {
       setShowDetailCard(false);
     } else {
       // From main card, show detail card
-      setShowDetailCard(true);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowDetailCard(true);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
   const handleUndo = () => {
+    if (isTransitioning) return;
     if (showDetailCard) {
       // If in detail view, go back to main card
-      setShowDetailCard(false);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowDetailCard(false);
+        setIsTransitioning(false);
+      }, 150);
       return;
     }
     if (swipedEvents.size === 0) return;
@@ -179,15 +193,11 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full flex items-center justify-center">
-            {showDetailCard ? (
-              <EventDetailCard
-                event={currentEvent}
-                onSwipeLeft={handleSwipeLeft}
-                onSwipeRight={handleSwipeRight}
-                isActive={true}
-              />
-            ) : (
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {/* Main Event Card */}
+            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              showDetailCard ? 'transform -translate-x-full opacity-0' : 'transform translate-x-0 opacity-100'
+            }`}>
               <div className="relative w-full h-full">
                 {/* Render current and next event cards */}
                 {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
@@ -201,7 +211,21 @@ export default function Home() {
                   />
                 ))}
               </div>
-            )}
+            </div>
+
+            {/* Detail Card */}
+            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              showDetailCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
+            }`}>
+              <div className="flex items-center justify-center h-full">
+                <EventDetailCard
+                  event={currentEvent}
+                  onSwipeLeft={handleSwipeLeft}
+                  onSwipeRight={handleSwipeRight}
+                  isActive={showDetailCard}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -211,16 +235,16 @@ export default function Home() {
         <div className="flex justify-center space-x-16">
           <button
             onClick={handleSwipeLeft}
-            disabled={!currentEvent}
-            className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!currentEvent || isTransitioning}
+            className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             <X className="w-6 h-6" />
           </button>
           
           <button
             onClick={handleSwipeRight}
-            disabled={!currentEvent}
-            className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+            disabled={!currentEvent || isTransitioning}
+            className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
           >
             <Heart className="w-6 h-6" />
           </button>
