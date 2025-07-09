@@ -113,8 +113,35 @@ EventConnect is a mobile-first event discovery and management platform that allo
 - `REPL_ID`: Replit authentication identifier
 - `ISSUER_URL`: OIDC issuer endpoint
 
+## Mobile App Development
+
+### Capacitor Integration
+- **Framework**: Capacitor for native mobile app development
+- **App ID**: com.eventconnect.app
+- **Build Directory**: dist/ (web build output)
+- **Platforms**: Android and iOS support
+
+### Mobile Features
+- **Core Plugins**: App state, haptics, keyboard, status bar, splash screen
+- **Event Features**: Geolocation, camera, share, push notifications, filesystem
+- **Touch Optimized**: Already mobile-first design works perfectly
+- **Native Performance**: Web app wrapped in native container
+
+### Development Commands
+- Build web app: `npm run build`
+- Add platforms: `npx cap add android/ios`
+- Sync builds: `npx cap sync`
+- Run on device: `npx cap run android/ios`
+- Open in IDE: `npx cap open android/ios`
+
+### Publishing Ready
+- Google Play Store: Build signed APK in Android Studio
+- Apple App Store: Build in Xcode and upload to App Store Connect
+- Configuration files: capacitor.config.ts, mobile-setup.md
+
 ## Changelog
 
+- July 09, 2025. Added Capacitor for native mobile app development with Android/iOS support
 - July 09, 2025. Redesigned home page with Bumble-style swipe interface, moved scrolling list to Browse page
 - July 08, 2025. Initial setup
 
