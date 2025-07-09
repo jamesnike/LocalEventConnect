@@ -11,18 +11,23 @@ const getCurrentDayName = () => {
 };
 
 const getTimeOptions = () => {
-  const currentDay = getCurrentDayName();
-  const nextDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const nextDayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][nextDay.getDay()];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const options = [];
   
-  return [
-    { id: 'today_morning', name: `${currentDay} AM`, icon: Sunrise },
-    { id: 'today_afternoon', name: `${currentDay} PM`, icon: Sun },
-    { id: 'today_night', name: `${currentDay} Night`, icon: Moon },
-    { id: 'tomorrow_morning', name: `${nextDayName} AM`, icon: Sunrise },
-    { id: 'tomorrow_afternoon', name: `${nextDayName} PM`, icon: Sun },
-    { id: 'tomorrow_night', name: `${nextDayName} Night`, icon: Moon },
-  ];
+  // Generate time options for the next 7 days
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
+    const dayName = days[date.getDay()];
+    const dayPrefix = i === 0 ? 'today' : i === 1 ? 'tomorrow' : `day${i}`;
+    
+    options.push(
+      { id: `${dayPrefix}_morning`, name: `${dayName} AM`, icon: Sunrise },
+      { id: `${dayPrefix}_afternoon`, name: `${dayName} PM`, icon: Sun },
+      { id: `${dayPrefix}_night`, name: `${dayName} Night`, icon: Moon }
+    );
+  }
+  
+  return options;
 };
 
 export default function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryFilterProps) {
