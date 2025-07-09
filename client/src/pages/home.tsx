@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Bell, Plus, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw } from "lucide-react";
+import { MapPin, Bell, Plus, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -246,7 +246,7 @@ export default function Home() {
             disabled={!currentEvent || isTransitioning}
             className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
           >
-            <Heart className="w-6 h-6" />
+            <ArrowRight className="w-6 h-6" />
           </button>
         </div>
         
