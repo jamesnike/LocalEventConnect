@@ -152,10 +152,11 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     <div className="relative w-full max-w-sm mx-auto">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 ${
+        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
+          height: '70vh',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
         }}
@@ -184,8 +185,8 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           </div>
         </div>
 
-        {/* Event Details Content */}
-        <div className="p-6 space-y-6">
+        {/* Event Details Content - Scrollable */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-6">
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
