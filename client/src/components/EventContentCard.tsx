@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, ArrowLeft, Send } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import { getEventImageUrl } from "@/lib/eventImages";
@@ -50,8 +50,54 @@ export default function EventContentCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
 
+  // Add global event listeners for drag events
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !isActive) return;
+      e.preventDefault();
+      updatePosition(e.clientX, e.clientY);
+    };
+
+    const handleGlobalTouchMove = (e: TouchEvent) => {
+      if (!isDragging || !isActive) return;
+      e.preventDefault();
+      updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (!isDragging || !isActive) return;
+      handleDragEnd();
+    };
+
+    const handleGlobalTouchEnd = () => {
+      if (!isDragging || !isActive) return;
+      handleDragEnd();
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      document.addEventListener('touchend', handleGlobalTouchEnd);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [isDragging, isActive, dragOffset.x, dragOffset.y]);
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
+    // Only start dragging if not clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || 
+        target.closest('input') || target.closest('button') || target.closest('textarea')) {
+      return;
+    }
+    e.preventDefault();
     setIsDragging(true);
     setStartTime(Date.now());
     startPos.current = { x: e.clientX, y: e.clientY };
@@ -59,21 +105,16 @@ export default function EventContentCard({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isActive) return;
+    // Only start dragging if not touching interactive elements
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || 
+        target.closest('input') || target.closest('button') || target.closest('textarea')) {
+      return;
+    }
+    e.preventDefault();
     setIsDragging(true);
     setStartTime(Date.now());
     startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !isActive) return;
-    e.preventDefault();
-    updatePosition(e.clientX, e.clientY);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !isActive) return;
-    e.preventDefault();
-    updatePosition(e.touches[0].clientX, e.touches[0].clientY);
   };
 
   const updatePosition = (clientX: number, clientY: number) => {
@@ -86,16 +127,6 @@ export default function EventContentCard({
       setDragOffset({ x: deltaX, y: deltaY });
       setRotation(newRotation);
     }
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging || !isActive) return;
-    handleDragEnd();
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging || !isActive) return;
-    handleDragEnd();
   };
 
   const handleDragEnd = () => {
@@ -162,19 +193,15 @@ export default function EventContentCard({
         ref={cardRef}
         className={`bg-white overflow-hidden transform transition-all duration-300 ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
-        }`}
+        } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{
           height: 'calc(100% - 80px)',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
-          zIndex: isActive ? 10 : 1
+          zIndex: isActive ? 10 : 1,
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
         }}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
@@ -318,6 +345,17 @@ export default function EventContentCard({
             )}
           </AnimatePresence>
         </div>
+
+        {/* Swipe Indicators */}
+        {Math.abs(dragOffset.x) > 50 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className={`text-6xl font-bold ${
+              dragOffset.x > 0 ? 'text-green-400' : 'text-red-400'
+            } opacity-70`}>
+              {dragOffset.x > 0 ? '→' : '←'}
+            </div>
+          </div>
+        )}
 
         {/* Keep Exploring Button - Bottom right with spacing */}
         <div className="absolute bottom-32 right-4 z-30">
