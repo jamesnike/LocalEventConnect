@@ -139,11 +139,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const now = Date.now();
     const timeDiff = now - lastTapTime.current;
     
-    console.log('Tap detected:', { timeDiff, now, lastTap: lastTapTime.current });
-    
     if (timeDiff < 500 && timeDiff > 50) {
       // Double tap detected (increased window and minimum time)
-      console.log('Double tap detected, expanding');
       handleDoubleTab();
       lastTapTime.current = 0; // Reset to prevent triple-tap issues
     } else {
@@ -375,9 +372,42 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             </div>
 
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Attendance</h4>
-              <div className="text-sm text-gray-600">
-                <span className="font-medium text-gray-800">{event.rsvpCount}</span> people are attending this event
+              <h4 className="font-medium text-gray-800 mb-2">Event Details</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Attending</span>
+                  <span className="font-medium text-gray-800">{event.rsvpCount} people</span>
+                </div>
+                {event.capacity && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Capacity</span>
+                    <span className="font-medium text-gray-800">{event.capacity} people</span>
+                  </div>
+                )}
+                {event.duration && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Duration</span>
+                    <span className="font-medium text-gray-800">{event.duration}</span>
+                  </div>
+                )}
+                {event.meetingPoint && (
+                  <div>
+                    <span className="text-gray-600 block">Meeting Point</span>
+                    <span className="font-medium text-gray-800">{event.meetingPoint}</span>
+                  </div>
+                )}
+                {event.parkingInfo && (
+                  <div>
+                    <span className="text-gray-600 block">Parking</span>
+                    <span className="font-medium text-gray-800">{event.parkingInfo}</span>
+                  </div>
+                )}
+                {event.specialNotes && (
+                  <div>
+                    <span className="text-gray-600 block">Special Notes</span>
+                    <span className="font-medium text-gray-800">{event.specialNotes}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
