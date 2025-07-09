@@ -16,8 +16,11 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
@@ -44,10 +47,22 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const updatePosition = (clientX: number, clientY: number) => {
     const deltaX = clientX - startPos.current.x;
     const deltaY = clientY - startPos.current.y;
-    const newRotation = deltaX * 0.1;
     
-    setDragOffset({ x: deltaX, y: deltaY });
-    setRotation(newRotation);
+    // Determine if this is a horizontal swipe or vertical scroll
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    
+    if (absY > absX && deltaY > 0) {
+      // Vertical scroll down - show more details
+      setIsScrolling(true);
+      setScrollOffset(Math.max(0, Math.min(deltaY, 200))); // Limit scroll to 200px
+    } else if (absX > absY) {
+      // Horizontal swipe - card movement
+      setIsScrolling(false);
+      const newRotation = deltaX * 0.1;
+      setDragOffset({ x: deltaX, y: deltaY });
+      setRotation(newRotation);
+    }
   };
 
   const handleMouseUp = () => {
@@ -63,24 +78,35 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const handleDragEnd = () => {
     setIsDragging(false);
     
-    const threshold = 120;
-    if (dragOffset.x > threshold) {
-      onSwipeRight();
-    } else if (dragOffset.x < -threshold) {
-      onSwipeLeft();
+    if (isScrolling) {
+      // Handle scroll end - keep scroll position if significant
+      if (scrollOffset > 50) {
+        setScrollOffset(200); // Snap to fully expanded
+      } else {
+        setScrollOffset(0); // Snap back to closed
+      }
+      setIsScrolling(false);
     } else {
-      // Snap back to center
-      setDragOffset({ x: 0, y: 0 });
-      setRotation(0);
+      // Handle swipe end
+      const threshold = 120;
+      if (dragOffset.x > threshold) {
+        onSwipeRight();
+      } else if (dragOffset.x < -threshold) {
+        onSwipeLeft();
+      } else {
+        // Snap back to center
+        setDragOffset({ x: 0, y: 0 });
+        setRotation(0);
+      }
     }
   };
 
   useEffect(() => {
-    if (!isDragging) {
+    if (!isDragging && !isScrolling) {
       setDragOffset({ x: 0, y: 0 });
       setRotation(0);
     }
-  }, [isDragging]);
+  }, [isDragging, isScrolling]);
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     const date = new Date(`${dateStr}T${timeStr}`);
@@ -114,7 +140,9 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         ref={cardRef}
         className="relative w-full h-full bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
-          transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
+          transform: isScrolling 
+            ? `translateY(${-scrollOffset}px)` 
+            : `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
           opacity: isActive ? 1 : 0.5,
         }}
@@ -213,6 +241,85 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
                 'bg-gray-100 text-gray-800'
               }`}>
                 {event.category}
+              </div>
+            </div>
+          </div>
+          
+          {/* Scroll Down Indicator */}
+          <div className="text-center pt-2 pb-1">
+            <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
+              <span>Scroll down for more details</span>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Details Section - Revealed on Scroll */}
+        <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-4">
+          <div className="text-center">
+            <div className="inline-block w-12 h-1 bg-gray-300 rounded-full mb-4"></div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Event Details</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <h4 className="font-medium text-gray-800 mb-2">Full Description</h4>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                {event.description}
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <h4 className="font-medium text-gray-800 mb-2">Event Information</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600">
+                    {formatDateTime(event.date, event.time)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600">{event.location}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600">
+                    {event.isFree || parseFloat(event.price) === 0 ? 'Free Event' : `$${parseFloat(event.price).toFixed(2)}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <h4 className="font-medium text-gray-800 mb-2">Organizer</h4>
+              <div className="flex items-center space-x-3">
+                <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">
+                    {event.organizer.firstName || event.organizer.lastName 
+                      ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
+                      : 'Anonymous Organizer'}
+                  </p>
+                  {event.organizer.interests && event.organizer.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {event.organizer.interests.map((interest, index) => (
+                        <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <h4 className="font-medium text-gray-800 mb-2">Attendance</h4>
+              <div className="text-sm text-gray-600">
+                <span className="font-medium text-gray-800">{event.rsvpCount}</span> people are attending this event
               </div>
             </div>
           </div>
