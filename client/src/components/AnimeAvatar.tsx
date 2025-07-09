@@ -11,53 +11,24 @@ export default function AnimeAvatar({ seed, size = 'md' }: AnimeAvatarProps) {
     lg: 'w-24 h-24',
   };
 
-  const textSizeClasses = {
-    xs: 'text-xs',
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-2xl',
+  const pixelSizes = {
+    xs: 24,
+    sm: 32,
+    md: 40,
+    lg: 96,
   };
 
-  // Generate a consistent color based on the seed
-  const colors = [
-    'from-pink-400 to-purple-500',
-    'from-blue-400 to-purple-500',
-    'from-green-400 to-teal-500',
-    'from-yellow-400 to-orange-500',
-    'from-red-400 to-pink-500',
-    'from-indigo-400 to-purple-500',
-    'from-cyan-400 to-blue-500',
-    'from-orange-400 to-red-500',
-    'from-purple-400 to-pink-500',
-    'from-teal-400 to-green-500',
-  ];
-
-  // Simple hash function to get consistent color
-  const hashCode = (str: string) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash);
-  };
-
-  const colorIndex = hashCode(seed) % colors.length;
-  const gradientColor = colors[colorIndex];
-
-  // Generate initials from seed
-  const getInitials = (seed: string) => {
-    // For anime avatars, we'll use cute single letters or symbols
-    const animeChars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-    return animeChars[hashCode(seed) % animeChars.length];
-  };
+  // Use DiceBear API for cute anime avatars
+  const avatarUrl = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(seed)}&size=${pixelSizes[size]}&backgroundColor=transparent`;
 
   return (
-    <div className={`${sizeClasses[size]} bg-gradient-to-br ${gradientColor} rounded-full flex items-center justify-center border-2 border-white shadow-sm`}>
-      <span className={`text-white font-bold ${textSizeClasses[size]}`}>
-        {getInitials(seed)}
-      </span>
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-white shadow-sm bg-gradient-to-br from-pink-100 to-purple-100`}>
+      <img
+        src={avatarUrl}
+        alt="Anime avatar"
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
     </div>
   );
 }
