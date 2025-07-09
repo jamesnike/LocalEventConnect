@@ -110,7 +110,7 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-sm mx-auto bg-white min-h-screen flex flex-col">
+    <div className="max-w-sm mx-auto bg-white h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -162,7 +162,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="relative h-full">
+          <div className="relative w-full h-full">
             {/* Render current and next event cards */}
             {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
               <SwipeCard
