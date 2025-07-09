@@ -175,8 +175,8 @@ export default function Home() {
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="bg-white border-t border-gray-200 px-4 py-4 pb-20 flex-shrink-0">
+      {/* Action Buttons - Floating over event card */}
+      <div className="absolute bottom-24 left-0 right-0 px-4 py-4 flex-shrink-0 z-20">
         <div className="flex justify-center space-x-8">
           <button
             onClick={handleSwipeLeft}
