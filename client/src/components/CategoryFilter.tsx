@@ -6,17 +6,16 @@ interface CategoryFilterProps {
 }
 
 const getCurrentDayName = () => {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return days[new Date().getDay()];
 };
 
 const getTimeOptions = () => {
   const currentDay = getCurrentDayName();
   const nextDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const nextDayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][nextDay.getDay()];
+  const nextDayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][nextDay.getDay()];
   
   return [
-    { id: 'all', name: 'All Times', icon: Clock },
     { id: 'today_morning', name: `${currentDay} Morning`, icon: Sunrise },
     { id: 'today_afternoon', name: `${currentDay} Afternoon`, icon: Sun },
     { id: 'today_evening', name: `${currentDay} Evening`, icon: Sunset },

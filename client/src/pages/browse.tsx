@@ -9,7 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Browse() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("today_morning");
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
