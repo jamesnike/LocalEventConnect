@@ -163,15 +163,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           />
           <div className="absolute inset-0 bg-black/30" />
           
-          {/* Organizer Profile Photo - Top Left */}
-          <div className="absolute top-4 left-4 flex items-center space-x-2 bg-black/40 backdrop-blur-sm rounded-full p-2 pr-3">
-            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
-            <span className="text-white text-xs font-medium">
-              {event.organizer.firstName || event.organizer.lastName 
-                ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
-                : 'Anonymous'}
-            </span>
-          </div>
+
           
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
             <button onClick={onInfoClick}>
@@ -187,77 +179,43 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           </div>
         </div>
 
-        {/* Event Details - All shown at once */}
-        <div className="p-4 space-y-4">
-          {/* Basic Info Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">{event.location}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">
-                  {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
-                </span>
-              </div>
+        {/* Event Details - Simplified */}
+        <div className="p-4 space-y-3">
+          {/* Basic Info */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-gray-600">{event.location}</span>
             </div>
-
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {event.description}
-            </p>
-
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center space-x-3">
-                <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {event.organizer.firstName || event.organizer.lastName 
-                      ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
-                      : 'Anonymous Organizer'}
-                  </p>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <span>{event.rsvpCount} attending</span>
-                    {event.organizer.interests && event.organizer.interests.length > 0 && (
-                      <>
-                        <span>•</span>
-                        <span>{event.organizer.interests.slice(0, 2).join(', ')}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  event.category === 'music' ? 'bg-purple-100 text-purple-800' :
-                  event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
-                  event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
-                  event.category === 'food' ? 'bg-orange-100 text-orange-800' :
-                  event.category === 'tech' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {event.category}
-                </div>
-              </div>
+            <div className="flex items-center space-x-2">
+              <DollarSign className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
+              </span>
             </div>
           </div>
 
+          {/* Description - Truncated */}
+          <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+            {event.description}
+          </p>
 
-
-          {/* Organizer Interests */}
-          {event.organizer.interests && event.organizer.interests.length > 0 && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <h4 className="font-medium text-gray-800 text-sm mb-2">Organizer's Interests</h4>
-              <div className="flex flex-wrap gap-1">
-                {event.organizer.interests.map((interest, index) => (
-                  <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {interest}
-                  </span>
-                ))}
-              </div>
+          {/* Bottom Info */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <span>{event.rsvpCount} attending</span>
             </div>
-          )}
+            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+              event.category === 'music' ? 'bg-purple-100 text-purple-800' :
+              event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
+              event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
+              event.category === 'food' ? 'bg-orange-100 text-orange-800' :
+              event.category === 'tech' ? 'bg-green-100 text-green-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {event.category}
+            </div>
+          </div>
         </div>
       </div>
     </div>
