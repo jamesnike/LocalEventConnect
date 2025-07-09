@@ -155,7 +155,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="h-80 relative overflow-hidden rounded-t-2xl">
+        <div className="h-60 relative overflow-hidden rounded-t-2xl">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -170,8 +170,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
               <Info className="w-4 h-4 text-gray-700" />
             </button>
           </div>
-          <div className="absolute bottom-4 left-4 right-4 text-white">
-            <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
+          <div className="absolute bottom-3 left-3 right-3 text-white">
+            <h2 className="text-xl font-bold mb-1">{event.title}</h2>
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="w-4 h-4" />
               <span>{formatDateTime(event.date, event.time)}</span>
@@ -180,7 +180,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Details - Simplified */}
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
           {/* Basic Info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -196,12 +196,12 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           </div>
 
           {/* Description - Truncated */}
-          <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+          <p className="text-gray-700 text-sm leading-relaxed line-clamp-2">
             {event.description}
           </p>
 
           {/* Bottom Info */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-1">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>{event.rsvpCount} attending</span>
             </div>
