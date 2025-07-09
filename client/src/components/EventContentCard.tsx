@@ -311,7 +311,7 @@ export default function EventContentCard({
         <div className="absolute bottom-32 right-4 z-30">
           <button
             onClick={onSwipeRight}
-            className="bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-colors"
+            className="bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 hover:scale-105 transition-all duration-300 animate-pulse"
           >
             Keep Exploring
           </button>
