@@ -13,20 +13,60 @@ export default function Browse() {
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
-  const { data: events, isLoading } = useQuery({
-    queryKey: ["/api/events", selectedCategory],
+  const { data: allEvents, isLoading } = useQuery({
+    queryKey: ["/api/events"],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        timeFilter: selectedCategory,
-        limit: "50"
-      });
-      const response = await fetch(`/api/events?${params}`);
+      const response = await fetch("/api/events?limit=100");
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  // Filter events on the frontend based on selected time filter
+  const filterEventsByTime = (events: EventWithOrganizer[], timeFilter: string) => {
+    if (!timeFilter || !events) return events;
+    
+    const [dayPart, timePart] = timeFilter.split('_');
+    
+    // Calculate target date
+    let dayOffset = 0;
+    if (dayPart === 'today') dayOffset = 0;
+    else if (dayPart === 'tomorrow') dayOffset = 1;
+    else if (dayPart.startsWith('day')) dayOffset = parseInt(dayPart.substring(3));
+    
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayOffset);
+    const dateString = targetDate.toISOString().split('T')[0];
+    
+    // Define time ranges
+    let startTime: string, endTime: string;
+    switch (timePart) {
+      case 'morning':
+        startTime = '06:00:00';
+        endTime = '11:59:59';
+        break;
+      case 'afternoon':
+        startTime = '12:00:00';
+        endTime = '17:59:59';
+        break;
+      case 'night':
+        startTime = '18:00:00';
+        endTime = '23:59:59';
+        break;
+      default:
+        return events;
+    }
+    
+    return events.filter(event => {
+      return event.date === dateString && 
+             event.time >= startTime && 
+             event.time <= endTime;
+    });
+  };
+
+  const events = filterEventsByTime(allEvents || [], selectedCategory);
 
   if (isLoading) {
     return (
