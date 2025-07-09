@@ -156,7 +156,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: '70vh',
+          height: '100%',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
         }}
