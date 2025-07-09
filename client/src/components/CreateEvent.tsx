@@ -47,6 +47,15 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
       price: "0.00",
       eventImageUrl: "",
       organizerId: user?.id || "",
+      capacity: undefined,
+      parkingInfo: "",
+      meetingPoint: "",
+      duration: "",
+      whatToBring: "",
+      specialNotes: "",
+      requirements: "",
+      contactInfo: "",
+      cancellationPolicy: "",
     },
   });
 

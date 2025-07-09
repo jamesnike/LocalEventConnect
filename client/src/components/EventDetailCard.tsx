@@ -208,9 +208,11 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             </div>
           </div>
 
-          {/* Additional Details */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+          {/* Event Details Section */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-4">
             <h4 className="font-semibold text-gray-800">Event Details</h4>
+            
+            {/* Capacity and Duration */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               {event.capacity && (
                 <div>
@@ -226,6 +228,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
               )}
             </div>
             
+            {/* Meeting Point */}
             {event.meetingPoint && (
               <div className="text-sm">
                 <span className="text-gray-600 block">Meeting Point</span>
@@ -233,6 +236,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
               </div>
             )}
             
+            {/* Parking Information */}
             {event.parkingInfo && (
               <div className="text-sm">
                 <span className="text-gray-600 block">Parking</span>
@@ -240,10 +244,43 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
               </div>
             )}
             
+            {/* What to Bring */}
+            {event.whatToBring && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">What to Bring</span>
+                <span className="font-medium text-gray-800">{event.whatToBring}</span>
+              </div>
+            )}
+            
+            {/* Requirements */}
+            {event.requirements && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Requirements</span>
+                <span className="font-medium text-gray-800">{event.requirements}</span>
+              </div>
+            )}
+            
+            {/* Special Notes */}
             {event.specialNotes && (
               <div className="text-sm">
                 <span className="text-gray-600 block">Special Notes</span>
                 <span className="font-medium text-gray-800">{event.specialNotes}</span>
+              </div>
+            )}
+            
+            {/* Contact Information */}
+            {event.contactInfo && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Contact Info</span>
+                <span className="font-medium text-gray-800">{event.contactInfo}</span>
+              </div>
+            )}
+            
+            {/* Cancellation Policy */}
+            {event.cancellationPolicy && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Cancellation Policy</span>
+                <span className="font-medium text-gray-800">{event.cancellationPolicy}</span>
               </div>
             )}
           </div>
