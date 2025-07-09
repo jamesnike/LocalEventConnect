@@ -1,6 +1,7 @@
 import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
+import { getEventImageUrl } from "@/lib/eventImages";
 
 interface EventCardProps {
   event: EventWithOrganizer;
@@ -65,7 +66,7 @@ export default function EventCard({ event, onEventClick, showStatus }: EventCard
     <div className="bg-white shadow-sm cursor-pointer" onClick={onEventClick}>
       <div className="relative">
         <img 
-          src={event.eventImageUrl || `https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400`}
+          src={getEventImageUrl(event)}
           alt={event.title}
           className="w-full h-48 object-cover"
         />
