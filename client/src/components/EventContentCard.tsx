@@ -306,8 +306,8 @@ export default function EventContentCard({
           </AnimatePresence>
         </div>
 
-        {/* Keep Exploring Button - Floating action button */}
-        <div className="absolute top-4 right-4 z-30">
+        {/* Keep Exploring Button - Bottom right with spacing */}
+        <div className="absolute bottom-16 right-4 z-30">
           <button
             onClick={onSwipeRight}
             className="bg-blue-500 text-white px-6 py-3 rounded-full text-sm font-medium shadow-lg hover:bg-blue-600 transition-colors"
