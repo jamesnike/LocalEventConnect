@@ -36,11 +36,13 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !isActive) return;
+    e.preventDefault(); // Prevent default behavior
     updatePosition(e.clientX, e.clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !isActive) return;
+    e.preventDefault(); // Prevent default scroll behavior
     updatePosition(e.touches[0].clientX, e.touches[0].clientY);
   };
 
@@ -53,7 +55,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
       if (deltaY < 0) {
         // Allow scrolling up to close
         setIsScrolling(true);
-        setScrollOffset(Math.max(0, scrollOffset + deltaY));
+        setScrollOffset(Math.max(0, 200 + deltaY));
       }
       return;
     }
@@ -62,12 +64,12 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
     
-    if (absY > absX && deltaY > 30) {
-      // Vertical scroll down - show more details (require more movement)
+    if (absY > absX && deltaY > 20) {
+      // Vertical scroll down - show more details
       setIsScrolling(true);
-      setScrollOffset(Math.max(0, Math.min(deltaY - 30, 200))); // Limit scroll to 200px
-    } else if (absX > absY && absX > 30) {
-      // Horizontal swipe - card movement (require more movement)
+      setScrollOffset(Math.max(0, Math.min(deltaY - 20, 200))); // Limit scroll to 200px
+    } else if (absX > absY && absX > 20) {
+      // Horizontal swipe - card movement
       setIsScrolling(false);
       const newRotation = deltaX * 0.1;
       setDragOffset({ x: deltaX, y: deltaY });
@@ -90,7 +92,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     
     if (isScrolling) {
       // Handle scroll end - snap to either closed or expanded state
-      if (scrollOffset > 80) {
+      if (scrollOffset > 60) {
         setScrollOffset(200); // Snap to expanded details view
       } else {
         setScrollOffset(0); // Snap back to closed
@@ -161,6 +163,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
           opacity: isActive ? 1 : 0.5,
           overflow: 'visible',
+          touchAction: 'none' // Prevent default touch behaviors
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
