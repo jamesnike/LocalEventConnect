@@ -250,7 +250,11 @@ export default function Home() {
             disabled={!currentEvent || isTransitioning}
             className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
           >
-            <ArrowRight className="w-6 h-6" />
+            {showDetailCard ? (
+              <Heart className="w-6 h-6" />
+            ) : (
+              <ArrowRight className="w-6 h-6" />
+            )}
           </button>
         </div>
         
