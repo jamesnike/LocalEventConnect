@@ -80,8 +80,8 @@ export default function Home() {
           {/* Location and Notifications */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-gray-800">
+              <MapPin className="w-3 h-3 text-primary" />
+              <span className="text-xs font-medium text-gray-600">
                 {user?.location || "San Francisco, CA"}
               </span>
             </div>
