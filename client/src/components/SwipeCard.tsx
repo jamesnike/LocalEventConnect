@@ -19,8 +19,6 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const [startTime, setStartTime] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
-  const lastTapTime = useRef(0);
-  const tapCount = useRef(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
@@ -245,85 +243,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             </div>
           </div>
 
-          {/* Detailed Information - Double-click to view */}
-          <div 
-            className="bg-gray-50 rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-100 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              
-              const now = Date.now();
-              const timeDiff = now - lastTapTime.current;
-              
-              if (timeDiff < 300) {
-                // Double tap detected
-                tapCount.current++;
-                if (tapCount.current === 2) {
-                  onInfoClick();
-                  tapCount.current = 0;
-                }
-              } else {
-                // First tap or tap after timeout
-                tapCount.current = 1;
-              }
-              
-              lastTapTime.current = now;
-              
-              // Reset tap count after timeout
-              setTimeout(() => {
-                if (Date.now() - lastTapTime.current >= 300) {
-                  tapCount.current = 0;
-                }
-              }, 300);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-          >
-            <h4 className="font-medium text-gray-800 text-sm">Event Details</h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-gray-600 block">Attending</span>
-                <span className="font-medium text-gray-800">{event.rsvpCount} people</span>
-              </div>
-              {event.capacity && (
-                <div>
-                  <span className="text-gray-600 block">Capacity</span>
-                  <span className="font-medium text-gray-800">{event.capacity} people</span>
-                </div>
-              )}
-              {event.duration && (
-                <div>
-                  <span className="text-gray-600 block">Duration</span>
-                  <span className="font-medium text-gray-800">{event.duration}</span>
-                </div>
-              )}
-            </div>
-            
-            {event.meetingPoint && (
-              <div className="text-sm">
-                <span className="text-gray-600 block">Meeting Point</span>
-                <span className="font-medium text-gray-800">{event.meetingPoint}</span>
-              </div>
-            )}
-            
-            {event.parkingInfo && (
-              <div className="text-sm">
-                <span className="text-gray-600 block">Parking</span>
-                <span className="font-medium text-gray-800">{event.parkingInfo}</span>
-              </div>
-            )}
-            
-            {event.specialNotes && (
-              <div className="text-sm">
-                <span className="text-gray-600 block">Special Notes</span>
-                <span className="font-medium text-gray-800">{event.specialNotes}</span>
-              </div>
-            )}
-            
-            {/* Double-click indicator */}
-            <div className="text-xs text-gray-500 text-center mt-2">
-              Double-tap for more details
-            </div>
-          </div>
+
 
           {/* Organizer Interests */}
           {event.organizer.interests && event.organizer.interests.length > 0 && (

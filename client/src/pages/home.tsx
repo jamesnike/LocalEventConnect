@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import SwipeCard from "@/components/SwipeCard";
+import EventDetailCard from "@/components/EventDetailCard";
 import CreateEvent from "@/components/CreateEvent";
 import EventDetail from "@/components/EventDetail";
 import BottomNav from "@/components/BottomNav";
@@ -18,6 +19,7 @@ export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [swipedEvents, setSwipedEvents] = useState<Set<number>>(new Set());
+  const [showDetailCard, setShowDetailCard] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -72,20 +74,38 @@ export default function Home() {
 
   const handleSwipeLeft = () => {
     if (!currentEvent) return;
-    setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-    setCurrentEventIndex(prev => prev + 1);
+    if (showDetailCard) {
+      // From detail card, go back to main card
+      setShowDetailCard(false);
+    } else {
+      // From main card, skip this event
+      setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+      setCurrentEventIndex(prev => prev + 1);
+    }
   };
 
   const handleSwipeRight = () => {
     if (!currentEvent) return;
-    if (user) {
-      rsvpMutation.mutate({ eventId: currentEvent.id, status: 'attending' });
+    if (showDetailCard) {
+      // From detail card, RSVP and move to next event
+      if (user) {
+        rsvpMutation.mutate({ eventId: currentEvent.id, status: 'attending' });
+      }
+      setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+      setCurrentEventIndex(prev => prev + 1);
+      setShowDetailCard(false);
+    } else {
+      // From main card, show detail card
+      setShowDetailCard(true);
     }
-    setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-    setCurrentEventIndex(prev => prev + 1);
   };
 
   const handleUndo = () => {
+    if (showDetailCard) {
+      // If in detail view, go back to main card
+      setShowDetailCard(false);
+      return;
+    }
     if (swipedEvents.size === 0) return;
     const lastSwipedEvent = Array.from(swipedEvents).pop();
     if (lastSwipedEvent) {
@@ -159,18 +179,29 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full">
-            {/* Render current and next event cards */}
-            {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
-              <SwipeCard
-                key={event.id}
-                event={event}
+          <div className="relative w-full h-full flex items-center justify-center">
+            {showDetailCard ? (
+              <EventDetailCard
+                event={currentEvent}
                 onSwipeLeft={handleSwipeLeft}
                 onSwipeRight={handleSwipeRight}
-                onInfoClick={() => setSelectedEvent(event)}
-                isActive={index === 0}
+                isActive={true}
               />
-            ))}
+            ) : (
+              <div className="relative w-full h-full">
+                {/* Render current and next event cards */}
+                {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
+                  <SwipeCard
+                    key={event.id}
+                    event={event}
+                    onSwipeLeft={handleSwipeLeft}
+                    onSwipeRight={handleSwipeRight}
+                    onInfoClick={() => setSelectedEvent(event)}
+                    isActive={index === 0}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -188,7 +219,7 @@ export default function Home() {
           
           <button
             onClick={handleUndo}
-            disabled={swipedEvents.size === 0}
+            disabled={swipedEvents.size === 0 && !showDetailCard}
             className="w-12 h-12 bg-gray-400 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RotateCcw className="w-5 h-5" />
@@ -197,10 +228,23 @@ export default function Home() {
           <button
             onClick={handleSwipeRight}
             disabled={!currentEvent}
-            className="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <Heart className="w-6 h-6" />
           </button>
+        </div>
+        
+        {/* Action Labels */}
+        <div className="flex justify-center space-x-8 mt-2">
+          <span className="text-xs text-gray-600 w-14 text-center">
+            {showDetailCard ? 'Back' : 'Skip'}
+          </span>
+          <span className="text-xs text-gray-600 w-12 text-center">
+            {showDetailCard ? 'Back' : 'Undo'}
+          </span>
+          <span className="text-xs text-gray-600 w-14 text-center">
+            {showDetailCard ? 'RSVP' : 'Details'}
+          </span>
         </div>
       </div>
 

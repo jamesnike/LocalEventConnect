@@ -1,0 +1,271 @@
+import { MapPin, DollarSign, Clock, Calendar } from "lucide-react";
+import { EventWithOrganizer } from "@shared/schema";
+import AnimeAvatar from "./AnimeAvatar";
+import { getEventImageUrl } from "@/lib/eventImages";
+import { useState, useRef, useEffect } from "react";
+
+interface EventDetailCardProps {
+  event: EventWithOrganizer;
+  onSwipeLeft: () => void;
+  onSwipeRight: () => void;
+  isActive: boolean;
+}
+
+export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isActive }: EventDetailCardProps) {
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startTime, setStartTime] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const startPos = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isActive) return;
+    setIsDragging(true);
+    setStartTime(Date.now());
+    startPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isActive) return;
+    setIsDragging(true);
+    setStartTime(Date.now());
+    startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !isActive) return;
+    e.preventDefault();
+    updatePosition(e.clientX, e.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !isActive) return;
+    e.preventDefault();
+    updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+  };
+
+  const updatePosition = (clientX: number, clientY: number) => {
+    const deltaX = clientX - startPos.current.x;
+    const deltaY = clientY - startPos.current.y;
+    
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (distance > 5) {
+      const newRotation = deltaX * 0.1;
+      setDragOffset({ x: deltaX, y: deltaY });
+      setRotation(newRotation);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging || !isActive) return;
+    handleDragEnd();
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging || !isActive) return;
+    handleDragEnd();
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    
+    const timeDiff = Date.now() - startTime;
+    const distance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
+    
+    if (timeDiff < 200 && distance < 10) {
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
+      return;
+    }
+    
+    const threshold = 120;
+    if (dragOffset.x > threshold) {
+      onSwipeRight();
+    } else if (dragOffset.x < -threshold) {
+      onSwipeLeft();
+    } else {
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
+    }
+  };
+
+  useEffect(() => {
+    if (!isDragging) {
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
+    }
+  }, [isDragging]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  return (
+    <div className="relative w-full max-w-sm mx-auto">
+      <div
+        ref={cardRef}
+        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 ${
+          isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
+        }`}
+        style={{
+          transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
+          zIndex: isActive ? 10 : 1,
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Header with image */}
+        <div className="relative h-48">
+          <img 
+            src={getEventImageUrl(event)}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <h2 className="text-white font-bold text-xl mb-1">{event.title}</h2>
+            <div className="flex items-center text-white/90 text-sm">
+              <MapPin className="w-4 h-4 mr-1" />
+              <span>{event.location}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Event Details Content */}
+        <div className="p-6 space-y-6">
+          {/* Date and Time */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center text-gray-600 mb-1">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span className="text-sm">{formatDate(event.date)}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <Clock className="w-4 h-4 mr-2" />
+                <span className="text-sm">{formatTime(event.time)}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="flex items-center text-gray-600 mb-1">
+                <DollarSign className="w-4 h-4 mr-1" />
+                <span className="text-sm">
+                  {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `$${parseFloat(event.price).toFixed(2)}`}
+                </span>
+              </div>
+              <div className="text-sm text-gray-600">
+                {event.rsvpCount} attending
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <h3 className="font-semibold text-gray-800 mb-2">About this event</h3>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {event.description}
+            </p>
+          </div>
+
+          {/* Organizer */}
+          <div className="flex items-center space-x-3">
+            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
+            <div>
+              <p className="font-medium text-gray-800">
+                {event.organizer.firstName || event.organizer.lastName 
+                  ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
+                  : 'Anonymous Organizer'}
+              </p>
+              <p className="text-sm text-gray-600">Event Organizer</p>
+              {event.organizer.interests && event.organizer.interests.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {event.organizer.interests.slice(0, 3).map((interest, index) => (
+                    <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Details */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <h4 className="font-semibold text-gray-800">Event Details</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {event.capacity && (
+                <div>
+                  <span className="text-gray-600 block">Capacity</span>
+                  <span className="font-medium text-gray-800">{event.capacity} people</span>
+                </div>
+              )}
+              {event.duration && (
+                <div>
+                  <span className="text-gray-600 block">Duration</span>
+                  <span className="font-medium text-gray-800">{event.duration}</span>
+                </div>
+              )}
+            </div>
+            
+            {event.meetingPoint && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Meeting Point</span>
+                <span className="font-medium text-gray-800">{event.meetingPoint}</span>
+              </div>
+            )}
+            
+            {event.parkingInfo && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Parking</span>
+                <span className="font-medium text-gray-800">{event.parkingInfo}</span>
+              </div>
+            )}
+            
+            {event.specialNotes && (
+              <div className="text-sm">
+                <span className="text-gray-600 block">Special Notes</span>
+                <span className="font-medium text-gray-800">{event.specialNotes}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action Instructions */}
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-600 mb-2">
+              Swipe right to RSVP • Swipe left to go back
+            </p>
+            <div className="flex justify-center items-center space-x-6">
+              <div className="flex items-center space-x-2 text-red-500">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span className="text-xs">Go back</span>
+              </div>
+              <div className="flex items-center space-x-2 text-green-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs">RSVP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
