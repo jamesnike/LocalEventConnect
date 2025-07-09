@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Clock, DollarSign, Heart, X, Info } from "lucide-react";
+import { MapPin, Clock, DollarSign, Heart, X, ChevronRight } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
@@ -155,7 +155,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="h-80 relative overflow-hidden rounded-t-2xl">
+        <div className="h-56 relative overflow-hidden rounded-t-2xl">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -167,7 +167,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
             <button onClick={onInfoClick}>
-              <Info className="w-4 h-4 text-gray-700" />
+              <ChevronRight className="w-4 h-4 text-gray-700" />
             </button>
           </div>
           <div className="absolute bottom-4 left-4 right-4 text-white">
@@ -180,7 +180,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Details - Simplified */}
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
           {/* Basic Info */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -196,12 +196,12 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           </div>
 
           {/* Description - Truncated */}
-          <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+          <p className="text-gray-700 text-sm leading-relaxed line-clamp-2">
             {event.description}
           </p>
 
           {/* Bottom Info */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-1">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>{event.rsvpCount} attending</span>
             </div>
