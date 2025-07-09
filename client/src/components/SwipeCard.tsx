@@ -111,7 +111,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     >
       <div
         ref={cardRef}
-        className="relative w-full h-full max-w-sm max-h-[calc(100vh-200px)] bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing flex flex-col"
+        className="relative w-full h-[600px] max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
           transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
@@ -131,7 +131,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Image */}
-        <div className="flex-1 min-h-[280px] bg-gradient-to-br from-purple-400 to-pink-400 relative">
+        <div className="h-96 bg-gradient-to-br from-purple-400 to-pink-400 relative">
           <div className="absolute inset-0 bg-black/20" />
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
             <button onClick={onInfoClick}>
@@ -148,7 +148,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
         </div>
 
         {/* Event Details */}
-        <div className="p-4 space-y-3 flex-shrink-0">
+        <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-gray-500" />
