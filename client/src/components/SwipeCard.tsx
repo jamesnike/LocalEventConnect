@@ -19,6 +19,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const [startTime, setStartTime] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
+  const lastTapTime = useRef(0);
+  const tapCount = useRef(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
@@ -243,15 +245,35 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             </div>
           </div>
 
-          {/* Detailed Information - Clickable */}
+          {/* Detailed Information - Double-click to view */}
           <div 
             className="bg-gray-50 rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-100 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              // Only trigger if not currently dragging
-              if (!isDragging) {
-                onInfoClick();
+              
+              const now = Date.now();
+              const timeDiff = now - lastTapTime.current;
+              
+              if (timeDiff < 300) {
+                // Double tap detected
+                tapCount.current++;
+                if (tapCount.current === 2) {
+                  onInfoClick();
+                  tapCount.current = 0;
+                }
+              } else {
+                // First tap or tap after timeout
+                tapCount.current = 1;
               }
+              
+              lastTapTime.current = now;
+              
+              // Reset tap count after timeout
+              setTimeout(() => {
+                if (Date.now() - lastTapTime.current >= 300) {
+                  tapCount.current = 0;
+                }
+              }, 300);
             }}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -297,9 +319,9 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
               </div>
             )}
             
-            {/* Click indicator */}
+            {/* Double-click indicator */}
             <div className="text-xs text-gray-500 text-center mt-2">
-              Click for more details
+              Double-tap for more details
             </div>
           </div>
 
