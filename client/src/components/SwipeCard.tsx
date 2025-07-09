@@ -135,18 +135,20 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
 
   const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation(); // Prevent event from bubbling up
+    e.preventDefault(); // Prevent default behavior
     const now = Date.now();
     const timeDiff = now - lastTapTime.current;
     
     console.log('Tap detected:', { timeDiff, now, lastTap: lastTapTime.current });
     
-    if (timeDiff < 300 && timeDiff > 0) {
-      // Double tap detected
+    if (timeDiff < 500 && timeDiff > 50) {
+      // Double tap detected (increased window and minimum time)
       console.log('Double tap detected, expanding');
       handleDoubleTab();
+      lastTapTime.current = 0; // Reset to prevent triple-tap issues
+    } else {
+      lastTapTime.current = now;
     }
-    
-    lastTapTime.current = now;
   };
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
@@ -292,9 +294,12 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
           {/* Scroll Down Indicator - Only show when not expanded */}
           {scrollOffset === 0 && (
             <div 
-              className="text-center pt-2 pb-1 cursor-pointer hover:bg-gray-50 rounded-md transition-colors"
+              className="text-center pt-2 pb-1 cursor-pointer hover:bg-gray-50 rounded-md transition-colors relative z-20"
               onClick={handleTap}
               onTouchEnd={handleTap}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ pointerEvents: 'auto' }}
             >
               <div className="inline-flex items-center space-x-1 text-gray-400 text-xs">
                 <span>Double tap for more details</span>
