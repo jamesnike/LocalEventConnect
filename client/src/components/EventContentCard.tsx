@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import { getEventImageUrl } from "@/lib/eventImages";
@@ -12,6 +12,8 @@ interface EventContentCardProps {
   isActive: boolean;
   similarEvents?: EventWithOrganizer[];
   onSimilarEventClick?: (event: EventWithOrganizer) => void;
+  initialTab?: 'chat' | 'similar';
+  onTabChange?: (tab: 'chat' | 'similar') => void;
 }
 
 export default function EventContentCard({ 
@@ -20,11 +22,24 @@ export default function EventContentCard({
   onSwipeRight, 
   isActive, 
   similarEvents = [],
-  onSimilarEventClick
+  onSimilarEventClick,
+  initialTab = 'chat',
+  onTabChange
 }: EventContentCardProps) {
-  const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
+
+  // Reset tab when event changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [event.id, initialTab]);
+
+  // Notify parent when tab changes
+  const handleTabChange = (tab: 'chat' | 'similar') => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -106,7 +121,7 @@ export default function EventContentCard({
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('chat')}
+            onClick={() => handleTabChange('chat')}
             className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
               activeTab === 'chat' 
                 ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
@@ -117,7 +132,7 @@ export default function EventContentCard({
             <span>Group Chat</span>
           </button>
           <button
-            onClick={() => setActiveTab('similar')}
+            onClick={() => handleTabChange('similar')}
             className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
               activeTab === 'similar' 
                 ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 

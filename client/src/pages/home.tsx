@@ -27,6 +27,7 @@ export default function Home() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>('chat');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -271,6 +272,8 @@ export default function Home() {
                   isActive={showContentCard}
                   similarEvents={availableEvents.filter(e => e.id !== currentEvent?.id && e.category === currentEvent?.category).slice(0, 3)}
                   onSimilarEventClick={(event) => setSelectedEvent(event)}
+                  initialTab={lastActiveTab}
+                  onTabChange={setLastActiveTab}
                 />
               </div>
             </div>
