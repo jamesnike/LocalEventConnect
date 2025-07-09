@@ -81,8 +81,8 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     }
   }, [isDragging]);
 
-  const formatDateTime = (dateTime: string) => {
-    const date = new Date(dateTime);
+  const formatDateTime = (dateStr: string, timeStr: string) => {
+    const date = new Date(`${dateStr}T${timeStr}`);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -142,7 +142,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="w-4 h-4" />
-              <span>{formatDateTime(event.dateTime)}</span>
+              <span>{formatDateTime(event.date, event.time)}</span>
             </div>
           </div>
         </div>
