@@ -110,9 +110,9 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-sm mx-auto bg-white min-h-screen relative">
+    <div className="max-w-sm mx-auto bg-white min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           {/* User Avatar */}
           <div className="flex items-center space-x-3">
@@ -179,7 +179,7 @@ export default function Home() {
       </div>
 
       {/* Action Buttons */}
-      <div className="bg-white border-t border-gray-200 px-4 py-4 pb-20">
+      <div className="bg-white border-t border-gray-200 px-4 py-4 pb-20 flex-shrink-0">
         <div className="flex justify-center space-x-8">
           <button
             onClick={handleSwipeLeft}
