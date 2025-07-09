@@ -16,18 +16,21 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [startTime, setStartTime] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
     setIsDragging(true);
+    setStartTime(Date.now());
     startPos.current = { x: e.clientX, y: e.clientY };
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isActive) return;
     setIsDragging(true);
+    setStartTime(Date.now());
     startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   };
 
@@ -47,10 +50,13 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     const deltaX = clientX - startPos.current.x;
     const deltaY = clientY - startPos.current.y;
     
-    // Only horizontal swiping for card movement
-    const newRotation = deltaX * 0.1;
-    setDragOffset({ x: deltaX, y: deltaY });
-    setRotation(newRotation);
+    // Only update if movement is significant enough (prevents accidental drags during clicks)
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (distance > 5) {
+      const newRotation = deltaX * 0.1;
+      setDragOffset({ x: deltaX, y: deltaY });
+      setRotation(newRotation);
+    }
   };
 
   const handleMouseUp = () => {
@@ -65,6 +71,17 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
 
   const handleDragEnd = () => {
     setIsDragging(false);
+    
+    const timeDiff = Date.now() - startTime;
+    const distance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
+    
+    // If it was a quick tap with minimal movement, it's a click
+    if (timeDiff < 200 && distance < 10) {
+      // Don't trigger swipe, let click handlers work
+      setDragOffset({ x: 0, y: 0 });
+      setRotation(0);
+      return;
+    }
     
     const threshold = 120;
     if (dragOffset.x > threshold) {
@@ -231,8 +248,13 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             className="bg-gray-50 rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-100 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              onInfoClick();
+              // Only trigger if not currently dragging
+              if (!isDragging) {
+                onInfoClick();
+              }
             }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             <h4 className="font-medium text-gray-800 text-sm">Event Details</h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
