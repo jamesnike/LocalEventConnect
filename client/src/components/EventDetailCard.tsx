@@ -16,6 +16,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startTime, setStartTime] = useState(0);
+  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const startPos = useRef({ x: 0, y: 0 });
 
@@ -23,6 +24,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     if (!isActive) return;
     setIsDragging(true);
     setStartTime(Date.now());
+    setIsHorizontalSwipe(false);
     startPos.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -30,19 +32,44 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     if (!isActive) return;
     setIsDragging(true);
     setStartTime(Date.now());
+    setIsHorizontalSwipe(false);
     startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !isActive) return;
-    e.preventDefault();
-    updatePosition(e.clientX, e.clientY);
+    
+    const deltaX = e.clientX - startPos.current.x;
+    const deltaY = e.clientY - startPos.current.y;
+    
+    // Determine if this is a horizontal swipe
+    if (!isHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      setIsHorizontalSwipe(true);
+    }
+    
+    // Only prevent default and update position for horizontal swipes
+    if (isHorizontalSwipe) {
+      e.preventDefault();
+      updatePosition(e.clientX, e.clientY);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || !isActive) return;
-    e.preventDefault();
-    updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+    
+    const deltaX = e.touches[0].clientX - startPos.current.x;
+    const deltaY = e.touches[0].clientY - startPos.current.y;
+    
+    // Determine if this is a horizontal swipe
+    if (!isHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      setIsHorizontalSwipe(true);
+    }
+    
+    // Only prevent default and update position for horizontal swipes
+    if (isHorizontalSwipe) {
+      e.preventDefault(); // Prevent scroll only for horizontal swipes
+      updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+    }
   };
 
   const updatePosition = (clientX: number, clientY: number) => {
@@ -76,18 +103,24 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     if (timeDiff < 200 && distance < 10) {
       setDragOffset({ x: 0, y: 0 });
       setRotation(0);
+      setIsHorizontalSwipe(false);
       return;
     }
     
-    const threshold = 120;
-    if (dragOffset.x > threshold) {
-      onSwipeRight();
-    } else if (dragOffset.x < -threshold) {
-      onSwipeLeft();
-    } else {
-      setDragOffset({ x: 0, y: 0 });
-      setRotation(0);
+    // Only trigger swipe if it was a horizontal swipe
+    if (isHorizontalSwipe) {
+      const threshold = 120;
+      if (dragOffset.x > threshold) {
+        onSwipeRight();
+      } else if (dragOffset.x < -threshold) {
+        onSwipeLeft();
+      } else {
+        setDragOffset({ x: 0, y: 0 });
+        setRotation(0);
+      }
     }
+    
+    setIsHorizontalSwipe(false);
   };
 
   useEffect(() => {
