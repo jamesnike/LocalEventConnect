@@ -65,8 +65,9 @@ export default function Home() {
                   const Icon = interestData?.icon || Activity;
                   
                   return (
-                    <div key={interest} className="flex items-center bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                    <div key={interest} className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
                       <Icon className="w-3 h-3" />
+                      <span>{interestData?.name || interest}</span>
                     </div>
                   );
                 })
