@@ -24,7 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Event routes
   app.get('/api/events', async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = (req.user as any)?.claims?.sub;
       const category = req.query.category as string | undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       
@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/events/:id', async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.user?.claims?.sub;
+      const userId = (req.user as any)?.claims?.sub;
       
       const event = await storage.getEvent(eventId, userId);
       if (!event) {
