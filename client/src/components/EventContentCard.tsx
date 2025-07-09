@@ -26,6 +26,7 @@ export default function EventContentCard({
   const [startTime, setStartTime] = useState(0);
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
   const [newMessage, setNewMessage] = useState('');
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -142,6 +143,14 @@ export default function EventContentCard({
       setMessages(prev => [...prev, newMsg]);
       setNewMessage('');
     }
+  };
+
+  const handleKeepExploring = () => {
+    setIsButtonClicked(true);
+    setTimeout(() => {
+      onSwipeRight();
+      setIsButtonClicked(false);
+    }, 300);
   };
 
   return (
@@ -310,10 +319,12 @@ export default function EventContentCard({
         {/* Keep Exploring Button - Bottom right with spacing */}
         <div className="absolute bottom-32 right-4 z-30">
           <button
-            onClick={onSwipeRight}
-            className="bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 hover:scale-105 transition-all duration-300 animate-pulse"
+            onClick={handleKeepExploring}
+            className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-300 ${
+              isButtonClicked ? 'scale-125 rotate-12 bg-green-500' : 'hover:scale-105'
+            }`}
           >
-            Keep Exploring
+            {isButtonClicked ? '🚀' : 'Keep Exploring'}
           </button>
         </div>
       </div>
