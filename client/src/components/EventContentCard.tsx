@@ -26,11 +26,7 @@ export default function EventContentCard({
   const [startTime, setStartTime] = useState(0);
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
   const [newMessage, setNewMessage] = useState('');
-  const cardRef = useRef<HTMLDivElement>(null);
-  const startPos = useRef({ x: 0, y: 0 });
-
-  // Mock chat messages for demonstration
-  const mockMessages = [
+  const [messages, setMessages] = useState([
     {
       id: 1,
       user: { name: "Sarah", avatarSeed: "sarah_123" },
@@ -49,7 +45,9 @@ export default function EventContentCard({
       message: "Great! I'll be there 15 minutes early to set up. Looking forward to meeting everyone!",
       timestamp: "30 sec ago"
     }
-  ];
+  ]);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const startPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
@@ -135,8 +133,13 @@ export default function EventContentCard({
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      // Here you would send the message to the backend
-      console.log('Sending message:', newMessage);
+      const newMsg = {
+        id: messages.length + 1,
+        user: { name: "You", avatarSeed: "user_current" },
+        message: newMessage.trim(),
+        timestamp: "now"
+      };
+      setMessages(prev => [...prev, newMsg]);
       setNewMessage('');
     }
   };
@@ -210,7 +213,7 @@ export default function EventContentCard({
               >
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {mockMessages.map((msg) => (
+                  {messages.map((msg) => (
                     <div key={msg.id} className="flex space-x-3">
                       <AnimeAvatar seed={msg.user.avatarSeed} size="xs" />
                       <div className="flex-1">
@@ -225,7 +228,7 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-gray-200">
+                <div className="p-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex space-x-2">
                     <input
                       type="text"
@@ -233,11 +236,12 @@ export default function EventContentCard({
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Type a message..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                     />
                     <button
                       onClick={handleSendMessage}
-                      className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                      disabled={!newMessage.trim()}
+                      className="px-4 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send className="w-4 h-4" />
                     </button>
