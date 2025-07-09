@@ -20,10 +20,14 @@ const getTimeOptions = () => {
     const dayName = days[date.getDay()];
     const dayPrefix = i === 0 ? 'today' : i === 1 ? 'tomorrow' : `day${i}`;
     
+    // Add date for clarity (e.g., "Wed AM (7/13)")
+    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+    const displayName = i < 2 ? dayName : `${dayName} (${monthDay})`;
+    
     options.push(
-      { id: `${dayPrefix}_morning`, name: `${dayName} AM`, icon: Sunrise },
-      { id: `${dayPrefix}_afternoon`, name: `${dayName} PM`, icon: Sun },
-      { id: `${dayPrefix}_night`, name: `${dayName} Night`, icon: Moon }
+      { id: `${dayPrefix}_morning`, name: `${displayName} AM`, icon: Sunrise },
+      { id: `${dayPrefix}_afternoon`, name: `${displayName} PM`, icon: Sun },
+      { id: `${dayPrefix}_night`, name: `${displayName} Night`, icon: Moon }
     );
   }
   
