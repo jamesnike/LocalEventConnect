@@ -23,6 +23,9 @@ export default function Browse() {
       const response = await fetch(`/api/events?${params}`);
       return response.json() as Promise<EventWithOrganizer[]>;
     },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   if (isLoading) {
