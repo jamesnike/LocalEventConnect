@@ -248,6 +248,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/events/:id/rejoin-chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      // Check if user has an RSVP or is the organizer
+      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const isOrganizer = event.organizerId === userId;
+      
+      if (!userRsvp && !isOrganizer) {
+        return res.status(403).json({ message: "You must RSVP to this event to join the chat" });
+      }
+      
+      // Re-join the chat by setting hasLeftChat to false
+      if (userRsvp) {
+        await storage.updateRsvp(eventId, userId, userRsvp.status);
+      }
+      
+      res.json({ message: "Successfully rejoined chat" });
+    } catch (error) {
+      console.error("Error rejoining event chat:", error);
+      res.status(500).json({ message: "Failed to rejoin event chat" });
+    }
+  });
+
+  // Get user's RSVP status for an event including hasLeftChat
+  app.get('/api/events/:id/rsvp-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      if (!userRsvp) {
+        return res.status(404).json({ message: "No RSVP found" });
+      }
+      
+      res.json(userRsvp);
+    } catch (error) {
+      console.error("Error getting RSVP status:", error);
+      res.status(500).json({ message: "Failed to get RSVP status" });
+    }
+  });
+
   // Update user profile
   app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {

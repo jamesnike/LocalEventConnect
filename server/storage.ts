@@ -583,7 +583,10 @@ export class DatabaseStorage implements IStorage {
   async updateRsvp(eventId: number, userId: string, status: string): Promise<EventRsvp> {
     const [updatedRsvp] = await db
       .update(eventRsvps)
-      .set({ status })
+      .set({ 
+        status,
+        hasLeftChat: false  // Reset hasLeftChat when updating RSVP to allow re-joining
+      })
       .where(
         and(
           eq(eventRsvps.eventId, eventId),

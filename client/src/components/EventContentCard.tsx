@@ -298,16 +298,6 @@ export default function EventContentCard({
                 event.organizer.id !== user?.id // Show for non-organizers in current/future events
               );
               
-              console.log('Exit button debug:', {
-                hasChatAccess,
-                eventOrganizerIdd: event.organizer.id,
-                userId: user?.id,
-                isPastEvent,
-                eventDate: eventDate.toISOString(),
-                now: now.toISOString(),
-                shouldShow,
-                eventTitle: event.title
-              });
               return shouldShow;
             })() && (
               <button

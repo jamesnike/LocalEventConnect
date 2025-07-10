@@ -244,6 +244,55 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === event.organizerId;
+
+  // Fetch user's RSVP details to check if they've left the chat
+  const { data: userRsvp } = useQuery({
+    queryKey: ['/api/events', event.id, 'rsvp', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const response = await apiRequest(`/api/events/${event.id}/rsvp-status`);
+      if (response.status === 404) return null;
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Re-join chat mutation
+  const rejoinChatMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/rejoin-chat`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to rejoin chat');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'rsvp', user?.id] });
+      
+      toast({
+        title: "Rejoined Chat",
+        description: "You've successfully rejoined the group chat!",
+        duration: 2000,
+      });
+      
+      // Navigate to the chat after rejoining
+      if (onNavigateToContent) {
+        onNavigateToContent();
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to rejoin chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to rejoin chat. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   
 
 
@@ -425,17 +474,32 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               )}
             </button>
             {user && (isOrganizer || localRsvpStatus === 'going' || localRsvpStatus === 'attending') && (
-              <button 
-                onClick={() => {
-                  if (onNavigateToContent) {
-                    onNavigateToContent();
-                  }
-                }}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>Group Chat</span>
-              </button>
+              userRsvp && userRsvp.hasLeftChat ? (
+                <button 
+                  onClick={() => rejoinChatMutation.mutate()}
+                  disabled={rejoinChatMutation.isPending}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium disabled:opacity-50"
+                >
+                  {rejoinChatMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <MessageCircle className="w-5 h-5" />
+                  )}
+                  <span>{rejoinChatMutation.isPending ? 'Rejoining...' : 'Rejoin Chat'}</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => {
+                    if (onNavigateToContent) {
+                      onNavigateToContent();
+                    }
+                  }}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Group Chat</span>
+                </button>
+              )
             )}
           </div>
           </div>
