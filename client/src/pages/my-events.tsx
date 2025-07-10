@@ -297,8 +297,8 @@ export default function MyEvents() {
                       {(() => {
                         const unreadCount = unreadByEvent.find(u => u.eventId === event.id)?.unreadCount || 0;
                         return unreadCount > 0 ? (
-                          <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                            {unreadCount > 9 ? '9+' : unreadCount}
+                          <span className="bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center font-medium">
+                            {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         ) : null;
                       })()}

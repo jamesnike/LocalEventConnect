@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChatMessageWithUser } from '@shared/schema';
 
 interface WebSocketMessage {
@@ -10,6 +11,7 @@ interface WebSocketMessage {
 
 export function useWebSocket(eventId: number | null) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<ChatMessageWithUser[]>([]);
   const ws = useRef<WebSocket | null>(null);
@@ -42,7 +44,16 @@ export function useWebSocket(eventId: number | null) {
         if (data.type === 'joined') {
           console.log('Joined event room:', data.eventId);
         } else if (data.type === 'newMessage' && data.message) {
+          console.log('Received new message via WebSocket:', data.message);
+          
+          // Add message to local state for immediate display
           setMessages(prev => [...prev, data.message!]);
+          
+          // Invalidate queries to refresh UI and notifications
+          queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'messages'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+          queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+          
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
         }

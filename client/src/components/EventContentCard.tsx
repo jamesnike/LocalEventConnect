@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
@@ -99,6 +99,8 @@ export default function EventContentCard({
       console.log('Message sent successfully:', data);
       // Immediately invalidate and refetch messages to show the new message
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
+      // Also invalidate notifications to update unread counts
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
       // Force refetch to ensure we get the latest messages
       refetchMessages();
     },
@@ -107,8 +109,16 @@ export default function EventContentCard({
     },
   });
 
-  // Use API messages as the primary source, merge with WebSocket messages
-  const allMessages = chatMessages || [];
+  // Merge API messages with WebSocket messages, removing duplicates
+  const allMessages = useMemo(() => {
+    const apiMessages = chatMessages || [];
+    const wsOnlyMessages = wsMessages.filter(wsMsg => 
+      !apiMessages.some(apiMsg => apiMsg.id === wsMsg.id)
+    );
+    return [...apiMessages, ...wsOnlyMessages].sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [chatMessages, wsMessages]);
 
   // Set initial messages from API when loaded
   useEffect(() => {
@@ -116,6 +126,14 @@ export default function EventContentCard({
       setMessages(chatMessages);
     }
   }, [chatMessages, setMessages]);
+
+  // Auto-refresh messages when WebSocket receives new messages
+  useEffect(() => {
+    if (wsMessages.length > 0) {
+      // Force refetch messages to get the latest from server
+      refetchMessages();
+    }
+  }, [wsMessages.length, refetchMessages]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
