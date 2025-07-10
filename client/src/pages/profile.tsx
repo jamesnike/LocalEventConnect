@@ -17,6 +17,8 @@ export default function Profile() {
   const [showProfile, setShowProfile] = useState(false);
   const [editingInterests, setEditingInterests] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [editingPersonality, setEditingPersonality] = useState(false);
+  const [selectedPersonality, setSelectedPersonality] = useState<string[]>([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   const availableInterests = [
@@ -30,6 +32,33 @@ export default function Profile() {
     { id: 'fitness', name: 'Fitness', icon: Activity },
     { id: 'gaming', name: 'Gaming', icon: Activity },
     { id: 'reading', name: 'Reading', icon: Activity },
+  ];
+
+  const availablePersonalities = [
+    { id: 'adventurous', name: 'Adventurous', emoji: '🌟' },
+    { id: 'creative', name: 'Creative', emoji: '🎨' },
+    { id: 'outgoing', name: 'Outgoing', emoji: '🎉' },
+    { id: 'friendly', name: 'Friendly', emoji: '😊' },
+    { id: 'calm', name: 'Calm', emoji: '😌' },
+    { id: 'energetic', name: 'Energetic', emoji: '⚡' },
+    { id: 'funny', name: 'Funny', emoji: '😄' },
+    { id: 'thoughtful', name: 'Thoughtful', emoji: '🤔' },
+    { id: 'spontaneous', name: 'Spontaneous', emoji: '🎲' },
+    { id: 'organized', name: 'Organized', emoji: '📋' },
+    { id: 'ambitious', name: 'Ambitious', emoji: '🎯' },
+    { id: 'easygoing', name: 'Easy-going', emoji: '🌊' },
+    { id: 'curious', name: 'Curious', emoji: '🔍' },
+    { id: 'optimistic', name: 'Optimistic', emoji: '🌅' },
+    { id: 'loyal', name: 'Loyal', emoji: '🤝' },
+    { id: 'independent', name: 'Independent', emoji: '🦋' },
+    { id: 'compassionate', name: 'Compassionate', emoji: '💜' },
+    { id: 'confident', name: 'Confident', emoji: '💪' },
+    { id: 'artistic', name: 'Artistic', emoji: '🖌️' },
+    { id: 'analytical', name: 'Analytical', emoji: '📊' },
+    { id: 'genuine', name: 'Genuine', emoji: '💎' },
+    { id: 'playful', name: 'Playful', emoji: '🎭' },
+    { id: 'determined', name: 'Determined', emoji: '🔥' },
+    { id: 'empathetic', name: 'Empathetic', emoji: '🫂' },
   ];
 
   const { data: userEvents } = useQuery({
@@ -58,7 +87,8 @@ export default function Profile() {
     mutationFn: async (interests: string[]) => {
       await apiRequest('PUT', '/api/users/profile', { 
         location: user?.location,
-        interests 
+        interests,
+        personality: user?.personality || []
       });
     },
     onSuccess: () => {
@@ -89,6 +119,42 @@ export default function Profile() {
     },
   });
 
+  const updatePersonalityMutation = useMutation({
+    mutationFn: async (personality: string[]) => {
+      await apiRequest('PUT', '/api/users/profile', { 
+        location: user?.location,
+        interests: user?.interests || [],
+        personality
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Personality Updated",
+        description: "Your personality traits have been saved successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setEditingPersonality(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update personality. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -105,6 +171,7 @@ export default function Profile() {
     if (user) {
       setShowProfile(true);
       setSelectedInterests(user.interests || []);
+      setSelectedPersonality(user.personality || []);
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
@@ -126,6 +193,26 @@ export default function Profile() {
   const handleEditInterests = () => {
     setEditingInterests(true);
     setSelectedInterests(user?.interests || []);
+  };
+
+  const handlePersonalityToggle = (personalityId: string) => {
+    setSelectedPersonality(prev => {
+      if (prev.includes(personalityId)) {
+        return prev.filter(id => id !== personalityId);
+      } else if (prev.length < 5) {
+        return [...prev, personalityId];
+      }
+      return prev;
+    });
+  };
+
+  const handleSavePersonality = () => {
+    updatePersonalityMutation.mutate(selectedPersonality);
+  };
+
+  const handleEditPersonality = () => {
+    setEditingPersonality(true);
+    setSelectedPersonality(user?.personality || []);
   };
 
   if (isLoading || !showProfile) {
@@ -294,6 +381,84 @@ export default function Profile() {
                 })
               ) : (
                 <p className="text-gray-500 text-sm">No interests selected yet</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Personality */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-gray-800">Personality</h4>
+            {!editingPersonality && (
+              <button 
+                onClick={handleEditPersonality}
+                className="text-primary text-sm font-medium"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+          
+          {editingPersonality ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">Select up to 5 personality traits that describe you best:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {availablePersonalities.map((personality) => {
+                  const isSelected = selectedPersonality.includes(personality.id);
+                  
+                  return (
+                    <button
+                      key={personality.id}
+                      onClick={() => handlePersonalityToggle(personality.id)}
+                      disabled={!isSelected && selectedPersonality.length >= 5}
+                      className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                        isSelected 
+                          ? 'bg-purple-50 border-purple-500 text-purple-700' 
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      } ${!isSelected && selectedPersonality.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span className="text-lg">{personality.emoji}</span>
+                      <span className="text-sm">{personality.name}</span>
+                      {isSelected && <Check className="w-4 h-4 ml-auto" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleSavePersonality}
+                  disabled={updatePersonalityMutation.isPending}
+                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg font-medium disabled:opacity-50"
+                >
+                  {updatePersonalityMutation.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingPersonality(false);
+                    setSelectedPersonality(user?.personality || []);
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {user?.personality && user.personality.length > 0 ? (
+                user.personality.slice(0, 5).map((personalityId) => {
+                  const personalityData = availablePersonalities.find(p => p.id === personalityId);
+                  
+                  return (
+                    <div key={personalityId} className="flex items-center space-x-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">
+                      <span className="text-sm">{personalityData?.emoji}</span>
+                      <span>{personalityData?.name || personalityId}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-gray-500 text-sm">No personality traits selected yet</p>
               )}
             </div>
           )}

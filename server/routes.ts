@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { location, interests } = req.body;
+      const { location, interests, personality } = req.body;
       
       const updatedUser = await storage.upsertUser({
         id: userId,
@@ -198,6 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profileImageUrl: req.user.claims.profile_image_url,
         location,
         interests,
+        personality,
       });
       
       res.json(updatedUser);

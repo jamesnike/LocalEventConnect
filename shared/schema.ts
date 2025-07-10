@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   animeAvatarSeed: varchar("anime_avatar_seed").notNull().default("default"), // For generating consistent anime avatars
   location: varchar("location"),
   interests: text("interests").array().default([]), // Array of interest categories
+  personality: text("personality").array().default([]), // Array of personality traits
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -115,6 +116,7 @@ export const upsertUserSchema = createInsertSchema(users).pick({
   animeAvatarSeed: true,
   location: true,
   interests: true,
+  personality: true,
 });
 
 export const insertEventSchema = createInsertSchema(events).omit({
