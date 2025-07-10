@@ -80,8 +80,8 @@ export default function EventContentCard({
       return response;
     },
     onSuccess: () => {
-      // Invalidate relevant queries to update UI
-      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      // Force remove cache to ensure fresh data
+      queryClient.removeQueries({ queryKey: ['/api/users', user?.id, 'events'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
       // Navigate back since user no longer has chat access
       if (onBackClick) {
