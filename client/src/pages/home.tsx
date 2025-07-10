@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -28,8 +29,10 @@ export default function Home() {
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>('chat');
+  const [isFromMyEvents, setIsFromMyEvents] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -65,6 +68,7 @@ export default function Home() {
         setCurrentEventIndex(eventIndex);
         setShowContentCard(true);
         setShowDetailCard(false);
+        setIsFromMyEvents(true); // Set flag to show back button
         
         // Remove from swipedEvents to ensure it's available
         setSwipedEvents(prev => {
@@ -114,6 +118,7 @@ export default function Home() {
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
       setCurrentEventIndex(prev => prev + 1);
       setShowContentCard(false);
+      setIsFromMyEvents(false); // Reset flag
     } else if (showDetailCard) {
       // From detail card, go back to main card
       setIsTransitioning(true);
@@ -125,6 +130,12 @@ export default function Home() {
       // From main card, skip this event with animation
       setShowSkipAnimation(true);
     }
+  };
+
+  const handleBackToMyEvents = () => {
+    setLocation('/my-events');
+    setShowContentCard(false);
+    setIsFromMyEvents(false);
   };
 
   const handleSkipAnimationComplete = () => {
@@ -300,6 +311,8 @@ export default function Home() {
                   onSimilarEventClick={(event) => setSelectedEvent(event)}
                   initialTab={lastActiveTab}
                   onTabChange={setLastActiveTab}
+                  showBackButton={isFromMyEvents}
+                  onBackClick={handleBackToMyEvents}
                 />
               </div>
             </div>

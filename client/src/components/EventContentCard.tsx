@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send } from "lucide-react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,8 @@ interface EventContentCardProps {
   onSimilarEventClick?: (event: EventWithOrganizer) => void;
   initialTab?: 'chat' | 'similar';
   onTabChange?: (tab: 'chat' | 'similar') => void;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 export default function EventContentCard({ 
@@ -24,7 +26,9 @@ export default function EventContentCard({
   similarEvents = [],
   onSimilarEventClick,
   initialTab = 'chat',
-  onTabChange
+  onTabChange,
+  showBackButton = false,
+  onBackClick
 }: EventContentCardProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
@@ -110,6 +114,14 @@ export default function EventContentCard({
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center space-x-3">
+            {showBackButton && (
+              <button
+                onClick={onBackClick}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+            )}
             <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
             <div>
               <h3 className="font-semibold text-lg">{event.title}</h3>
@@ -257,16 +269,18 @@ export default function EventContentCard({
         </div>
 
         {/* Keep Exploring Button - Bottom right with spacing */}
-        <div className="absolute bottom-32 right-4 z-30">
-          <button
-            onClick={handleKeepExploring}
-            className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
-              isButtonClicked ? 'scale-125 rotate-12 bg-green-500' : 'hover:scale-105'
-            }`}
-          >
-            {isButtonClicked ? '🚀' : 'Keep Exploring'}
-          </button>
-        </div>
+        {!showBackButton && (
+          <div className="absolute bottom-32 right-4 z-30">
+            <button
+              onClick={handleKeepExploring}
+              className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
+                isButtonClicked ? 'scale-125 rotate-12 bg-green-500' : 'hover:scale-105'
+              }`}
+            >
+              {isButtonClicked ? '🚀' : 'Keep Exploring'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
