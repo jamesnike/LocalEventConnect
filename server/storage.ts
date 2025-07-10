@@ -261,6 +261,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEvent(id: number): Promise<void> {
+    // Delete all RSVPs for this event first (to handle foreign key constraint)
+    await db.delete(eventRsvps).where(eq(eventRsvps.eventId, id));
+    // Then delete the event
     await db.delete(events).where(eq(events.id, id));
   }
 

@@ -117,6 +117,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     onClose();
   };
 
+  // Check if current user is the organizer of this event
+  const isOrganizer = user?.id === event.organizerId;
+
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
     { id: 'sports', name: 'Sports', icon: Activity },
@@ -229,15 +232,22 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="flex space-x-3 pb-6">
             <button 
-              onClick={handleRsvp}
-              disabled={rsvpMutation.isPending}
+              onClick={isOrganizer ? undefined : handleRsvp}
+              disabled={rsvpMutation.isPending || isOrganizer}
               className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                event.userRsvpStatus === 'going'
+                isOrganizer 
+                  ? 'bg-blue-500 text-white'
+                  : event.userRsvpStatus === 'going'
                   ? 'bg-success text-white'
                   : 'bg-primary text-white hover:bg-primary/90'
               }`}
             >
-              {rsvpMutation.isPending ? (
+              {isOrganizer ? (
+                <>
+                  <Check className="w-4 h-4 mr-2 inline" />
+                  Organizing
+                </>
+              ) : rsvpMutation.isPending ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Updating...
