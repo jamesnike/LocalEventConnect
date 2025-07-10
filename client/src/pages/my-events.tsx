@@ -33,7 +33,15 @@ export default function MyEvents() {
     }
   }, []);
 
-  const { data: organizedEvents } = useQuery({
+  // Force refresh when component mounts to show latest data
+  useEffect(() => {
+    if (user?.id) {
+      // Manually trigger refetch for all queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user.id, "events"] });
+    }
+  }, [user?.id]);
+
+  const { data: organizedEvents, isLoading: isLoadingOrganized } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized"],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -42,9 +50,13 @@ export default function MyEvents() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     enabled: !!user?.id,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnMount: true, // Always refetch when mounting
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
-  const { data: attendingEvents } = useQuery({
+  const { data: attendingEvents, isLoading: isLoadingAttending } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "attending"],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -53,10 +65,14 @@ export default function MyEvents() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     enabled: !!user?.id,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnMount: true, // Always refetch when mounting
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Group chats are the events the user is attending (RSVPed to) OR organizing
-  const { data: groupChats } = useQuery({
+  const { data: groupChats, isLoading: isLoadingGroupChats } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "group-chats"],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -84,6 +100,10 @@ export default function MyEvents() {
       return uniqueEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     enabled: !!user?.id,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnMount: true, // Always refetch when mounting
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const removeRsvpMutation = useMutation({
@@ -180,8 +200,14 @@ export default function MyEvents() {
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center">
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center relative">
         <h2 className="text-lg font-semibold">My Events</h2>
+        {/* Subtle loading indicator when refetching */}
+        {(isLoadingOrganized || isLoadingAttending || isLoadingGroupChats) && (
+          <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500 opacity-60"></div>
+          </div>
+        )}
       </header>
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200">
@@ -220,15 +246,25 @@ export default function MyEvents() {
       <div className="flex-1 overflow-y-auto pb-20">
         {activeTab === 'messages' ? (
           // Messages Tab Content
-          (!groupChats || groupChats.length === 0 ? (<div className="p-8 text-center">
-            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              No Group Chats
-            </h3>
-            <p className="text-gray-600">
-              Join events or organize your own to start chatting with other attendees!
-            </p>
-          </div>) : (<div className="space-y-1">
+          (!groupChats || groupChats.length === 0 ? (
+            // Only show loading for messages tab if no cached data and currently loading
+            isLoadingGroupChats && !groupChats ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                <p className="text-gray-500 text-sm mt-2">Loading group chats...</p>
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  No Group Chats
+                </h3>
+                <p className="text-gray-600">
+                  Join events or organize your own to start chatting with other attendees!
+                </p>
+              </div>
+            )
+          ) : (<div className="space-y-1">
             {groupChats.map((event) => (
               <div 
                 key={event.id}
@@ -297,18 +333,29 @@ export default function MyEvents() {
           </div>))
         ) : (
           // Regular Events Tab Content
-          (!currentEvents || currentEvents.length === 0 ? (<div className="p-8 text-center">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {activeTab === 'organized' ? 'No Events Created' : 'No Events Attending'}
-            </h3>
-            <p className="text-gray-600">
-              {activeTab === 'organized' 
-                ? 'Create your first event to get started!'
-                : 'Browse events and start attending some!'
-              }
-            </p>
-          </div>) : (<div className="space-y-2">
+          (!currentEvents || currentEvents.length === 0 ? (
+            // Only show loading if no cached data and currently loading
+            ((activeTab === 'organized' && isLoadingOrganized) || 
+             (activeTab === 'attending' && isLoadingAttending)) && !currentEvents ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                <p className="text-gray-500 text-sm mt-2">Loading events...</p>
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {activeTab === 'organized' ? 'No Events Created' : 'No Events Attending'}
+                </h3>
+                <p className="text-gray-600">
+                  {activeTab === 'organized' 
+                    ? 'Create your first event to get started!'
+                    : 'Browse events and start attending some!'
+                  }
+                </p>
+              </div>
+            )
+          ) : (<div className="space-y-2">
             {currentEvents.map((event) => (
               <EventCard 
                 key={event.id} 
