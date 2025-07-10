@@ -709,21 +709,17 @@ Please respond with just the signature text, nothing else.`;
         messages: [
           {
             role: "user",
-            content: `Analyze this avatar description and suggest DiceBear API parameters for the 'notionists' style: "${prompt}"
+            content: `Create a unique DiceBear avatar seed based on this description: "${prompt}"
 
-Based on the description, provide a JSON response with these parameters:
-- seed: A unique random string based on the description
-- backgroundColor: A hex color or "transparent" 
-- hair: Array of hair styles like ["long01", "long02", "short01", "short02", "short03", "short04", "short05", "short06", "short07", "short08", "short09", "short10", "short11", "short12", "short13", "short14", "short15", "short16", "short17", "short18", "short19", "short20", "pixie", "dangerTop", "dreads01", "dreads02", "bun", "bun02", "afro", "bob", "mohawk", "mohawk02", "pigtails", "straight01", "straight02", "curly", "curly02", "wavy", "wavy02"]
-- hairColor: Array of colors like ["0e0e0e", "3c4043", "6c5b7b", "c06c84", "f8b500", "ffd1dc", "d4af37", "a0522d", "8b4513", "ff6347", "32cd32", "4169e1", "9370db", "ff1493"]
-- eyes: Array of eye styles like ["open", "closed", "wink", "happy", "love", "surprised", "sleepy"]
-- mouth: Array of mouth styles like ["smile", "openSmile", "serious", "tongue", "piercedTongue", "eating", "surprised", "disbelief", "sad", "twinkle"]
-- skinColor: Array of skin tones like ["fdbcb4", "ecad80", "d08b5b", "ae5d29", "614335", "a0522d", "8b4513", "deb887", "f5deb3", "ffe4c4", "ffdbac", "ffdab9", "edb98a", "d2b48c", "bc9a6a", "a0522d", "8b4513", "654321", "5d4037", "4e342e", "3c2415", "2e1b0e"]
+Generate a JSON response with a unique seed that captures the essence of the description:
+{
+  "seed": "unique-descriptive-seed-here"
+}
 
-Choose parameters that best match the description. Respond with valid JSON only.`
+The seed should be a descriptive string that represents the person described. Keep it simple and unique.`
           }
         ],
-        max_tokens: 300,
+        max_tokens: 100,
         temperature: 0.7,
       });
 
@@ -755,21 +751,45 @@ Choose parameters that best match the description. Respond with valid JSON only.
         };
       }
 
-      // Build DiceBear URL with parameters
-      const baseUrl = 'https://api.dicebear.com/7.x/notionists/svg';
-      const params = new URLSearchParams({
-        seed: diceBearParams.seed,
-        size: '512',
-        backgroundColor: diceBearParams.backgroundColor || 'transparent',
-        hair: (diceBearParams.hair || ['short01']).join(','),
-        hairColor: (diceBearParams.hairColor || ['3c4043']).join(','),
-        eyes: (diceBearParams.eyes || ['open']).join(','),
-        mouth: (diceBearParams.mouth || ['smile']).join(','),
-        skinColor: (diceBearParams.skinColor || ['fdbcb4']).join(',')
-      });
+      // Validate and sanitize parameters
+      const validateSeed = (seed: string): string => {
+        // Remove special characters and ensure seed is alphanumeric with hyphens/underscores
+        const sanitized = seed.replace(/[^a-zA-Z0-9\-_]/g, '-').toLowerCase();
+        return sanitized || `user_${Date.now()}`;
+      };
 
+      // Build DiceBear URL with validated parameters
+      const baseUrl = 'https://api.dicebear.com/7.x/notionists/svg';
+      
+      // Validate and build params object
+      const urlParams: Record<string, string> = {
+        seed: validateSeed(diceBearParams.seed || `user_${Date.now()}`),
+        size: '512'
+      };
+      
+      console.log("Validated seed:", urlParams.seed);
+      
+      // Test the URL before returning
+      const params = new URLSearchParams(urlParams);
       const diceBearUrl = `${baseUrl}?${params.toString()}`;
       console.log("Generated DiceBear URL:", diceBearUrl);
+      
+      // Validate the URL works by making a HEAD request
+      try {
+        const testResponse = await fetch(diceBearUrl, { method: 'HEAD' });
+        if (!testResponse.ok) {
+          console.warn("DiceBear API returned error:", testResponse.status);
+          // Fall back to a simple seed if the generated one fails
+          const fallbackUrl = `${baseUrl}?seed=fallback_${Date.now()}&size=512`;
+          console.log("Using fallback URL:", fallbackUrl);
+          return res.json({ url: fallbackUrl });
+        }
+      } catch (fetchError) {
+        console.error("Error testing DiceBear URL:", fetchError);
+        // Return a simple fallback URL
+        const fallbackUrl = `${baseUrl}?seed=fallback_${Date.now()}&size=512`;
+        return res.json({ url: fallbackUrl });
+      }
       
       res.json({ url: diceBearUrl });
     } catch (error) {
