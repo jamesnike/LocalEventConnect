@@ -109,20 +109,27 @@ export default function EventContentCard({
     },
   });
 
-  // Merge API messages with WebSocket messages, removing duplicates
+  // Display WebSocket messages first for real-time, then fallback to API
   const allMessages = useMemo(() => {
+    // If we have WebSocket messages, use them for real-time updates
+    if (wsMessages.length > 0) {
+      console.log('Using WebSocket messages for real-time display:', wsMessages.length);
+      return wsMessages.sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    }
+    
+    // Otherwise use API messages
     const apiMessages = chatMessages || [];
-    const wsOnlyMessages = wsMessages.filter(wsMsg => 
-      !apiMessages.some(apiMsg => apiMsg.id === wsMsg.id)
-    );
-    return [...apiMessages, ...wsOnlyMessages].sort((a, b) => 
+    console.log('Using API messages:', apiMessages.length);
+    return apiMessages.sort((a, b) => 
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
   }, [chatMessages, wsMessages]);
 
   // Set initial messages from API when loaded - but only for current event
   useEffect(() => {
-    if (chatMessages && chatMessages.length > 0) {
+    if (chatMessages && chatMessages.length > 0 && wsMessages.length === 0) {
       console.log('Setting initial messages for event:', event.id, chatMessages.length, 'messages');
       setMessages(chatMessages);
     } else if (chatMessages && chatMessages.length === 0) {
@@ -130,18 +137,16 @@ export default function EventContentCard({
       console.log('Clearing messages for event:', event.id);
       setMessages([]);
     }
-  }, [chatMessages, event.id, setMessages]);
+  }, [chatMessages, event.id, wsMessages.length]);
 
   // Auto-refresh messages when WebSocket receives new messages
   useEffect(() => {
     if (wsMessages.length > 0) {
-      console.log('WebSocket messages updated, refreshing API data for event:', event.id);
+      console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
       // Force refetch messages to get the latest from server
       refetchMessages();
-      // Also invalidate cache to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
     }
-  }, [wsMessages.length, refetchMessages, queryClient, event.id]);
+  }, [wsMessages.length]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
