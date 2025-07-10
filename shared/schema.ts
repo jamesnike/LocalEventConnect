@@ -52,7 +52,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
-  category: varchar("category", { length: 50 }).notNull(), // Music, Sports, Arts, Food, Tech
+  category: varchar("category", { length: 50 }).notNull(), // Music, Sports, Arts, Food, Tech, Business, Education, Health, Entertainment, Community, Outdoor, Family, Lifestyle
   subCategory: varchar("sub_category", { length: 100 }), // Optional subcategory within each main category
   date: date("date").notNull(),
   time: time("time").notNull(),

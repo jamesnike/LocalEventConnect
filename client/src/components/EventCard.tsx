@@ -37,6 +37,14 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
       arts: 'bg-purple-500',
       food: 'bg-orange-500',
       tech: 'bg-blue-500',
+      business: 'bg-gray-600',
+      education: 'bg-indigo-600',
+      health: 'bg-green-600',
+      entertainment: 'bg-pink-600',
+      community: 'bg-yellow-600',
+      outdoor: 'bg-emerald-600',
+      family: 'bg-rose-600',
+      lifestyle: 'bg-violet-600',
     };
     return colors[category.toLowerCase() as keyof typeof colors] || 'bg-gray-500';
   };
@@ -48,6 +56,14 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
       arts: '🎨',
       food: '🍽️',
       tech: '💻',
+      business: '💼',
+      education: '📚',
+      health: '🏥',
+      entertainment: '🎭',
+      community: '🤝',
+      outdoor: '🌲',
+      family: '👨‍👩‍👧‍👦',
+      lifestyle: '✨',
     };
     return icons[category.toLowerCase() as keyof typeof icons] || '📅';
   };

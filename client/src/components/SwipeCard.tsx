@@ -255,6 +255,14 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
                 event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
                 event.category === 'food' ? 'bg-orange-100 text-orange-800' :
                 event.category === 'tech' ? 'bg-green-100 text-green-800' :
+                event.category === 'business' ? 'bg-gray-100 text-gray-800' :
+                event.category === 'education' ? 'bg-indigo-100 text-indigo-800' :
+                event.category === 'health' ? 'bg-green-100 text-green-800' :
+                event.category === 'entertainment' ? 'bg-pink-100 text-pink-800' :
+                event.category === 'community' ? 'bg-yellow-100 text-yellow-800' :
+                event.category === 'outdoor' ? 'bg-emerald-100 text-emerald-800' :
+                event.category === 'family' ? 'bg-rose-100 text-rose-800' :
+                event.category === 'lifestyle' ? 'bg-violet-100 text-violet-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
                 {event.category}

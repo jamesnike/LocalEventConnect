@@ -154,6 +154,46 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
       "Tech Conference", "Workshop", "Hackathon", "Networking Event", 
       "Product Launch", "Startup Pitch", "Coding Bootcamp", "Tech Talk", 
       "Developer Meetup", "AI/ML Event", "Web Development", "Mobile Development"
+    ],
+    business: [
+      "Networking Event", "Conference", "Workshop", "Seminar", "Trade Show", 
+      "Startup Pitch", "Business Meetup", "Panel Discussion", "Corporate Event", 
+      "Professional Development", "Leadership Training", "Sales Workshop"
+    ],
+    education: [
+      "Workshop", "Seminar", "Course", "Lecture", "Study Group", "Tutorial", 
+      "Language Exchange", "Academic Conference", "Book Club", "Library Event", 
+      "Educational Tour", "Skill Building", "Certification Program"
+    ],
+    health: [
+      "Fitness Class", "Yoga", "Meditation", "Wellness Workshop", "Health Seminar", 
+      "Mental Health Support", "Nutrition Class", "First Aid Training", "Therapy Session", 
+      "Mindfulness Workshop", "Stress Management", "Health Screening"
+    ],
+    entertainment: [
+      "Comedy Show", "Game Night", "Quiz Night", "Karaoke", "Dance Party", 
+      "Movie Night", "Magic Show", "Trivia Night", "Talent Show", "Variety Show", 
+      "Live Performance", "Interactive Entertainment"
+    ],
+    community: [
+      "Volunteer Event", "Fundraiser", "Charity Drive", "Community Meeting", 
+      "Neighborhood Event", "Social Gathering", "Cultural Celebration", "Religious Event", 
+      "Support Group", "Civic Engagement", "Local Initiative", "Community Service"
+    ],
+    outdoor: [
+      "Hiking", "Camping", "Beach Event", "Park Gathering", "Nature Walk", 
+      "Outdoor Festival", "Gardening", "Fishing", "Picnic", "Outdoor Sports", 
+      "Adventure Activity", "Environmental Cleanup", "Wildlife Watching"
+    ],
+    family: [
+      "Family Fun Day", "Kids Event", "Parenting Workshop", "Family Game Night", 
+      "Children's Activity", "Parent Meetup", "Family Outing", "Educational for Kids", 
+      "Baby & Toddler", "Teen Activity", "Multi-generational Event"
+    ],
+    lifestyle: [
+      "Fashion Show", "Beauty Workshop", "Home & Garden", "Travel Meetup", 
+      "Photography Walk", "Craft Workshop", "DIY Project", "Shopping Event", 
+      "Lifestyle Seminar", "Personal Development", "Hobby Group"
     ]
   };
 
@@ -239,11 +279,19 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="sports">Sports</SelectItem>
-                        <SelectItem value="arts">Arts</SelectItem>
-                        <SelectItem value="food">Food</SelectItem>
-                        <SelectItem value="tech">Tech</SelectItem>
+                        <SelectItem value="music">🎵 Music</SelectItem>
+                        <SelectItem value="sports">🏃 Sports</SelectItem>
+                        <SelectItem value="arts">🎨 Arts</SelectItem>
+                        <SelectItem value="food">🍽️ Food</SelectItem>
+                        <SelectItem value="tech">💻 Tech</SelectItem>
+                        <SelectItem value="business">💼 Business</SelectItem>
+                        <SelectItem value="education">📚 Education</SelectItem>
+                        <SelectItem value="health">🏥 Health & Wellness</SelectItem>
+                        <SelectItem value="entertainment">🎭 Entertainment</SelectItem>
+                        <SelectItem value="community">🤝 Community</SelectItem>
+                        <SelectItem value="outdoor">🌲 Outdoor</SelectItem>
+                        <SelectItem value="family">👨‍👩‍👧‍👦 Family</SelectItem>
+                        <SelectItem value="lifestyle">✨ Lifestyle</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
