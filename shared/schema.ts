@@ -40,6 +40,8 @@ export const users = pgTable("users", {
   interests: text("interests").array().default([]), // Array of interest categories
   personality: text("personality").array().default([]), // Array of personality traits
   aiSignature: text("ai_signature"), // AI-generated user signature
+  skippedEvents: integer("skipped_events").array().default([]), // Array of skipped event IDs
+  eventsShownSinceSkip: integer("events_shown_since_skip").default(0), // Counter for events shown since last skip
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

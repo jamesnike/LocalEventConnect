@@ -49,6 +49,11 @@ export interface IStorage {
   getUnreadCounts(userId: string): Promise<{totalUnread: number, unreadByEvent: Array<{eventId: number, eventTitle: string, unreadCount: number}>}>;
   markEventAsRead(eventId: number, userId: string): Promise<void>;
   getUserEventIds(userId: string): Promise<number[]>;
+  
+  // Skipped events operations
+  addSkippedEvent(userId: string, eventId: number): Promise<void>;
+  incrementEventsShown(userId: string): Promise<void>;
+  resetSkippedEvents(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -133,6 +138,25 @@ export class DatabaseStorage implements IStorage {
 
   // Event operations
   async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20): Promise<EventWithOrganizer[]> {
+    // Get user's skipped events if userId is provided
+    let userSkippedEvents: number[] = [];
+    if (userId) {
+      const [user] = await db.select({ skippedEvents: users.skippedEvents }).from(users).where(eq(users.id, userId));
+      userSkippedEvents = user?.skippedEvents || [];
+    }
+
+    // Build WHERE conditions
+    const whereConditions = [
+      eq(events.isActive, true),
+      category ? eq(events.category, category) : undefined,
+      ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : []),
+    ].filter(Boolean);
+
+    // Add skipped events exclusion if there are any
+    if (userSkippedEvents.length > 0) {
+      whereConditions.push(sql`${events.id} NOT IN (${sql.raw(userSkippedEvents.join(', '))})`);
+    }
+
     const query = db
       .select({
         id: events.id,
@@ -181,13 +205,7 @@ export class DatabaseStorage implements IStorage {
       .from(events)
       .leftJoin(users, eq(events.organizerId, users.id))
       .leftJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
-      .where(
-        and(
-          eq(events.isActive, true),
-          category ? eq(events.category, category) : undefined,
-          ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : [])
-        )
-      )
+      .where(and(...whereConditions))
       .groupBy(events.id, users.id)
       .orderBy(desc(events.createdAt))
       .limit(limit);
@@ -566,6 +584,71 @@ export class DatabaseStorage implements IStorage {
     ]);
     
     return Array.from(eventIds);
+  }
+
+  // Skipped events operations
+  async addSkippedEvent(userId: string, eventId: number): Promise<void> {
+    // Get current user data
+    const [user] = await db.select({ 
+      skippedEvents: users.skippedEvents,
+      eventsShownSinceSkip: users.eventsShownSinceSkip 
+    }).from(users).where(eq(users.id, userId));
+    
+    if (!user) return;
+    
+    const currentSkippedEvents = user.skippedEvents || [];
+    const updatedSkippedEvents = [...currentSkippedEvents, eventId];
+    
+    await db
+      .update(users)
+      .set({ 
+        skippedEvents: updatedSkippedEvents,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async incrementEventsShown(userId: string): Promise<void> {
+    // Get current counter
+    const [user] = await db.select({ 
+      eventsShownSinceSkip: users.eventsShownSinceSkip,
+      skippedEvents: users.skippedEvents 
+    }).from(users).where(eq(users.id, userId));
+    
+    if (!user) return;
+    
+    const newCount = (user.eventsShownSinceSkip || 0) + 1;
+    
+    // If we've shown 20 events, reset skipped events
+    if (newCount >= 20 && user.skippedEvents && user.skippedEvents.length > 0) {
+      await db
+        .update(users)
+        .set({ 
+          eventsShownSinceSkip: 0,
+          skippedEvents: [],
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    } else {
+      await db
+        .update(users)
+        .set({ 
+          eventsShownSinceSkip: newCount,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    }
+  }
+
+  async resetSkippedEvents(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        skippedEvents: [],
+        eventsShownSinceSkip: 0,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
   }
 }
 

@@ -501,6 +501,32 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Skipped events routes
+  app.post('/api/events/:id/skip', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      await storage.addSkippedEvent(userId, eventId);
+      res.status(200).json({ message: "Event skipped" });
+    } catch (error) {
+      console.error("Error skipping event:", error);
+      res.status(500).json({ message: "Failed to skip event" });
+    }
+  });
+
+  app.post('/api/events/increment-shown', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      await storage.incrementEventsShown(userId);
+      res.status(200).json({ message: "Events shown counter incremented" });
+    } catch (error) {
+      console.error("Error incrementing events shown:", error);
+      res.status(500).json({ message: "Failed to increment events shown" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time chat

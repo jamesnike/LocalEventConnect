@@ -141,6 +141,11 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Successfully migrated skipped events system from localStorage to database storage with persistent tracking across sessions
+- July 10, 2025. Added skippedEvents (array) and eventsShownSinceSkip (integer) fields to user schema with automatic reset after 20 events
+- July 10, 2025. Implemented database-level filtering to exclude skipped events from getEvents query for improved performance
+- July 10, 2025. Created API endpoints (/api/events/:id/skip, /api/events/increment-shown) for managing skipped events counter
+- July 10, 2025. Updated Home page swipe handlers to use database API calls instead of localStorage state management
 - July 10, 2025. Successfully implemented skipped events system with 20-event threshold before reappearing
 - July 10, 2025. Enhanced My Events tab filtering to exclude user-organized events from "Attending" tab - events now only show in appropriate tabs (Organizing vs Attending)
 - July 10, 2025. Confirmed Home page correctly filters out events user is organizing or attending - only shows new discovery events for swiping

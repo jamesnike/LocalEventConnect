@@ -75,26 +75,7 @@ export default function Home() {
     // Always start fresh for page refreshes
     return new Set();
   });
-  const [skippedEvents, setSkippedEvents] = useState<Set<number>>(() => {
-    // Check if coming from other pages with specific event
-    const eventContentId = localStorage.getItem('eventContentId');
-    if (eventContentId) {
-      const saved = loadHomeState();
-      return saved?.skippedEvents ? new Set(saved.skippedEvents) : new Set();
-    }
-    // Always start fresh for page refreshes
-    return new Set();
-  });
-  const [eventsShownSinceSkip, setEventsShownSinceSkip] = useState(() => {
-    // Check if coming from other pages with specific event
-    const eventContentId = localStorage.getItem('eventContentId');
-    if (eventContentId) {
-      const saved = loadHomeState();
-      return saved?.eventsShownSinceSkip || 0;
-    }
-    // Always start fresh for page refreshes
-    return 0;
-  });
+  // Remove skipped events and counter from localStorage state - now handled by database
   const [showDetailCard, setShowDetailCard] = useState(false); // Always start with Event Card
   const [showContentCard, setShowContentCard] = useState(false); // Always start with Event Card
   const [showCelebration, setShowCelebration] = useState(false);
@@ -142,8 +123,6 @@ export default function Home() {
       setSelectedEvent(null);
       setCurrentEventIndex(0);
       setSwipedEvents(new Set());
-      setSkippedEvents(new Set());
-      setEventsShownSinceSkip(0);
       clearHomeState();
     }
   }, []);  // Only run once on mount
@@ -163,22 +142,16 @@ export default function Home() {
       if (eventIndex !== -1) {
         const event = events[eventIndex];
         
-        // Remove from swipedEvents and skippedEvents to ensure it's available
+        // Remove from swipedEvents to ensure it's available
         setSwipedEvents(prev => {
           const newSet = new Set(prev);
           newSet.delete(eventId);
           return newSet;
         });
-        setSkippedEvents(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(eventId);
-          return newSet;
-        });
         
-        // Calculate the correct index in availableEvents after removing from swipedEvents and skippedEvents
+        // Calculate the correct index in availableEvents after removing from swipedEvents
         const updatedAvailableEvents = events.filter(e => 
           (!swipedEvents.has(e.id) || e.id === eventId) && 
-          (!skippedEvents.has(e.id) || e.id === eventId) &&
           e.organizerId !== user?.id && 
           e.userRsvpStatus !== 'going' && 
           e.userRsvpStatus !== 'attending'
@@ -249,23 +222,20 @@ export default function Home() {
     },
   });
 
-  // Save state whenever key state changes
+  // Save state whenever key state changes (removed skipped events - now handled by database)
   useEffect(() => {
     const stateToSave = {
       currentEventIndex,
       swipedEvents: Array.from(swipedEvents),
-      skippedEvents: Array.from(skippedEvents),
-      eventsShownSinceSkip,
       showDetailCard,
       showContentCard,
       lastActiveTab,
     };
     saveHomeState(stateToSave);
-  }, [currentEventIndex, swipedEvents, skippedEvents, eventsShownSinceSkip, showDetailCard, showContentCard, lastActiveTab]);
+  }, [currentEventIndex, swipedEvents, showDetailCard, showContentCard, lastActiveTab]);
 
   const availableEvents = events?.filter(event => 
     !swipedEvents.has(event.id) && 
-    !skippedEvents.has(event.id) &&
     event.organizerId !== user?.id && 
     event.userRsvpStatus !== 'going' && 
     event.userRsvpStatus !== 'attending'
@@ -274,33 +244,32 @@ export default function Home() {
 
   // Clear state when user has swiped through all events
   useEffect(() => {
-    if (events && events.length > 0 && availableEvents.length === 0 && (swipedEvents.size > 0 || skippedEvents.size > 0)) {
+    if (events && events.length > 0 && availableEvents.length === 0 && swipedEvents.size > 0) {
       // User has swiped through all events, reset state
       setCurrentEventIndex(0);
       setSwipedEvents(new Set());
-      setSkippedEvents(new Set());
-      setEventsShownSinceSkip(0);
       setShowDetailCard(false);
       setShowContentCard(false);
       clearHomeState();
     }
-  }, [events, availableEvents.length, swipedEvents.size, skippedEvents.size]);
+  }, [events, availableEvents.length, swipedEvents.size]);
 
-  // Reset skipped events after 20 new events are shown
-  useEffect(() => {
-    if (eventsShownSinceSkip >= 20 && skippedEvents.size > 0) {
-      setSkippedEvents(new Set());
-      setEventsShownSinceSkip(0);
-    }
-  }, [eventsShownSinceSkip, skippedEvents.size]);
-
-  const handleSwipeLeft = () => {
+  const handleSwipeLeft = async () => {
     if (!currentEvent || isTransitioning) return;
     if (showContentCard) {
       // From content card, go back to main and move to next event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
       setCurrentEventIndex(prev => prev + 1);
-      setEventsShownSinceSkip(prev => prev + 1); // Increment counter for events shown
+      
+      // Increment events shown counter in database
+      if (user) {
+        try {
+          await apiRequest('/api/events/increment-shown', { method: 'POST' });
+        } catch (error) {
+          console.error('Error incrementing events shown:', error);
+        }
+      }
+      
       setShowContentCard(false);
       setIsFromMyEvents(false); // Reset flag
       setEventFromMyEvents(null); // Clear stored event
@@ -323,17 +292,35 @@ export default function Home() {
     }
   };
 
-  const handleSkipAnimationComplete = () => {
+  const handleSkipAnimationComplete = async () => {
     setShowSkipAnimation(false);
-    setSkippedEvents(prev => new Set(prev).add(currentEvent.id));
+    
+    // Add event to skipped events in database
+    if (user && currentEvent) {
+      try {
+        await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
+      } catch (error) {
+        console.error('Error skipping event:', error);
+      }
+    }
+    
     setCurrentEventIndex(prev => prev + 1);
   };
 
-  const handleContentSwipeRight = () => {
+  const handleContentSwipeRight = async () => {
     // From content card, move to next event
     setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
     setCurrentEventIndex(prev => prev + 1);
-    setEventsShownSinceSkip(prev => prev + 1); // Increment counter for events shown
+    
+    // Increment events shown counter in database
+    if (user) {
+      try {
+        await apiRequest('/api/events/increment-shown', { method: 'POST' });
+      } catch (error) {
+        console.error('Error incrementing events shown:', error);
+      }
+    }
+    
     setShowContentCard(false);
   };
 
@@ -360,10 +347,18 @@ export default function Home() {
     }
   };
 
-  const handleCelebrationComplete = () => {
+  const handleCelebrationComplete = async () => {
     setShowCelebration(false);
     setShowContentCard(true);
-    setEventsShownSinceSkip(prev => prev + 1); // Increment counter for events shown
+    
+    // Increment events shown counter in database
+    if (user) {
+      try {
+        await apiRequest('/api/events/increment-shown', { method: 'POST' });
+      } catch (error) {
+        console.error('Error incrementing events shown:', error);
+      }
+    }
   };
 
   const handleUndo = () => {
