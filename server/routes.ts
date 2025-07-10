@@ -283,12 +283,6 @@ Please respond with just the signature text, nothing else.`;
           message: "AI signature service temporarily unavailable. Here's a personalized signature based on your profile!" 
         });
       }
-      
-      if (!signature) {
-        return res.status(500).json({ message: "Failed to generate signature" });
-      }
-
-      res.json({ signature });
     } catch (error) {
       console.error("Error generating signature:", error);
       
