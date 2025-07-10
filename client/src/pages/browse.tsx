@@ -74,10 +74,17 @@ export default function Browse() {
         return events;
     }
     
-    return events.filter(event => {
+    const filteredEvents = events.filter(event => {
       return event.date === dateString && 
              event.time >= startTime && 
              event.time <= endTime;
+    });
+    
+    // Sort filtered events by time in ascending order (earliest first)
+    return filteredEvents.sort((a, b) => {
+      const timeA = a.time;
+      const timeB = b.time;
+      return timeA.localeCompare(timeB);
     });
   };
 
