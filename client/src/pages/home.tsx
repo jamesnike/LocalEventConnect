@@ -403,6 +403,7 @@ export default function Home() {
         <EventDetail 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
+          showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
             // Find the event in the full events array
             const allEvents = events || [];
