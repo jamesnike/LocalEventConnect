@@ -34,6 +34,7 @@ const createEventSchema = insertEventSchema.extend({
   requirements: z.string().optional(),
   contactInfo: z.string().optional(),
   cancellationPolicy: z.string().optional(),
+  subCategory: z.string().optional(),
 });
 
 type CreateEventFormData = z.infer<typeof createEventSchema>;
@@ -50,6 +51,7 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
       title: "",
       description: "",
       category: "",
+      subCategory: "",
       date: "",
       time: "",
       location: "",
@@ -124,6 +126,38 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
   };
 
   const isFree = form.watch('isFree');
+  const selectedCategory = form.watch('category');
+
+  // Define subcategories for each main category
+  const subcategories = {
+    music: [
+      "Live Concert", "DJ Set", "Open Mic", "Jazz Performance", "Classical Music", 
+      "Rock Concert", "Hip Hop Event", "Electronic Music", "Acoustic Session", 
+      "Music Festival", "Band Performance", "Solo Artist", "Karaoke Night"
+    ],
+    sports: [
+      "Basketball", "Soccer", "Tennis", "Running", "Cycling", "Swimming", 
+      "Hiking", "Rock Climbing", "Volleyball", "Baseball", "Football", 
+      "Martial Arts", "Yoga", "Fitness Class", "Marathon", "Team Sports"
+    ],
+    arts: [
+      "Art Exhibition", "Theater Performance", "Dance Show", "Comedy Show", 
+      "Poetry Reading", "Film Screening", "Art Workshop", "Craft Fair", 
+      "Gallery Opening", "Performance Art", "Musical Theater", "Stand-up Comedy"
+    ],
+    food: [
+      "Food Festival", "Cooking Class", "Wine Tasting", "Restaurant Event", 
+      "Street Food", "Baking Workshop", "Food Tour", "Potluck", "BBQ", 
+      "Farmers Market", "Food Truck Event", "Culinary Competition"
+    ],
+    tech: [
+      "Tech Conference", "Workshop", "Hackathon", "Networking Event", 
+      "Product Launch", "Startup Pitch", "Coding Bootcamp", "Tech Talk", 
+      "Developer Meetup", "AI/ML Event", "Web Development", "Mobile Development"
+    ]
+  };
+
+  const currentSubcategories = selectedCategory ? subcategories[selectedCategory as keyof typeof subcategories] || [] : [];
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4`}>
@@ -194,7 +228,11 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      // Reset subcategory when category changes
+                      form.setValue('subCategory', '');
+                    }} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
@@ -212,6 +250,34 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
                   </FormItem>
                 )}
               />
+
+              {/* Subcategory - only show if category is selected */}
+              {selectedCategory && currentSubcategories.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="subCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategory</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a subcategory (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {currentSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField

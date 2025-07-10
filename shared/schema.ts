@@ -53,6 +53,7 @@ export const events = pgTable("events", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
   category: varchar("category", { length: 50 }).notNull(), // Music, Sports, Arts, Food, Tech
+  subCategory: varchar("sub_category", { length: 100 }), // Optional subcategory within each main category
   date: date("date").notNull(),
   time: time("time").notNull(),
   location: varchar("location", { length: 255 }).notNull(),
