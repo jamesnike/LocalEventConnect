@@ -635,19 +635,21 @@ Please respond with just the signature text, nothing else.`;
           
           // Broadcast to all connected clients in this event
           const connections = eventConnections.get(eventId);
-          if (connections) {
+          if (connections && messageWithUser) {
             const broadcastData = JSON.stringify({
               type: 'newMessage',
               eventId: eventId,
               message: messageWithUser
             });
             
-            console.log(`Broadcasting message to ${connections.size} clients in event ${eventId}`);
+            console.log(`Broadcasting message to ${connections.size} clients in event ${eventId}:`, messageWithUser);
             connections.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(broadcastData);
               }
             });
+          } else {
+            console.error('No connections found or messageWithUser is null:', { connections: connections?.size, messageWithUser });
           }
         }
       } catch (error) {

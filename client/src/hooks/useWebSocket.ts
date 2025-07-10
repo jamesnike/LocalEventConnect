@@ -45,8 +45,15 @@ export function useWebSocket(eventId: number | null) {
         
         if (data.type === 'joined') {
           console.log('Joined event room:', data.eventId);
-        } else if (data.type === 'newMessage' && data.message) {
-          console.log('Received new message via WebSocket for event:', data.eventId, data.message);
+        } else if (data.type === 'newMessage') {
+          console.log('Received WebSocket newMessage event:', data);
+          
+          if (!data.message) {
+            console.error('WebSocket newMessage missing message data:', data);
+            return;
+          }
+          
+          console.log('Processing new message via WebSocket for event:', data.eventId, data.message);
           
           // Only process message if it's for the current event
           if (data.eventId === currentEventId.current) {
@@ -65,13 +72,28 @@ export function useWebSocket(eventId: number | null) {
             // If user is actively viewing the chat and it's NOT their own message, 
             // immediately send acknowledgment with timestamp to prevent unread notifications
             if (data.eventId && data.message.userId !== user?.id && ws.current) {
-              console.log('Sending read acknowledgment since user is actively viewing this chat');
+              console.log('AUTO-READ: Sending read acknowledgment since user is actively viewing this chat');
+              console.log('AUTO-READ: Message details:', { 
+                eventId: data.eventId, 
+                messageUserId: data.message.userId, 
+                currentUserId: user.id, 
+                timestamp: data.message.createdAt 
+              });
+              
               ws.current.send(JSON.stringify({
                 type: 'ackRead',
                 eventId: data.eventId,
                 userId: user.id,
                 timestamp: data.message.createdAt
               }));
+            } else {
+              console.log('AUTO-READ: Not sending ack because:', {
+                isCurrentEvent: data.eventId === currentEventId.current,
+                isOtherUser: data.message.userId !== user?.id,
+                hasWebSocket: !!ws.current,
+                messageUserId: data.message.userId,
+                currentUserId: user?.id
+              });
             }
             
             // Invalidate queries to refresh UI and notifications
