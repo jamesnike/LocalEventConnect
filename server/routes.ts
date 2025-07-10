@@ -231,16 +231,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Create a prompt to generate a personal signature
-        const prompt = `Create a short personal signature/bio for someone with these characteristics:
+        const prompt = `Create a funny personal signature/bio for someone with these characteristics:
 
 Interests: ${interests.join(', ')}
 Personality: ${personality.join(', ')}
 
 The signature should be:
-- Maximum 15 words
-- One short sentence
+- Maximum 10 words
+- Funny and witty
 - Creative and memorable
-- Authentic and personal
+- Playful tone
 - Suitable for a social profile
 
 Please respond with just the signature text, nothing else.`;
@@ -248,8 +248,8 @@ Please respond with just the signature text, nothing else.`;
         const response = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
           messages: [{ role: "user", content: prompt }],
-          max_tokens: 50,
-          temperature: 0.8,
+          max_tokens: 30,
+          temperature: 0.9,
         });
 
         let signature = response.choices[0].message.content?.trim();
@@ -258,10 +258,10 @@ Please respond with just the signature text, nothing else.`;
           throw new Error("Empty response from OpenAI");
         }
 
-        // Ensure signature is 15 words or less
+        // Ensure signature is 10 words or less
         const words = signature.split(' ');
-        if (words.length > 15) {
-          signature = words.slice(0, 15).join(' ') + '...';
+        if (words.length > 10) {
+          signature = words.slice(0, 10).join(' ');
         }
 
         res.json({ signature });
@@ -274,11 +274,13 @@ Please respond with just the signature text, nothing else.`;
         const selectedTraits = shuffledTraits.slice(0, 3);
         
         const templates = [
-          `${selectedTraits.slice(0, 2).join(' and ')} enthusiast ready for adventures.`,
-          `${selectedTraits.slice(0, 2).join(' + ')} = my perfect day.`,
-          `Living life through ${selectedTraits.slice(0, 2).join(' and ')}.`,
-          `${selectedTraits.slice(0, 2).join(' and ')} believer in meaningful connections.`,
-          `Finding joy in ${selectedTraits.slice(0, 2).join(' and ')}.`,
+          `${selectedTraits[0]} addict seeking fellow weirdos.`,
+          `Professional ${selectedTraits[0]} enthusiast, amateur human.`,
+          `${selectedTraits[0]} powered, coffee fueled, adventure ready.`,
+          `Warning: May randomly discuss ${selectedTraits[0]}.`,
+          `${selectedTraits[0]} obsessed and proud of it.`,
+          `Collector of ${selectedTraits[0]} moments and bad jokes.`,
+          `${selectedTraits[0]} by day, dreamer by night.`,
         ];
         
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
