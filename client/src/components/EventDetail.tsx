@@ -13,9 +13,10 @@ interface EventDetailProps {
   event: EventWithOrganizer;
   onClose: () => void;
   onNavigateToContent?: () => void;
+  showGroupChatButton?: boolean;
 }
 
-export default function EventDetail({ event, onClose, onNavigateToContent }: EventDetailProps) {
+export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false }: EventDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -251,9 +252,23 @@ export default function EventDetail({ event, onClose, onNavigateToContent }: Eve
                 </>
               )}
             </button>
-            <button className="bg-gray-100 text-gray-700 px-4 py-3 rounded-lg">
-              <MessageCircle className="w-5 h-5" />
-            </button>
+            {showGroupChatButton ? (
+              <button 
+                onClick={() => {
+                  if (onNavigateToContent) {
+                    onNavigateToContent();
+                  }
+                }}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>Group Chat</span>
+              </button>
+            ) : (
+              <button className="bg-gray-100 text-gray-700 px-4 py-3 rounded-lg">
+                <MessageCircle className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
