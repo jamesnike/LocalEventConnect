@@ -141,6 +141,9 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 09, 2025. Fixed RSVP system to show events in MyEvents page when RSVPed from Browse page
+- July 09, 2025. Added RSVP → EventContent navigation from all pages (Browse, MyEvents, Home)
+- July 09, 2025. Implemented tab preference memory in EventContent (remembers last active tab)
 - July 09, 2025. Added Capacitor for native mobile app development with Android/iOS support
 - July 09, 2025. Redesigned home page with Bumble-style swipe interface, moved scrolling list to Browse page
 - July 08, 2025. Initial setup

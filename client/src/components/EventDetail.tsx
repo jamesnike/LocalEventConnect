@@ -47,6 +47,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent }: Eve
     },
     onSuccess: (_, status) => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      // Also invalidate MyEvents cache to ensure the event shows up there
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
       
       // If user is RSVPing "going", show celebration animation
       if (status === 'going') {

@@ -11,7 +11,7 @@ import {
   type InsertRsvp,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, asc, gte, lte, between } from "drizzle-orm";
+import { eq, and, or, sql, desc, asc, gte, lte, between } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -324,7 +324,11 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(events.isActive, true),
             eq(eventRsvps.userId, userId),
-            eq(eventRsvps.status, 'attending')
+            or(
+              eq(eventRsvps.status, 'attending'),
+              eq(eventRsvps.status, 'going'),
+              eq(eventRsvps.status, 'maybe')
+            )
           )
         )
         .groupBy(events.id, users.id, eventRsvps.status)
