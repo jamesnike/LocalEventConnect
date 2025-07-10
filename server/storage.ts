@@ -562,6 +562,8 @@ export class DatabaseStorage implements IStorage {
         .orderBy(desc(events.date));
 
       const results = await query;
+      console.log(`getUserEvents attending query results for user ${userId}:`, results.length, "events");
+      console.log("Event IDs:", results.map(r => r.id));
       return results.map(result => ({
         ...result,
         organizer: result.organizer!,
