@@ -37,13 +37,39 @@ const getTimeOptions = () => {
 export default function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryFilterProps) {
   const timeOptions = getTimeOptions();
   
+  // Reorganize options into the desired layout: 
+  // Top row: Wed AM, Wed Night, Thu AM, Thu Night...
+  // Bottom row: Wed PM, Thu AM, Thu PM, Fri AM...
+  const topRowOptions = [];
+  const bottomRowOptions = [];
+  
+  // Pattern: Column 1: Wed AM (top), Wed PM (bottom)
+  //         Column 2: Wed Night (top), Thu AM (bottom) 
+  //         Column 3: Thu PM (top), Thu Night (bottom)
+  //         Column 4: Fri AM (top), Fri PM (bottom)
+  for (let i = 0; i < timeOptions.length; i += 3) {
+    const dayOptions = timeOptions.slice(i, i + 3); // [AM, PM, Night] for each day
+    if (dayOptions.length >= 3) {
+      // Column 1: AM on top, PM on bottom
+      topRowOptions.push(dayOptions[0]); // AM
+      bottomRowOptions.push(dayOptions[1]); // PM
+      
+      // Column 2: Night on top, next day AM on bottom
+      topRowOptions.push(dayOptions[2]); // Night
+      if (i + 3 < timeOptions.length) {
+        const nextDayAM = timeOptions[i + 3];
+        if (nextDayAM) bottomRowOptions.push(nextDayAM);
+      }
+    }
+  }
+  
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
       <div className="overflow-x-auto pb-2">
         <div className="flex flex-col space-y-2 min-w-max">
-          {/* First row */}
+          {/* Top row: AM, Night, AM, Night... */}
           <div className="flex space-x-2">
-            {timeOptions.slice(0, Math.ceil(timeOptions.length / 2)).map((option) => {
+            {topRowOptions.map((option) => {
               const Icon = option.icon;
               const isSelected = selectedCategory === option.id;
               
@@ -64,9 +90,9 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
             })}
           </div>
           
-          {/* Second row */}
+          {/* Bottom row: PM, AM, PM, AM... */}
           <div className="flex space-x-2">
-            {timeOptions.slice(Math.ceil(timeOptions.length / 2)).map((option) => {
+            {bottomRowOptions.map((option) => {
               const Icon = option.icon;
               const isSelected = selectedCategory === option.id;
               
