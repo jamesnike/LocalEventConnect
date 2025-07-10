@@ -329,7 +329,7 @@ export default function Home() {
             {/* User Signature */}
             <div className="flex items-center space-x-1">
               {user?.aiSignature ? (
-                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs italic max-w-32 truncate">
+                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-[10px] italic leading-tight">
                   "{user.aiSignature}"
                 </div>
               ) : (
