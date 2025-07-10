@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Added 25 more events for the week starting July 9th with diverse timing (morning to evening) and comprehensive details across all categories
 - July 10, 2025. Created 25 comprehensive sample events with detailed descriptions hosted by 5 new users (Fan Jiang, Xiehuang, Tangbao, Riri, Susu) across all categories and time slots
 - July 10, 2025. Added 5 new users to database with diverse interests and locations (San Francisco, New York, Los Angeles, Seattle, Austin)
 - July 10, 2025. Enhanced Group Chat button visibility - now shows whenever user has RSVPed to an event ('going' status) regardless of entry point, enabling immediate access to group chat after RSVP
