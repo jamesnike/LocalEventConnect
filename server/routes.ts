@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { location, interests, personality } = req.body;
+      const { location, interests, personality, aiSignature } = req.body;
       
       const updatedUser = await storage.upsertUser({
         id: userId,
@@ -200,6 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location,
         interests,
         personality,
+        aiSignature,
       });
       
       res.json(updatedUser);
@@ -265,6 +266,19 @@ Please respond with just the signature text, nothing else.`;
           signature = words.slice(0, 10).join(' ');
         }
 
+        // Save signature to user profile
+        await storage.upsertUser({
+          id: userId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          location: user.location,
+          interests: user.interests,
+          personality: user.personality,
+          aiSignature: signature,
+        });
+
         res.json({ signature });
       } catch (openaiError) {
         console.error("OpenAI error:", openaiError);
@@ -288,6 +302,19 @@ Please respond with just the signature text, nothing else.`;
         ];
         
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
+        
+        // Save fallback signature to user profile
+        await storage.upsertUser({
+          id: userId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          location: user.location,
+          interests: user.interests,
+          personality: user.personality,
+          aiSignature: fallbackSignature,
+        });
         
         // Return fallback signature with a note about AI generation
         return res.status(503).json({ 
