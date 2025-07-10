@@ -222,13 +222,29 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   const handleButtonClick = () => {
     if (isOrganizer) {
-      // If user is organizer, cancel the event
-      cancelEventMutation.mutate();
+      // If user is organizer, confirm before canceling the event
+      const confirmMessage = `Are you sure you want to cancel "${event.title}"?\n\nThis action cannot be undone and will notify all attendees.`;
+      
+      if (window.confirm(confirmMessage)) {
+        const finalConfirmMessage = `Final confirmation: Cancel "${event.title}"?`;
+        
+        if (window.confirm(finalConfirmMessage)) {
+          cancelEventMutation.mutate();
+        }
+      }
     } else if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
-      // If user has RSVP'd (going or attending), remove RSVP
-      handleRsvp();
+      // If user has RSVP'd (going or attending), confirm before removing RSVP
+      const confirmMessage = `Are you sure you want to remove your RSVP for "${event.title}"?\n\nYou will no longer be attending this event.`;
+      
+      if (window.confirm(confirmMessage)) {
+        const finalConfirmMessage = `Final confirmation: Remove RSVP for "${event.title}"?`;
+        
+        if (window.confirm(finalConfirmMessage)) {
+          handleRsvp();
+        }
+      }
     } else {
-      // If user is not organizer and hasn't RSVP'd, add RSVP
+      // If user is not organizer and hasn't RSVP'd, add RSVP (no confirmation needed)
       handleRsvp();
     }
   };
