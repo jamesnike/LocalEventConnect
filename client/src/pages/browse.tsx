@@ -95,15 +95,13 @@ export default function Browse() {
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center">
-        <h2 className="text-lg font-semibold">I am free in ...</h2>
+        <h2 className="text-lg font-semibold">I am free in ... (next week)</h2>
       </header>
-
       {/* Category Filter */}
       <CategoryFilter 
         selectedCategory={selectedCategory} 
         onCategoryChange={handleCategoryChange} 
       />
-
       {/* Events List */}
       <div className="flex-1 overflow-y-auto pb-20">
         {!events || events.length === 0 ? (
@@ -122,18 +120,15 @@ export default function Browse() {
           </div>
         )}
       </div>
-
       {/* Bottom Navigation */}
       <BottomNav 
         currentPage="browse" 
         onCreateEvent={() => setShowCreateEvent(true)}
       />
-
       {/* Modals */}
       {showCreateEvent && (
         <CreateEvent onClose={() => setShowCreateEvent(false)} />
       )}
-      
       {selectedEvent && (
         <EventDetail 
           event={selectedEvent} 
