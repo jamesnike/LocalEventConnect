@@ -13,12 +13,16 @@
     </div>
     <script>
       console.log("HTML loaded, JavaScript is working");
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.includes('Loading EventConnect')) {
-          root.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">React failed to load - check console for errors</div>';
-        }
-      }, 5000);
+      window.addEventListener('load', () => {
+        console.log("Page fully loaded");
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root && root.innerHTML.includes('Loading EventConnect')) {
+            console.log("React failed to load within 8 seconds");
+            root.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">React failed to load - check console for errors</div>';
+          }
+        }, 8000);
+      });
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
