@@ -141,8 +141,12 @@ export class DatabaseStorage implements IStorage {
     // Get user's skipped events if userId is provided
     let userSkippedEvents: number[] = [];
     if (userId) {
-      const [user] = await db.select({ skippedEvents: users.skippedEvents }).from(users).where(eq(users.id, userId));
+      const [user] = await db.select({ 
+        skippedEvents: users.skippedEvents,
+        eventsShownSinceSkip: users.eventsShownSinceSkip 
+      }).from(users).where(eq(users.id, userId));
       userSkippedEvents = user?.skippedEvents || [];
+      console.log(`User ${userId} skipped events:`, userSkippedEvents);
     }
 
     // Build WHERE conditions
@@ -154,7 +158,10 @@ export class DatabaseStorage implements IStorage {
 
     // Add skipped events exclusion if there are any
     if (userSkippedEvents.length > 0) {
-      whereConditions.push(sql`${events.id} NOT IN (${sql.raw(userSkippedEvents.join(', '))})`);
+      console.log(`Filtering out skipped events for user ${userId}:`, userSkippedEvents);
+      whereConditions.push(sql`${events.id} NOT IN (${sql.raw(userSkippedEvents.map(id => `${id}`).join(', '))})`);
+    } else {
+      console.log(`No skipped events to filter for user ${userId}`);
     }
 
     const query = db
@@ -597,15 +604,20 @@ export class DatabaseStorage implements IStorage {
     if (!user) return;
     
     const currentSkippedEvents = user.skippedEvents || [];
-    const updatedSkippedEvents = [...currentSkippedEvents, eventId];
-    
-    await db
-      .update(users)
-      .set({ 
-        skippedEvents: updatedSkippedEvents,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
+    // Only add if not already skipped to avoid duplicates
+    if (!currentSkippedEvents.includes(eventId)) {
+      const updatedSkippedEvents = [...currentSkippedEvents, eventId];
+      
+      console.log(`Adding event ${eventId} to skipped list for user ${userId}. Current: ${currentSkippedEvents}, New: ${updatedSkippedEvents}`);
+      
+      await db
+        .update(users)
+        .set({ 
+          skippedEvents: updatedSkippedEvents,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    }
   }
 
   async incrementEventsShown(userId: string): Promise<void> {
@@ -619,8 +631,11 @@ export class DatabaseStorage implements IStorage {
     
     const newCount = (user.eventsShownSinceSkip || 0) + 1;
     
+    console.log(`Incrementing events shown for user ${userId}: ${user.eventsShownSinceSkip} -> ${newCount}`);
+    
     // If we've shown 20 events, reset skipped events
     if (newCount >= 20 && user.skippedEvents && user.skippedEvents.length > 0) {
+      console.log(`Resetting skipped events for user ${userId} after showing ${newCount} events`);
       await db
         .update(users)
         .set({ 
