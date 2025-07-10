@@ -597,28 +597,16 @@ Please respond with just the signature text, nothing else.`;
           (ws as any).userId = userId;
           
           ws.send(JSON.stringify({ type: 'subscribed_notifications', userId }));
-        } else if (message.type === 'markAsRead') {
-          const { eventId, userId } = message;
+        } else if (message.type === 'ackRead') {
+          const { eventId, userId, timestamp } = message;
           
           try {
-            // Mark the event as read for the user
-            await storage.markEventAsRead(eventId, userId);
-            console.log(`Auto-marked event ${eventId} as read for user ${userId} via WebSocket`);
-            
-            // Send confirmation back to client
-            ws.send(JSON.stringify({ 
-              type: 'markedAsRead', 
-              eventId, 
-              success: true 
-            }));
+            // Mark all messages before this timestamp as read for this user/event
+            await storage.markMessagesAsReadBeforeTime(eventId, userId, timestamp);
+            console.log(`Acknowledged read for event ${eventId}, user ${userId} before ${timestamp}`);
+            // No response needed - just update database
           } catch (error) {
-            console.error('Failed to mark event as read via WebSocket:', error);
-            ws.send(JSON.stringify({ 
-              type: 'markedAsRead', 
-              eventId, 
-              success: false, 
-              error: 'Failed to mark as read' 
-            }));
+            console.error('Failed to acknowledge read via WebSocket:', error);
           }
         }
         

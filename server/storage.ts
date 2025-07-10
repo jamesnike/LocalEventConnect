@@ -48,6 +48,7 @@ export interface IStorage {
   // Notification operations
   getUnreadCounts(userId: string): Promise<{totalUnread: number, unreadByEvent: Array<{eventId: number, eventTitle: string, unreadCount: number}>}>;
   markEventAsRead(eventId: number, userId: string): Promise<void>;
+  markMessagesAsReadBeforeTime(eventId: number, userId: string, timestamp: string): Promise<void>;
   getUserEventIds(userId: string): Promise<number[]>;
   
   // Skipped events operations
@@ -579,6 +580,26 @@ export class DatabaseStorage implements IStorage {
         target: [messageReads.userId, messageReads.eventId],
         set: {
           lastReadAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  async markMessagesAsReadBeforeTime(eventId: number, userId: string, timestamp: string): Promise<void> {
+    // Parse the timestamp and mark all messages before this time as read
+    const readTime = new Date(timestamp);
+    
+    await db
+      .insert(messageReads)
+      .values({
+        userId,
+        eventId,
+        lastReadAt: readTime,
+      })
+      .onConflictDoUpdate({
+        target: [messageReads.userId, messageReads.eventId],
+        set: {
+          lastReadAt: readTime,
           updatedAt: new Date(),
         },
       });
