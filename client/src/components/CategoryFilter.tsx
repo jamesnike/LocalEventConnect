@@ -39,7 +39,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
-      <div className="flex space-x-2 overflow-x-auto pb-2">
+      <div className="grid grid-cols-2 gap-2">
         {timeOptions.map((option) => {
           const Icon = option.icon;
           const isSelected = selectedCategory === option.id;
@@ -48,7 +48,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
             <button
               key={option.id}
               onClick={() => onCategoryChange(option.id)}
-              className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`flex items-center justify-center px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                 isSelected
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
