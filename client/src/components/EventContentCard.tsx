@@ -182,6 +182,18 @@ export default function EventContentCard({
     }
   }, [isActive, event.id, hasChatAccess, markEventAsRead]);
 
+  // Mark messages as read when new messages arrive while actively viewing chat
+  useEffect(() => {
+    if (isActive && activeTab === 'chat' && hasChatAccess && allMessages.length > 0) {
+      // Debounce the mark-as-read calls to avoid excessive API calls
+      const timeoutId = setTimeout(() => {
+        markEventAsRead(event.id);
+      }, 1000); // Wait 1 second after last message update before marking as read
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isActive, activeTab, hasChatAccess, allMessages.length, event.id, markEventAsRead]);
+
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
     setActiveTab(tab);
