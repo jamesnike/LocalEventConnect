@@ -522,18 +522,10 @@ Please respond with just the signature text, nothing else.`;
         if (message.type === 'join') {
           const { eventId, userId } = message;
           
-          // Verify user has access to this event
+          // Verify event exists
           const event = await storage.getEvent(eventId, userId);
           if (!event) {
             ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
-            return;
-          }
-          
-          const userRsvp = await storage.getUserRsvp(eventId, userId);
-          const isOrganizer = event.organizerId === userId;
-          
-          if (!isOrganizer && !userRsvp) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Not authorized to access this chat' }));
             return;
           }
           
@@ -563,18 +555,10 @@ Please respond with just the signature text, nothing else.`;
         if (message.type === 'message') {
           const { eventId, userId, content } = message;
           
-          // Verify user has access to this event
+          // Verify event exists
           const event = await storage.getEvent(eventId, userId);
           if (!event) {
             ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
-            return;
-          }
-          
-          const userRsvp = await storage.getUserRsvp(eventId, userId);
-          const isOrganizer = event.organizerId === userId;
-          
-          if (!isOrganizer && !userRsvp) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Not authorized to post to this chat' }));
             return;
           }
           
