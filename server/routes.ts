@@ -408,9 +408,9 @@ Please respond with just the signature text, nothing else.`;
       
       const newMessage = await storage.createChatMessage(messageData);
       
-      // Get the message with user data
-      const messagesWithUser = await storage.getChatMessages(eventId, 1);
-      const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
+      // Get the message with user data - find the specific message we just created
+      const messagesWithUser = await storage.getChatMessages(eventId, 10); // Get more messages to find the right one
+      const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
       
       console.log('HTTP POST: Created message:', newMessage);
       console.log('HTTP POST: Retrieved message with user:', messageWithUser);
