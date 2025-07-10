@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,14 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const [isClosing, setIsClosing] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [localRsvpStatus, setLocalRsvpStatus] = useState<string | undefined>(event.userRsvpStatus);
+  const [localRsvpCount, setLocalRsvpCount] = useState(event.rsvpCount);
+
+  // Sync local state with event prop when event changes
+  useEffect(() => {
+    setLocalRsvpStatus(event.userRsvpStatus);
+    setLocalRsvpCount(event.rsvpCount);
+  }, [event.userRsvpStatus, event.rsvpCount]);
 
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -49,11 +57,19 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       await apiRequest('POST', `/api/events/${event.id}/rsvp`, { status });
     },
     onSuccess: (_, status) => {
+      // Invalidate all relevant queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      // Also invalidate MyEvents cache to ensure the event shows up there
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+      
+      // Update local state for immediate UI feedback
+      const wasAlreadyRsvped = localRsvpStatus === 'going' || localRsvpStatus === 'attending';
+      setLocalRsvpStatus(status);
+      if (!wasAlreadyRsvped && status === 'going') {
+        setLocalRsvpCount(prev => prev + 1);
+      }
       
       // If user is RSVPing "going", show celebration animation
       if (status === 'going') {
@@ -91,10 +107,16 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       await apiRequest('DELETE', `/api/events/${event.id}/rsvp`);
     },
     onSuccess: () => {
+      // Invalidate all relevant queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+      
+      // Update local state for immediate UI feedback
+      setLocalRsvpStatus(undefined);
+      setLocalRsvpCount(prev => Math.max(0, prev - 1));
       
       toast({
         title: "RSVP Removed",
@@ -182,7 +204,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       return;
     }
 
-    if (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') {
+    if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
       // Remove RSVP
       removeRsvpMutation.mutate();
     } else {
@@ -192,7 +214,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   };
 
   const handleButtonClick = () => {
-    if (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') {
+    if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
       // If user has RSVP'd (going or attending), remove RSVP
       handleRsvp();
     } else if (isOrganizer) {
@@ -282,7 +304,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="mb-6">
             <h3 className="font-semibold text-gray-800 mb-3">
-              Attendees ({event.rsvpCount})
+              Attendees ({localRsvpCount})
             </h3>
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
@@ -292,8 +314,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <AnimeAvatar seed={`attendee_3_${event.id}`} size="md" />
                 <AnimeAvatar seed={`attendee_4_${event.id}`} size="md" />
               </div>
-              {event.rsvpCount > 5 && (
-                <span className="text-sm text-gray-600">+{event.rsvpCount - 5} more</span>
+              {localRsvpCount > 5 && (
+                <span className="text-sm text-gray-600">+{localRsvpCount - 5} more</span>
               )}
             </div>
           </div>
@@ -343,8 +365,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 (rsvpMutation.isPending || removeRsvpMutation.isPending || cancelEventMutation.isPending) 
                   ? 'opacity-50 cursor-not-allowed'
                   : isHovering 
-                  ? ((event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? 'bg-red-500 text-white' : isOrganizer ? 'bg-red-500 text-white' : 'bg-primary text-white')
-                  : ((event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending')
+                  ? ((localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? 'bg-red-500 text-white' : isOrganizer ? 'bg-red-500 text-white' : 'bg-primary text-white')
+                  : ((localRsvpStatus === 'going' || localRsvpStatus === 'attending')
                     ? 'bg-success text-white hover:bg-red-500'
                     : isOrganizer 
                     ? 'bg-blue-500 text-white hover:bg-red-500'
@@ -358,7 +380,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </div>
               ) : isHovering ? (
                 <>
-                  {(event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? (
+                  {(localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
                     <>
                       <Trash2 className="w-4 h-4 mr-2 inline" />
                       Remove RSVP
@@ -376,7 +398,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               ) : (
                 <>
-                  {(event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? (
+                  {(localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
                       Going
@@ -394,7 +416,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               )}
             </button>
-            {(showGroupChatButton || event.userRsvpStatus === 'going') ? (
+            {(showGroupChatButton || localRsvpStatus === 'going') ? (
               <button 
                 onClick={() => {
                   if (onNavigateToContent) {
