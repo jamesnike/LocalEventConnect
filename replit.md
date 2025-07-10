@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Fixed EventContent navigation from Browse page - now shows back button and hides "Keep Exploring" button when entering from Browse, with proper back navigation to main swipe interface
 - July 10, 2025. Enhanced all 61 sample events with comprehensive details including capacity, duration, meeting points, parking info, what to bring, requirements, special notes, contact info, and cancellation policies
 - July 10, 2025. Implemented Home page state persistence using localStorage - preserves current event, swipe history, and view mode when switching between navigation tabs
 - July 10, 2025. Added back button to EventContent when entering from My Events, returns to EventDetail modal, hides "Keep Exploring" button

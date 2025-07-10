@@ -394,8 +394,8 @@ export default function Home() {
                   onSimilarEventClick={(event) => setSelectedEvent(event)}
                   initialTab={lastActiveTab}
                   onTabChange={setLastActiveTab}
-                  showBackButton={isFromMyEvents}
-                  onBackClick={handleBackToEventDetail}
+                  showBackButton={true}
+                  onBackClick={isFromMyEvents ? handleBackToEventDetail : () => setShowContentCard(false)}
                 />
               </div>
             </div>
