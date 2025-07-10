@@ -173,7 +173,7 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., A friendly young person with short brown hair, wearing a casual blue shirt, smiling warmly..."
-                className="w-full h-24 text-sm"
+                className="w-full h-24 text-sm bg-white text-gray-900 border-gray-300 focus:border-primary focus:ring-primary placeholder-gray-500"
                 maxLength={500}
               />
               <p className="text-xs text-gray-500 mt-1">
