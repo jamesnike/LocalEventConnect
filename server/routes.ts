@@ -432,19 +432,23 @@ Please respond with just the signature text, nothing else.`;
       const eventData = await storage.getEvent(eventId);
       const senderUser = await storage.getUser(userId);
       
-      // Broadcast to notification subscribers (users not currently in the chat)
+      // Get all user IDs who should receive notifications for this event
+      const userEventIds = await storage.getUserEventIds(userId);
+      
+      // Broadcast to notification subscribers (including same user on different devices)
       notificationSubscribers.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           const subscriberUserId = (client as any).userId;
           
-          // Don't send notification to the sender
-          if (subscriberUserId !== userId) {
+          // Send notification to all users who are part of this event (including sender on other devices)
+          if (subscriberUserId && userEventIds.includes(eventId)) {
             client.send(JSON.stringify({
               type: 'new_message_notification',
               eventId,
               eventTitle: eventData?.title,
               senderName: senderUser ? `${senderUser.firstName} ${senderUser.lastName}` : 'Someone',
-              message: message.trim()
+              message: message.trim(),
+              senderId: userId
             }));
           }
         }
@@ -623,9 +627,11 @@ Please respond with just the signature text, nothing else.`;
           if (connections) {
             const broadcastData = JSON.stringify({
               type: 'newMessage',
+              eventId: eventId,
               message: messageWithUser
             });
             
+            console.log(`Broadcasting message to ${connections.size} clients in event ${eventId}`);
             connections.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(broadcastData);

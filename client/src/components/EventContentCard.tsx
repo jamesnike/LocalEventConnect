@@ -129,20 +129,24 @@ export default function EventContentCard({
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
+    console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
+    
     if (wsMessages.length > 0) {
-      console.log('WebSocket messages received for event:', event.id, 'count:', wsMessages.length);
       setMessages(prevMessages => {
-        // Merge API messages with WebSocket messages, removing duplicates
-        const allMessages = [...prevMessages];
+        // Start with existing messages
+        const existingMessages = [...prevMessages];
         
+        // Add new WebSocket messages that don't already exist
         wsMessages.forEach(wsMsg => {
-          const exists = allMessages.some(msg => msg.id === wsMsg.id);
+          const exists = existingMessages.some(msg => msg.id === wsMsg.id);
           if (!exists) {
-            allMessages.push(wsMsg);
+            console.log('Adding new WebSocket message:', wsMsg.id);
+            existingMessages.push(wsMsg);
           }
         });
         
-        return allMessages.sort((a, b) => 
+        // Sort by creation time
+        return existingMessages.sort((a, b) => 
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
       });

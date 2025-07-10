@@ -41,10 +41,11 @@ export function useWebSocket(eventId: number | null) {
     ws.current.onmessage = (event) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
+        console.log('WebSocket received data:', data);
         
         if (data.type === 'joined') {
           console.log('Joined event room:', data.eventId);
-        } else if (data.type === 'newMessage' && data.message && data.eventId === eventId) {
+        } else if (data.type === 'newMessage' && data.message) {
           console.log('Received new message via WebSocket for event:', data.eventId, data.message);
           
           // Only process message if it's for the current event
