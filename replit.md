@@ -141,6 +141,9 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. ENHANCED GROUP CHAT ACCESS: Updated EventDetail component to only show Group Chat button when user has RSVPed to event or is organizing it, improving user experience by preventing unauthorized chat access attempts
+- July 10, 2025. EXPANDED MESSAGE HISTORY: Increased chat message limit from 50 to 1000 messages per event for comprehensive chat history, updated both backend storage and API routes with proper cache invalidation
+- July 10, 2025. FIXED CRITICAL REACT LOOP: Resolved infinite useEffect loop in EventContentCard component by removing markEventAsRead from dependencies array, eliminating console warnings and performance issues
 - July 10, 2025. FIXED CRITICAL BUG: Resolved WebSocket message broadcasting issue where wrong messages were being sent due to database query ordering problem. Implemented direct message retrieval by ID, ensuring correct real-time message delivery with complete user data. AUTO-READ functionality working perfectly to prevent self-notification badges.
 - July 10, 2025. Successfully implemented complete real-time WebSocket messaging system with unread notification management - notifications clear when users enter event group chats, auto-refresh messages every 5 seconds while in chat, enhanced Messages Tab with up to 99+ notification badges, and smart WebSocket connection management that only connects when chat tab is active
 - July 10, 2025. Fixed EventContent component to mark events as read both when entering the component and when switching to chat tab, ensuring unread notifications properly clear across all navigation paths

@@ -424,7 +424,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               )}
             </button>
-            {user && (
+            {user && (isOrganizer || localRsvpStatus === 'going' || localRsvpStatus === 'attending') && (
               <button 
                 onClick={() => {
                   if (onNavigateToContent) {

@@ -129,7 +129,7 @@ export default function EventContentCard({
         setWsMessages([]);
       }
     }
-  }, [chatMessages, event.id]);
+  }, [chatMessages, event.id]); // setWsMessages is stable from useWebSocket hook
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
@@ -155,7 +155,7 @@ export default function EventContentCard({
         );
       });
     }
-  }, [wsMessages, event.id]);
+  }, [wsMessages, event.id]); // Keep event.id for proper cleanup when event changes
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -177,7 +177,7 @@ export default function EventContentCard({
     if (isActive && hasChatAccess) {
       markEventAsRead(event.id);
     }
-  }, [isActive, event.id, hasChatAccess, markEventAsRead]);
+  }, [isActive, event.id, hasChatAccess]); // Removed markEventAsRead from dependencies to prevent infinite loop
 
 
 
