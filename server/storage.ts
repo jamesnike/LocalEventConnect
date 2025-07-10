@@ -453,7 +453,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Chat operations
-  async getChatMessages(eventId: number, limit = 50): Promise<ChatMessageWithUser[]> {
+  async getChatMessages(eventId: number, limit = 1000): Promise<ChatMessageWithUser[]> {
     const query = db
       .select({
         id: chatMessages.id,
