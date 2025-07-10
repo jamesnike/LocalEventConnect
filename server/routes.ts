@@ -597,6 +597,29 @@ Please respond with just the signature text, nothing else.`;
           (ws as any).userId = userId;
           
           ws.send(JSON.stringify({ type: 'subscribed_notifications', userId }));
+        } else if (message.type === 'markAsRead') {
+          const { eventId, userId } = message;
+          
+          try {
+            // Mark the event as read for the user
+            await storage.markEventAsRead(eventId, userId);
+            console.log(`Auto-marked event ${eventId} as read for user ${userId} via WebSocket`);
+            
+            // Send confirmation back to client
+            ws.send(JSON.stringify({ 
+              type: 'markedAsRead', 
+              eventId, 
+              success: true 
+            }));
+          } catch (error) {
+            console.error('Failed to mark event as read via WebSocket:', error);
+            ws.send(JSON.stringify({ 
+              type: 'markedAsRead', 
+              eventId, 
+              success: false, 
+              error: 'Failed to mark as read' 
+            }));
+          }
         }
         
         if (message.type === 'message') {

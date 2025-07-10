@@ -4,9 +4,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ChatMessageWithUser } from '@shared/schema';
 
 interface WebSocketMessage {
-  type: 'joined' | 'newMessage' | 'error';
+  type: 'joined' | 'newMessage' | 'error' | 'markedAsRead';
   eventId?: number;
   message?: ChatMessageWithUser;
+  success?: boolean;
 }
 
 export function useWebSocket(eventId: number | null) {
@@ -62,15 +63,15 @@ export function useWebSocket(eventId: number | null) {
               return [...prev, data.message!];
             });
             
-            // If user is actively viewing the chat, mark the event as read to avoid unread notifications
-            // This ensures messages seen immediately don't count as unread
-            if (data.eventId && data.message.userId !== user?.id) {
-              console.log('Auto-marking event as read since user is actively in chat');
-              // Use async call without blocking to mark as read
-              fetch(`/api/events/${data.eventId}/mark-read`, {
-                method: 'POST',
-                credentials: 'include'
-              }).catch(err => console.error('Failed to auto-mark as read:', err));
+            // If user is actively viewing the chat and it's NOT their own message, 
+            // immediately mark as read via WebSocket to prevent unread notifications
+            if (data.eventId && data.message.userId !== user?.id && ws.current) {
+              console.log('Auto-marking event as read since user is actively viewing this chat');
+              ws.current.send(JSON.stringify({
+                type: 'markAsRead',
+                eventId: data.eventId,
+                userId: user.id
+              }));
             }
             
             // Invalidate queries to refresh UI and notifications
@@ -81,6 +82,14 @@ export function useWebSocket(eventId: number | null) {
             console.log('Ignoring message for different event:', data.eventId, 'current:', currentEventId.current);
           }
           
+        } else if (data.type === 'markedAsRead') {
+          if (data.success) {
+            console.log('Successfully marked event as read via WebSocket:', data.eventId);
+            // Invalidate notifications to refresh unread counts
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+          } else {
+            console.error('Failed to mark event as read via WebSocket:', data.eventId);
+          }
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
         }
