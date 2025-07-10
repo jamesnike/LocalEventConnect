@@ -270,6 +270,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'group-chats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'rsvp', user?.id] });
       
@@ -289,6 +290,39 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       toast({
         title: "Error",
         description: "Failed to rejoin chat. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Leave group chat mutation (for organizers)
+  const leaveGroupChatMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/leave-chat`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to leave group chat');
+      }
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'group-chats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'rsvp', user?.id] });
+      
+      toast({
+        title: "Left Group Chat",
+        description: "You've left the group chat but are still organizing this event.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to leave group chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to leave group chat. Please try again.",
         variant: "destructive",
       });
     },
@@ -488,17 +522,37 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   <span>{rejoinChatMutation.isPending ? 'Rejoining...' : 'Rejoin Chat'}</span>
                 </button>
               ) : (
-                <button 
-                  onClick={() => {
-                    if (onNavigateToContent) {
-                      onNavigateToContent();
-                    }
-                  }}
-                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Group Chat</span>
-                </button>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => {
+                      if (onNavigateToContent) {
+                        onNavigateToContent();
+                      }
+                    }}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Group Chat</span>
+                  </button>
+                  
+                  {/* Exit Group Chat Button */}
+                  <button 
+                    onClick={() => {
+                      if (confirm('Are you sure you want to leave this group chat? You will no longer receive messages from this event but will continue organizing it.')) {
+                        leaveGroupChatMutation.mutate();
+                      }
+                    }}
+                    disabled={leaveGroupChatMutation.isPending}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded-lg flex items-center font-medium disabled:opacity-50"
+                    title="Leave group chat"
+                  >
+                    {leaveGroupChatMutation.isPending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <X className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               )
             )}
           </div>
