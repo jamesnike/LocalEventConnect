@@ -418,7 +418,7 @@ export default function Home() {
                   onSimilarEventClick={(event) => setSelectedEvent(event)}
                   initialTab={lastActiveTab}
                   onTabChange={setLastActiveTab}
-                  showBackButton={true}
+                  showBackButton={isFromMyEvents || isFromBrowse || isFromMessagesTab}
                   onBackClick={() => {
                     if (isFromMessagesTab) {
                       // Go back to My Events page with Messages tab active

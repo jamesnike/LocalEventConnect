@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Fixed EventContent navigation from EventDetailCard to hide back button and show "Keep Exploring" button, while showing back button when entered from other pages (Browse, My Events, Messages)
 - July 10, 2025. Enhanced Messages tab to show group chats for ALL events where user is attending OR organizing, with visual indicators and proper query invalidation
 - July 10, 2025. Added 25 more events for the week starting July 9th with diverse timing (morning to evening) and comprehensive details across all categories
 - July 10, 2025. Created 25 comprehensive sample events with detailed descriptions hosted by 5 new users (Fan Jiang, Xiehuang, Tangbao, Riri, Susu) across all categories and time slots
