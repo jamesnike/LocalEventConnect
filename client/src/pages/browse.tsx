@@ -129,6 +129,8 @@ export default function Browse() {
             // Navigate to Home page with the event content
             // Store the event ID in localStorage so Home page can pick it up
             localStorage.setItem('eventContentId', selectedEvent.id.toString());
+            // Set preferred tab to chat for group chat access
+            localStorage.setItem('preferredTab', 'chat');
             setLocation('/');
           }}
         />

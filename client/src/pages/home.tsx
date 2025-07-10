@@ -105,6 +105,7 @@ export default function Home() {
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
     const fromMyEvents = localStorage.getItem('fromMyEvents');
+    const preferredTab = localStorage.getItem('preferredTab');
     
     if (eventContentId && events) {
       const eventId = parseInt(eventContentId);
@@ -117,6 +118,11 @@ export default function Home() {
         setCurrentEventIndex(eventIndex);
         setShowContentCard(true);
         setShowDetailCard(false);
+        
+        // Set the preferred tab if specified
+        if (preferredTab === 'chat' || preferredTab === 'similar') {
+          setLastActiveTab(preferredTab);
+        }
         
         // Check if coming from My Events
         if (fromMyEvents === 'true') {
@@ -134,6 +140,7 @@ export default function Home() {
         // Clear the localStorage
         localStorage.removeItem('eventContentId');
         localStorage.removeItem('fromMyEvents');
+        localStorage.removeItem('preferredTab');
       }
     }
   }, [events]);
