@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -88,7 +88,7 @@ export function useNotifications() {
     }
   }, [user]);
 
-  const markEventAsRead = async (eventId: number) => {
+  const markEventAsRead = useCallback(async (eventId: number) => {
     try {
       await apiRequest(`/api/events/${eventId}/mark-read`, {
         method: 'POST'
@@ -99,7 +99,7 @@ export function useNotifications() {
     } catch (error) {
       console.error('Failed to mark event as read:', error);
     }
-  };
+  }, [queryClient]);
 
   return {
     totalUnread: notifications.totalUnread,

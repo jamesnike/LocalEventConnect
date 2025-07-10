@@ -62,6 +62,17 @@ export function useWebSocket(eventId: number | null) {
               return [...prev, data.message!];
             });
             
+            // If user is actively viewing the chat, mark the event as read to avoid unread notifications
+            // This ensures messages seen immediately don't count as unread
+            if (data.eventId && data.message.userId !== user?.id) {
+              console.log('Auto-marking event as read since user is actively in chat');
+              // Use async call without blocking to mark as read
+              fetch(`/api/events/${data.eventId}/mark-read`, {
+                method: 'POST',
+                credentials: 'include'
+              }).catch(err => console.error('Failed to auto-mark as read:', err));
+            }
+            
             // Invalidate queries to refresh UI and notifications
             queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'messages'] });
             queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });

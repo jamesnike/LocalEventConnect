@@ -122,13 +122,17 @@ export default function EventContentCard({
     if (chatMessages && chatMessages.length > 0) {
       console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
       setMessagesState(chatMessages);
-      setWsMessages(chatMessages);
+      if (setWsMessages) {
+        setWsMessages(chatMessages);
+      }
     } else if (chatMessages && chatMessages.length === 0) {
       console.log('Clearing messages for event:', event.id);
       setMessagesState([]);
-      setWsMessages([]);
+      if (setWsMessages) {
+        setWsMessages([]);
+      }
     }
-  }, [chatMessages, event.id, setWsMessages]);
+  }, [chatMessages, event.id]);
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
@@ -176,16 +180,18 @@ export default function EventContentCard({
     if (isActive && hasChatAccess) {
       markEventAsRead(event.id);
     }
-  }, [isActive, event.id, hasChatAccess]);
+  }, [isActive, event.id, hasChatAccess, markEventAsRead]);
 
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
     setActiveTab(tab);
     onTabChange?.(tab);
     
-    // Refetch messages when switching to chat tab
+    // Refetch messages and mark as read when switching to chat tab
     if (tab === 'chat' && hasChatAccess) {
       refetchMessages();
+      // Mark event as read when actively opening chat
+      markEventAsRead(event.id);
     }
   };
 
