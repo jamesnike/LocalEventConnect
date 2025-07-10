@@ -57,8 +57,8 @@ export function useNotifications() {
           // Invalidate notifications to refresh counts
           queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
           
-          // Show browser notification if permission granted
-          if (Notification.permission === 'granted') {
+          // Show browser notification if permission granted and API is available
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             new Notification(`New message in ${data.eventTitle}`, {
               body: `${data.senderName}: ${data.message}`,
               icon: '/favicon.ico'

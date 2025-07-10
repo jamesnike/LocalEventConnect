@@ -4,6 +4,7 @@ import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowL
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useNotifications } from "@/hooks/useNotifications";
 import { apiRequest } from "@/lib/queryClient";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +37,7 @@ export default function EventContentCard({
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { markEventAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
@@ -120,14 +122,23 @@ export default function EventContentCard({
     setActiveTab(initialTab);
   }, [event.id, initialTab]);
 
+  // Mark event as read when chat tab is active and component is visible
+  useEffect(() => {
+    if (activeTab === 'chat' && isActive && user) {
+      markEventAsRead(event.id);
+    }
+  }, [activeTab, isActive, event.id, user, markEventAsRead]);
+
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
     setActiveTab(tab);
     onTabChange?.(tab);
     
-    // Refetch messages when switching to chat tab
+    // Refetch messages when switching to chat tab and mark as read
     if (tab === 'chat') {
       refetchMessages();
+      // Mark event as read when user opens chat
+      markEventAsRead(event.id);
     }
   };
 
