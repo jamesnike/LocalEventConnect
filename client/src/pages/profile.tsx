@@ -32,6 +32,58 @@ export default function Profile() {
     { id: 'fitness', name: 'Fitness', icon: Activity },
     { id: 'gaming', name: 'Gaming', icon: Activity },
     { id: 'reading', name: 'Reading', icon: Activity },
+    { id: 'movies', name: 'Movies', icon: Activity },
+    { id: 'cooking', name: 'Cooking', icon: UtensilsCrossed },
+    { id: 'dancing', name: 'Dancing', icon: Activity },
+    { id: 'hiking', name: 'Hiking', icon: Activity },
+    { id: 'yoga', name: 'Yoga', icon: Activity },
+    { id: 'meditation', name: 'Meditation', icon: Activity },
+    { id: 'writing', name: 'Writing', icon: Activity },
+    { id: 'podcasts', name: 'Podcasts', icon: Activity },
+    { id: 'volunteering', name: 'Volunteering', icon: Activity },
+    { id: 'networking', name: 'Networking', icon: Activity },
+    { id: 'investing', name: 'Investing', icon: Activity },
+    { id: 'entrepreneurship', name: 'Entrepreneurship', icon: Activity },
+    { id: 'sustainability', name: 'Sustainability', icon: Activity },
+    { id: 'mindfulness', name: 'Mindfulness', icon: Activity },
+    { id: 'languages', name: 'Languages', icon: Activity },
+    { id: 'history', name: 'History', icon: Activity },
+    { id: 'science', name: 'Science', icon: Activity },
+    { id: 'philosophy', name: 'Philosophy', icon: Activity },
+    { id: 'psychology', name: 'Psychology', icon: Activity },
+    { id: 'fashion', name: 'Fashion', icon: Activity },
+    { id: 'design', name: 'Design', icon: Palette },
+    { id: 'architecture', name: 'Architecture', icon: Activity },
+    { id: 'gardening', name: 'Gardening', icon: Activity },
+    { id: 'pets', name: 'Pets', icon: Activity },
+    { id: 'chess', name: 'Chess', icon: Activity },
+    { id: 'boardgames', name: 'Board Games', icon: Activity },
+    { id: 'collectibles', name: 'Collectibles', icon: Activity },
+    { id: 'crafts', name: 'Crafts', icon: Activity },
+    { id: 'diy', name: 'DIY Projects', icon: Activity },
+    { id: 'astronomy', name: 'Astronomy', icon: Activity },
+    { id: 'nature', name: 'Nature', icon: Activity },
+    { id: 'camping', name: 'Camping', icon: Activity },
+    { id: 'cycling', name: 'Cycling', icon: Activity },
+    { id: 'running', name: 'Running', icon: Activity },
+    { id: 'swimming', name: 'Swimming', icon: Activity },
+    { id: 'climbing', name: 'Climbing', icon: Activity },
+    { id: 'skiing', name: 'Skiing', icon: Activity },
+    { id: 'surfing', name: 'Surfing', icon: Activity },
+    { id: 'martial_arts', name: 'Martial Arts', icon: Activity },
+    { id: 'wine', name: 'Wine', icon: Activity },
+    { id: 'coffee', name: 'Coffee', icon: Activity },
+    { id: 'theater', name: 'Theater', icon: Activity },
+    { id: 'comedy', name: 'Comedy', icon: Activity },
+    { id: 'concerts', name: 'Concerts', icon: Music },
+    { id: 'festivals', name: 'Festivals', icon: Activity },
+    { id: 'museums', name: 'Museums', icon: Activity },
+    { id: 'antiques', name: 'Antiques', icon: Activity },
+    { id: 'vintage', name: 'Vintage', icon: Activity },
+    { id: 'spirituality', name: 'Spirituality', icon: Activity },
+    { id: 'wellness', name: 'Wellness', icon: Activity },
+    { id: 'beauty', name: 'Beauty', icon: Activity },
+    { id: 'skincare', name: 'Skincare', icon: Activity },
   ];
 
   const availablePersonalities = [
@@ -323,28 +375,30 @@ export default function Profile() {
           {editingInterests ? (
             <div className="space-y-4">
               <p className="text-sm text-gray-600">Select up to 3 interests that represent you best:</p>
-              <div className="grid grid-cols-2 gap-2">
-                {availableInterests.map((interest) => {
-                  const Icon = interest.icon;
-                  const isSelected = selectedInterests.includes(interest.id);
-                  
-                  return (
-                    <button
-                      key={interest.id}
-                      onClick={() => handleInterestToggle(interest.id)}
-                      disabled={!isSelected && selectedInterests.length >= 3}
-                      className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
-                        isSelected 
-                          ? 'bg-primary/10 border-primary text-primary' 
-                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                      } ${!isSelected && selectedInterests.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm">{interest.name}</span>
-                      {isSelected && <Check className="w-4 h-4 ml-auto" />}
-                    </button>
-                  );
-                })}
+              <div className="max-h-60 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 pr-2">
+                  {availableInterests.map((interest) => {
+                    const Icon = interest.icon;
+                    const isSelected = selectedInterests.includes(interest.id);
+                    
+                    return (
+                      <button
+                        key={interest.id}
+                        onClick={() => handleInterestToggle(interest.id)}
+                        disabled={!isSelected && selectedInterests.length >= 3}
+                        className={`flex items-center space-x-2 p-2 rounded-lg border transition-colors ${
+                          isSelected 
+                            ? 'bg-primary/10 border-primary text-primary' 
+                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        } ${!isSelected && selectedInterests.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <Icon className="w-3 h-3" />
+                        <span className="text-xs">{interest.name}</span>
+                        {isSelected && <Check className="w-3 h-3 ml-auto" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="flex space-x-2">
                 <button
