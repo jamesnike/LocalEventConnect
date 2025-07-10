@@ -98,12 +98,9 @@ export default function EventContentCard({
     },
     onSuccess: (data) => {
       console.log('Message sent successfully:', data);
-      // Immediately invalidate and refetch messages to show the new message
-      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
-      // Also invalidate notifications to update unread counts
+      // Only invalidate notifications to update unread counts
+      // WebSocket will handle real-time message updates
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
-      // Force refetch to ensure we get the latest messages
-      refetchMessages();
     },
     onError: (error) => {
       console.error('Failed to send message:', error);
