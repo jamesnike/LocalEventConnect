@@ -25,9 +25,9 @@ export default function Browse() {
   };
 
   const { data: allEvents, isLoading } = useQuery({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/events/browse"],
     queryFn: async () => {
-      const response = await fetch("/api/events?limit=100");
+      const response = await fetch("/api/events/browse?limit=100");
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     refetchOnWindowFocus: false,
