@@ -229,8 +229,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Please select some interests and personality traits first" });
       }
 
-      // Create a prompt to generate a personal signature
-      const prompt = `Create a creative and engaging personal signature/bio for someone with these characteristics:
+      try {
+        // Create a prompt to generate a personal signature
+        const prompt = `Create a creative and engaging personal signature/bio for someone with these characteristics:
 
 Interests: ${interests.join(', ')}
 Personality: ${personality.join(', ')}
@@ -244,14 +245,44 @@ The signature should be:
 
 Please respond with just the signature text, nothing else.`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 100,
-        temperature: 0.8,
-      });
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 100,
+          temperature: 0.8,
+        });
 
-      const signature = response.choices[0].message.content?.trim();
+        const signature = response.choices[0].message.content?.trim();
+        
+        if (!signature) {
+          throw new Error("Empty response from OpenAI");
+        }
+
+        res.json({ signature });
+      } catch (openaiError) {
+        console.error("OpenAI error:", openaiError);
+        
+        // Fallback: Generate a simple signature based on interests and personality
+        const allTraits = [...interests, ...personality];
+        const shuffledTraits = allTraits.sort(() => 0.5 - Math.random());
+        const selectedTraits = shuffledTraits.slice(0, 3);
+        
+        const templates = [
+          `Passionate about ${selectedTraits.join(' and ')}, always ready for new adventures.`,
+          `Living life through ${selectedTraits.join(', ')} - let's connect and explore together!`,
+          `${selectedTraits.join(' + ')} = my perfect day. What's yours?`,
+          `Enthusiast of ${selectedTraits.join(' and ')}, believer in meaningful connections.`,
+          `Finding joy in ${selectedTraits.join(', ')} and everything in between.`,
+        ];
+        
+        const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
+        
+        // Return fallback signature with a note about AI generation
+        return res.status(503).json({ 
+          signature: fallbackSignature,
+          message: "AI signature service temporarily unavailable. Here's a personalized signature based on your profile!" 
+        });
+      }
       
       if (!signature) {
         return res.status(500).json({ message: "Failed to generate signature" });
@@ -260,7 +291,21 @@ Please respond with just the signature text, nothing else.`;
       res.json({ signature });
     } catch (error) {
       console.error("Error generating signature:", error);
-      res.status(500).json({ message: "Failed to generate signature" });
+      
+      // Handle specific OpenAI errors
+      if (error.status === 429) {
+        return res.status(429).json({ 
+          message: "OpenAI API quota exceeded. Please check your OpenAI billing and usage limits." 
+        });
+      }
+      
+      if (error.status === 401) {
+        return res.status(401).json({ 
+          message: "OpenAI API key is invalid. Please check your API key configuration." 
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to generate signature. Please try again later." });
     }
   });
 

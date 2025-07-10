@@ -214,18 +214,31 @@ export default function Profile() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
+      
+      const data = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate signature');
+        throw new Error(data.message || 'Failed to generate signature');
       }
-      return response.json();
+      
+      return { data, status: response.status };
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data, status }) => {
       setAiSignature(data.signature);
-      toast({
-        title: "AI Signature Generated",
-        description: "Your personalized signature is ready!",
-      });
+      
+      if (status === 503) {
+        // Fallback signature was generated
+        toast({
+          title: "Signature Generated",
+          description: data.message || "Here's a personalized signature for you!",
+        });
+      } else {
+        // AI signature was generated successfully
+        toast({
+          title: "AI Signature Generated",
+          description: "Your personalized signature is ready!",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
