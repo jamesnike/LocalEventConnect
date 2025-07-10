@@ -395,7 +395,15 @@ export default function Home() {
                   initialTab={lastActiveTab}
                   onTabChange={setLastActiveTab}
                   showBackButton={true}
-                  onBackClick={isFromMyEvents ? handleBackToEventDetail : () => setShowContentCard(false)}
+                  onBackClick={() => {
+                    if (isFromMyEvents) {
+                      handleBackToEventDetail();
+                    } else {
+                      // From Browse: show EventDetail for the current event
+                      setSelectedEvent(currentEvent);
+                      setShowContentCard(false);
+                    }
+                  }}
                 />
               </div>
             </div>
