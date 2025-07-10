@@ -490,6 +490,15 @@ export default function Home() {
             setIsFromMyEvents(false);
             setEventFromMyEvents(null);
           }} 
+          onSkip={() => {
+            // Skip to next event when not from My Events
+            if (!isFromMyEvents) {
+              handleSwipeLeft();
+            }
+            setSelectedEvent(null);
+            setIsFromMyEvents(false);
+            setEventFromMyEvents(null);
+          }}
           showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
             // Store the selected event in localStorage and navigate

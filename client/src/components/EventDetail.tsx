@@ -14,9 +14,10 @@ interface EventDetailProps {
   onClose: () => void;
   onNavigateToContent?: () => void;
   showGroupChatButton?: boolean;
+  onSkip?: () => void;
 }
 
-export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false }: EventDetailProps) {
+export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false, onSkip }: EventDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -85,7 +86,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
-      onClose();
+      if (onSkip) {
+        onSkip();
+      } else {
+        onClose();
+      }
     }, 300);
   };
 
