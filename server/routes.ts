@@ -729,10 +729,20 @@ Choose parameters that best match the description. Respond with valid JSON only.
 
       let diceBearParams;
       try {
-        const responseText = analysisResponse.choices[0].message.content?.trim();
+        let responseText = analysisResponse.choices[0].message.content?.trim();
+        
+        // Remove markdown code blocks if present
+        if (responseText?.startsWith('```json')) {
+          responseText = responseText.replace(/```json\s*/, '').replace(/```\s*$/, '');
+        } else if (responseText?.startsWith('```')) {
+          responseText = responseText.replace(/```\s*/, '').replace(/```\s*$/, '');
+        }
+        
         diceBearParams = JSON.parse(responseText || '{}');
+        console.log("Parsed DiceBear parameters:", diceBearParams);
       } catch (parseError) {
         console.error("Failed to parse OpenAI response, using defaults:", parseError);
+        console.error("Raw response:", analysisResponse.choices[0].message.content);
         // Generate random parameters as fallback
         diceBearParams = {
           seed: Math.random().toString(36).substring(2, 15),
@@ -759,6 +769,7 @@ Choose parameters that best match the description. Respond with valid JSON only.
       });
 
       const diceBearUrl = `${baseUrl}?${params.toString()}`;
+      console.log("Generated DiceBear URL:", diceBearUrl);
       
       res.json({ url: diceBearUrl });
     } catch (error) {
