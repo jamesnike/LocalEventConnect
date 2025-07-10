@@ -695,7 +695,7 @@ Please respond with just the signature text, nothing else.`;
   // Avatar generation and update routes
   app.post('/api/generate-avatar', isAuthenticated, async (req: any, res) => {
     try {
-      const { prompt } = req.body;
+      const { prompt, referenceImageUrl } = req.body;
       
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ message: "Prompt is required" });
@@ -703,9 +703,55 @@ Please respond with just the signature text, nothing else.`;
 
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
+      // First, use GPT-4 Vision to analyze the reference image and create a style-matched prompt
+      let enhancedPrompt = prompt;
+      
+      if (referenceImageUrl) {
+        try {
+          const visionResponse = await openai.chat.completions.create({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `Analyze this reference avatar image and create a detailed DALL-E prompt that will generate a new avatar in the exact same art style. The new avatar should match this description: "${prompt}". 
+
+Focus on:
+- Exact art style (anime/cartoon/realistic etc.)
+- Color palette and shading technique
+- Line art style and thickness
+- Background style
+- Overall aesthetic and mood
+- Facial feature style
+- Hair rendering style
+- Clothing/accessories style
+
+Generate a comprehensive DALL-E prompt that will create a new avatar matching this person description but in the exact same artistic style as the reference image.`
+                  },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: referenceImageUrl
+                    }
+                  }
+                ],
+              },
+            ],
+            max_tokens: 500,
+          });
+          
+          enhancedPrompt = visionResponse.choices[0].message.content || prompt;
+        } catch (visionError) {
+          console.error("Vision analysis failed, using original prompt:", visionError);
+          // Fall back to original prompt if vision fails
+        }
+      }
+      
       const response = await openai.images.generate({
         model: "dall-e-3",
-        prompt: prompt,
+        prompt: enhancedPrompt,
         n: 1,
         size: "1024x1024",
         quality: "standard",

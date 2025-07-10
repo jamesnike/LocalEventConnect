@@ -25,7 +25,10 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
     mutationFn: async (prompt: string) => {
       const response = await apiRequest('/api/generate-avatar', {
         method: 'POST',
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          prompt,
+          referenceImageUrl: currentAvatarUrl
+        }),
       });
       
       if (!response.ok) {
