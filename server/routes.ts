@@ -231,31 +231,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Create a prompt to generate a personal signature
-        const prompt = `Create a creative and engaging personal signature/bio for someone with these characteristics:
+        const prompt = `Create a short personal signature/bio for someone with these characteristics:
 
 Interests: ${interests.join(', ')}
 Personality: ${personality.join(', ')}
 
 The signature should be:
-- 1-2 sentences long
+- Maximum 15 words
+- One short sentence
 - Creative and memorable
 - Authentic and personal
 - Suitable for a social profile
-- Engaging for others to read
 
 Please respond with just the signature text, nothing else.`;
 
         const response = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
           messages: [{ role: "user", content: prompt }],
-          max_tokens: 100,
+          max_tokens: 50,
           temperature: 0.8,
         });
 
-        const signature = response.choices[0].message.content?.trim();
+        let signature = response.choices[0].message.content?.trim();
         
         if (!signature) {
           throw new Error("Empty response from OpenAI");
+        }
+
+        // Ensure signature is 15 words or less
+        const words = signature.split(' ');
+        if (words.length > 15) {
+          signature = words.slice(0, 15).join(' ') + '...';
         }
 
         res.json({ signature });
@@ -268,11 +274,11 @@ Please respond with just the signature text, nothing else.`;
         const selectedTraits = shuffledTraits.slice(0, 3);
         
         const templates = [
-          `Passionate about ${selectedTraits.join(' and ')}, always ready for new adventures.`,
-          `Living life through ${selectedTraits.join(', ')} - let's connect and explore together!`,
-          `${selectedTraits.join(' + ')} = my perfect day. What's yours?`,
-          `Enthusiast of ${selectedTraits.join(' and ')}, believer in meaningful connections.`,
-          `Finding joy in ${selectedTraits.join(', ')} and everything in between.`,
+          `${selectedTraits.slice(0, 2).join(' and ')} enthusiast ready for adventures.`,
+          `${selectedTraits.slice(0, 2).join(' + ')} = my perfect day.`,
+          `Living life through ${selectedTraits.slice(0, 2).join(' and ')}.`,
+          `${selectedTraits.slice(0, 2).join(' and ')} believer in meaningful connections.`,
+          `Finding joy in ${selectedTraits.slice(0, 2).join(' and ')}.`,
         ];
         
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
