@@ -410,22 +410,36 @@ Please respond with just the signature text, nothing else.`;
       
       // Get the message with user data
       const messagesWithUser = await storage.getChatMessages(eventId, 1);
-      const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
+      const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
+      
+      console.log('HTTP POST: Created message:', newMessage);
+      console.log('HTTP POST: Retrieved message with user:', messageWithUser);
+      console.log('HTTP POST: Event connections for', eventId, ':', eventConnections.get(eventId)?.size || 0);
       
       // Broadcast new message to all connected clients in this event room
-      if (eventConnections.has(eventId)) {
+      if (eventConnections.has(eventId) && eventConnections.get(eventId)!.size > 0) {
         const connections = eventConnections.get(eventId)!;
-        const broadcastMessage = {
-          type: 'newMessage',
-          eventId,
-          message: messageWithUser
-        };
-        
-        connections.forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(broadcastMessage));
-          }
-        });
+        if (messageWithUser) {
+          const broadcastMessage = {
+            type: 'newMessage',
+            eventId,
+            message: messageWithUser
+          };
+          
+          console.log(`HTTP POST: Broadcasting message to ${connections.size} clients in event ${eventId}:`, messageWithUser);
+          connections.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              console.log('HTTP POST: Sending to client:', JSON.stringify(broadcastMessage));
+              client.send(JSON.stringify(broadcastMessage));
+            } else {
+              console.log('HTTP POST: Client not ready, readyState:', client.readyState);
+            }
+          });
+        } else {
+          console.error('HTTP POST: messageWithUser is null after retrieval');
+        }
+      } else {
+        console.error('HTTP POST: No connections found for event:', eventId, eventConnections.get(eventId)?.size || 0);
       }
       
       // Broadcast notification to all users subscribed to notifications
