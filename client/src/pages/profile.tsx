@@ -345,14 +345,18 @@ export default function Profile() {
       </header>
 
       {/* Profile Header */}
-      <div className="bg-gradient-to-br from-primary to-accent p-6 text-white text-center">
-        <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="lg" />
-        <h3 className="text-xl font-semibold mb-1 mt-4">
-          {user?.firstName || user?.lastName 
-            ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-            : 'Anonymous User'}
-        </h3>
-        <p className="text-white/80 text-sm">{user?.location || "Location not set"}</p>
+      <div className="bg-gradient-to-br from-primary to-accent p-6 text-white">
+        <div className="flex items-center space-x-4">
+          <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="lg" />
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold mb-1">
+              {user?.firstName || user?.lastName 
+                ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                : 'Anonymous User'}
+            </h3>
+            <p className="text-white/80 text-sm">{user?.location || "Location not set"}</p>
+          </div>
+        </div>
         
         {/* AI Signature Section */}
         <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4">
