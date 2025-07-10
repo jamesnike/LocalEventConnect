@@ -89,6 +89,7 @@ export default function Home() {
   const [isFromBrowse, setIsFromBrowse] = useState(false);
   const [isFromMessagesTab, setIsFromMessagesTab] = useState(false);
   const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
+  const [groupChatEvent, setGroupChatEvent] = useState<EventWithOrganizer | null>(null);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -142,26 +143,45 @@ export default function Home() {
       if (eventIndex !== -1) {
         const event = events[eventIndex];
         
-        // Remove from swipedEvents to ensure it's available
-        setSwipedEvents(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(eventId);
-          return newSet;
-        });
+        // Check if this is a group chat navigation (user is attending/organizing this event)
+        const isGroupChatNavigation = event.userRsvpStatus === 'going' || 
+                                    event.userRsvpStatus === 'attending' || 
+                                    event.organizerId === user?.id;
         
-        // Calculate the correct index in availableEvents after removing from swipedEvents
-        const updatedAvailableEvents = events.filter(e => 
-          (!swipedEvents.has(e.id) || e.id === eventId) && 
-          e.organizerId !== user?.id && 
-          e.userRsvpStatus !== 'going' && 
-          e.userRsvpStatus !== 'attending'
-        );
-        const availableEventIndex = updatedAvailableEvents.findIndex(e => e.id === eventId);
-        
-        // Set up the interface to show EventContent for this event
-        setCurrentEventIndex(availableEventIndex >= 0 ? availableEventIndex : 0);
-        setShowContentCard(true);
-        setShowDetailCard(false);
+        if (isGroupChatNavigation) {
+          // For group chat navigation, we need to temporarily show this event
+          // even though it's not in the normal swipe flow
+          
+          // Set the group chat event and show EventContent
+          setGroupChatEvent(event);
+          setCurrentEventIndex(0);
+          setShowContentCard(true);
+          setShowDetailCard(false);
+          
+          console.log(`Group chat navigation to event ${eventId}: ${event.title}`);
+        } else {
+          // Normal navigation for events in swipe flow
+          // Remove from swipedEvents to ensure it's available
+          setSwipedEvents(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(eventId);
+            return newSet;
+          });
+          
+          // Calculate the correct index in availableEvents after removing from swipedEvents
+          const updatedAvailableEvents = events.filter(e => 
+            (!swipedEvents.has(e.id) || e.id === eventId) && 
+            e.organizerId !== user?.id && 
+            e.userRsvpStatus !== 'going' && 
+            e.userRsvpStatus !== 'attending'
+          );
+          const availableEventIndex = updatedAvailableEvents.findIndex(e => e.id === eventId);
+          
+          // Set up the interface to show EventContent for this event
+          setCurrentEventIndex(availableEventIndex >= 0 ? availableEventIndex : 0);
+          setShowContentCard(true);
+          setShowDetailCard(false);
+        }
         
         // Set the preferred tab if specified
         if (preferredTab === 'chat' || preferredTab === 'similar') {
@@ -240,7 +260,9 @@ export default function Home() {
     event.userRsvpStatus !== 'going' && 
     event.userRsvpStatus !== 'attending'
   ) || [];
-  const currentEvent = availableEvents[currentEventIndex];
+  
+  // Use group chat event if in group chat mode, otherwise use available events
+  const currentEvent = groupChatEvent || availableEvents[currentEventIndex];
 
   // Reset local state when events data changes due to RSVPs/skips from other pages
   useEffect(() => {
@@ -297,6 +319,7 @@ export default function Home() {
       setShowContentCard(false);
       setIsFromMyEvents(false); // Reset flag
       setEventFromMyEvents(null); // Clear stored event
+      setGroupChatEvent(null); // Clear group chat event
     } else if (showDetailCard) {
       // From detail card, skip to next event
       setShowSkipAnimation(true);
@@ -348,6 +371,7 @@ export default function Home() {
     }
     
     setShowContentCard(false);
+    setGroupChatEvent(null); // Clear group chat event
   };
 
   const handleSwipeRight = async () => {
@@ -539,6 +563,7 @@ export default function Home() {
                       // Default: just close the content card and return to main swipe interface
                       setShowContentCard(false);
                       setShowDetailCard(false);
+                      setGroupChatEvent(null); // Clear group chat event
                     }
                   }}
                 />
