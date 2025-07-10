@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft } from "lucide-react";
+import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft, Edit, Navigation } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -90,6 +90,10 @@ export default function Home() {
   const [isFromMessagesTab, setIsFromMessagesTab] = useState(false);
   const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
   const [groupChatEvent, setGroupChatEvent] = useState<EventWithOrganizer | null>(null);
+  // Location editing state
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -241,6 +245,111 @@ export default function Home() {
       });
     },
   });
+
+  // Location update mutation
+  const updateLocationMutation = useMutation({
+    mutationFn: async (location: string) => {
+      await apiRequest('/api/users/profile', { 
+        method: 'PUT',
+        body: JSON.stringify({
+          location,
+          interests: user?.interests || [],
+          personality: user?.personality || []
+        })
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Location Updated",
+        description: "Your location has been saved successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setEditingLocation(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Location detection function
+  const detectLocation = async () => {
+    setIsDetectingLocation(true);
+    
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          enableHighAccuracy: true
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Use reverse geocoding to get location name
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+      const data = await response.json();
+      
+      const city = data.address?.city || data.address?.town || data.address?.village;
+      const state = data.address?.state;
+      const country = data.address?.country;
+      
+      let locationName = '';
+      if (city && state) {
+        locationName = `${city}, ${state}`;
+      } else if (city && country) {
+        locationName = `${city}, ${country}`;
+      } else if (state && country) {
+        locationName = `${state}, ${country}`;
+      } else {
+        locationName = country || 'Location detected';
+      }
+      
+      setLocationInput(locationName);
+      updateLocationMutation.mutate(locationName);
+    } catch (error) {
+      toast({
+        title: "Location Detection Failed",
+        description: "Unable to detect your location. Please enter it manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  };
+
+  // Location handler functions
+  const handleEditLocation = () => {
+    setEditingLocation(true);
+    setLocationInput(user?.location || '');
+  };
+
+  const handleSaveLocation = () => {
+    if (locationInput.trim()) {
+      updateLocationMutation.mutate(locationInput.trim());
+    }
+  };
+
+  // Initialize location input when user data changes
+  useEffect(() => {
+    if (user?.location) {
+      setLocationInput(user.location);
+    }
+  }, [user?.location]);
 
   // Save state whenever key state changes (removed skipped events - now handled by database)
   useEffect(() => {
@@ -467,12 +576,58 @@ export default function Home() {
           
           {/* Location and Notifications */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-3 h-3 text-primary" />
-              <span className="text-xs font-medium text-gray-600">
-                {user?.location || "San Francisco, CA"}
-              </span>
-            </div>
+            {editingLocation ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="Enter your location"
+                  className="text-xs bg-gray-100 text-gray-700 placeholder-gray-500 px-2 py-1 rounded border-none outline-none w-24"
+                />
+                <button
+                  onClick={handleSaveLocation}
+                  disabled={updateLocationMutation.isPending}
+                  className="text-xs bg-primary/10 hover:bg-primary/20 text-primary px-2 py-1 rounded transition-colors"
+                >
+                  {updateLocationMutation.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingLocation(false);
+                    setLocationInput(user?.location || '');
+                  }}
+                  className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-3 h-3 text-primary" />
+                <span className="text-xs font-medium text-gray-600">
+                  {user?.location || "Location not set"}
+                </span>
+                <button
+                  onClick={handleEditLocation}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <Edit className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={detectLocation}
+                  disabled={isDetectingLocation}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  title="Detect my location"
+                >
+                  {isDetectingLocation ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-gray-400 border-t-gray-600 border-[1px]"></div>
+                  ) : (
+                    <Navigation className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
+            )}
             <button 
               onClick={() => setLocation('/my-events?tab=messages')}
               className="relative p-1 hover:bg-gray-100 rounded-full transition-colors"
