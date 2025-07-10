@@ -703,103 +703,22 @@ Please respond with just the signature text, nothing else.`;
 
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
-      // Use OpenAI to analyze the description and generate DiceBear parameters
-      const analysisResponse = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "user",
-            content: `You are creating an anime-style avatar seed for DiceBear's "adventurer" style. 
-
-User description: "${prompt}"
-
-Analyze the description and create a seed that captures:
-- Physical appearance (hair color, style, facial features)
-- Personality traits (friendly, serious, energetic, etc.)
-- Any specific details mentioned
-
-Generate a JSON response with a descriptive seed that will create a consistent anime-style avatar:
-{
-  "seed": "descriptive-seed-here"
-}
-
-The seed should be a short, descriptive phrase that captures the essence of the person. Focus on visual characteristics that would appear in an anime-style portrait.
-
-Examples:
-- "cheerful-girl-pink-hair-bright-eyes"
-- "serious-boy-dark-hair-glasses"
-- "energetic-teen-blonde-sporty"
-
-Keep it concise but descriptive.`
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.7,
+      // Use OpenAI DALL-E to generate anime-style avatar based on description
+      const imageResponse = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: `Create an anime-style avatar portrait based on this description: "${prompt}". 
+                Style: Clean anime/manga art style similar to modern mobile app avatars. 
+                Format: Portrait headshot with clean background, suitable for profile picture.
+                Art direction: Consistent with Japanese anime aesthetic, professional quality, suitable for social app.`,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
       });
 
-      let diceBearParams;
-      try {
-        let responseText = analysisResponse.choices[0].message.content?.trim();
-        
-        // Remove markdown code blocks if present
-        if (responseText?.startsWith('```json')) {
-          responseText = responseText.replace(/```json\s*/, '').replace(/```\s*$/, '');
-        } else if (responseText?.startsWith('```')) {
-          responseText = responseText.replace(/```\s*/, '').replace(/```\s*$/, '');
-        }
-        
-        diceBearParams = JSON.parse(responseText || '{}');
-        console.log("Parsed DiceBear parameters:", diceBearParams);
-      } catch (parseError) {
-        console.error("Failed to parse OpenAI response, using defaults:", parseError);
-        console.error("Raw response:", analysisResponse.choices[0].message.content);
-        // Generate random parameters as fallback
-        diceBearParams = {
-          seed: Math.random().toString(36).substring(2, 15)
-        };
-      }
-
-      // Validate and sanitize parameters
-      const validateSeed = (seed: string): string => {
-        // Remove special characters and ensure seed is alphanumeric with hyphens/underscores
-        const sanitized = seed.replace(/[^a-zA-Z0-9\-_]/g, '-').toLowerCase();
-        return sanitized || `user_${Date.now()}`;
-      };
-
-      // Build DiceBear URL with validated parameters
-      const baseUrl = 'https://api.dicebear.com/7.x/adventurer/svg';
+      const generatedImageUrl = imageResponse.data[0].url;
+      console.log("Generated DALL-E image URL:", generatedImageUrl);
       
-      // Validate and build params object
-      const urlParams: Record<string, string> = {
-        seed: validateSeed(diceBearParams.seed || `user_${Date.now()}`),
-        size: '512'
-      };
-      
-      console.log("Validated seed:", urlParams.seed);
-      
-      // Test the URL before returning
-      const params = new URLSearchParams(urlParams);
-      const diceBearUrl = `${baseUrl}?${params.toString()}`;
-      console.log("Generated DiceBear URL:", diceBearUrl);
-      
-      // Validate the URL works by making a HEAD request
-      try {
-        const testResponse = await fetch(diceBearUrl, { method: 'HEAD' });
-        if (!testResponse.ok) {
-          console.warn("DiceBear API returned error:", testResponse.status);
-          // Fall back to a simple seed if the generated one fails
-          const fallbackUrl = `${baseUrl}?seed=fallback_${Date.now()}&size=512`;
-          console.log("Using fallback URL:", fallbackUrl);
-          return res.json({ url: fallbackUrl });
-        }
-      } catch (fetchError) {
-        console.error("Error testing DiceBear URL:", fetchError);
-        // Return a simple fallback URL
-        const fallbackUrl = `${baseUrl}?seed=fallback_${Date.now()}&size=512`;
-        return res.json({ url: fallbackUrl });
-      }
-      
-      res.json({ url: diceBearUrl });
+      res.json({ url: generatedImageUrl });
     } catch (error) {
       console.error("Error generating avatar:", error);
       res.status(500).json({ message: "Failed to generate avatar" });
