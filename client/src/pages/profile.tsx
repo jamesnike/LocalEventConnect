@@ -697,7 +697,7 @@ export default function Profile() {
         {/* Event History */}
         <div>
           <h4 className="font-semibold text-gray-800 mb-3">Event History</h4>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1">
             {(() => {
               // Combine and sort all past events by date descending
               const allPastEvents = [
