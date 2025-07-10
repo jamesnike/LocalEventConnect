@@ -252,7 +252,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               )}
             </button>
-            {showGroupChatButton ? (
+            {(showGroupChatButton || event.userRsvpStatus === 'going') ? (
               <button 
                 onClick={() => {
                   if (onNavigateToContent) {
