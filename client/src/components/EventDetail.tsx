@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop } from "lucide-react";
+import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -23,6 +23,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const queryClient = useQueryClient();
   const [isClosing, setIsClosing] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -282,13 +283,19 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           <div className="flex space-x-3 pb-6">
             <button 
               onClick={handleButtonClick}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
               disabled={rsvpMutation.isPending || cancelEventMutation.isPending}
-              className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                isOrganizer 
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : event.userRsvpStatus === 'going'
-                  ? 'bg-success text-white hover:bg-success/90'
-                  : 'bg-primary text-white hover:bg-primary/90'
+              className={`flex-1 py-3 rounded-lg font-medium transition-all duration-200 ${
+                (rsvpMutation.isPending || cancelEventMutation.isPending) 
+                  ? 'opacity-50 cursor-not-allowed'
+                  : isHovering 
+                  ? (isOrganizer ? 'bg-red-500 text-white' : (event.userRsvpStatus === 'going' ? 'bg-red-500 text-white' : 'bg-primary text-white'))
+                  : (isOrganizer 
+                    ? 'bg-blue-500 text-white hover:bg-red-500'
+                    : event.userRsvpStatus === 'going'
+                    ? 'bg-success text-white hover:bg-red-500'
+                    : 'bg-primary text-white hover:bg-primary/90')
               }`}
             >
               {(rsvpMutation.isPending || cancelEventMutation.isPending) ? (
@@ -296,14 +303,32 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   {isOrganizer ? 'Canceling...' : 'Updating...'}
                 </div>
-              ) : isOrganizer ? (
+              ) : isHovering ? (
                 <>
-                  <Check className="w-4 h-4 mr-2 inline" />
-                  Organizing
+                  {isOrganizer ? (
+                    <>
+                      <X className="w-4 h-4 mr-2 inline" />
+                      Cancel Event
+                    </>
+                  ) : event.userRsvpStatus === 'going' ? (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2 inline" />
+                      Remove RSVP
+                    </>
+                  ) : (
+                    <>
+                      RSVP - {event.isFree ? 'Free' : `$${event.price}`}
+                    </>
+                  )}
                 </>
               ) : (
                 <>
-                  {event.userRsvpStatus === 'going' ? (
+                  {isOrganizer ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2 inline" />
+                      Organizing
+                    </>
+                  ) : event.userRsvpStatus === 'going' ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
                       Going
