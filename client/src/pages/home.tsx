@@ -211,12 +211,9 @@ export default function Home() {
       setIsFromMyEvents(false); // Reset flag
       setEventFromMyEvents(null); // Clear stored event
     } else if (showDetailCard) {
-      // From detail card, go back to main card
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setShowDetailCard(false);
-        setIsTransitioning(false);
-      }, 150);
+      // From detail card, skip to next event
+      setShowSkipAnimation(true);
+      setShowDetailCard(false);
     } else {
       // From main card, skip this event with animation
       setShowSkipAnimation(true);
