@@ -60,26 +60,24 @@ export default function EventContentCard({
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      if (isConnected) {
-        // Use WebSocket for real-time
-        sendMessage(message);
-      } else {
-        // Fallback to HTTP API
-        const response = await apiRequest(`/api/events/${event.id}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message }),
-        });
-        return response.json() as Promise<ChatMessageWithUser>;
-      }
+      // Always use HTTP API for reliability
+      const response = await apiRequest(`/api/events/${event.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      return response.json() as Promise<ChatMessageWithUser>;
     },
     onSuccess: (data) => {
       if (data) {
-        // If using HTTP API, add message to cache
+        // Add message to cache immediately
         queryClient.setQueryData<ChatMessageWithUser[]>(
           ['/api/events', event.id, 'messages'],
           (old) => [...(old || []), data]
         );
+        
+        // Refetch to ensure we have the latest messages
+        refetchMessages();
       }
     },
   });
