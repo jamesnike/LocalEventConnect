@@ -148,7 +148,7 @@ export default function Home() {
     if (eventFromMyEvents) {
       setSelectedEvent(eventFromMyEvents);
       setShowContentCard(false);
-      setIsFromMyEvents(false);
+      // Don't reset isFromMyEvents here - keep it true to show Group Chat button
       setEventFromMyEvents(null);
     }
   };
@@ -402,7 +402,11 @@ export default function Home() {
       {selectedEvent && (
         <EventDetail 
           event={selectedEvent} 
-          onClose={() => setSelectedEvent(null)} 
+          onClose={() => {
+            setSelectedEvent(null);
+            setIsFromMyEvents(false);
+            setEventFromMyEvents(null);
+          }} 
           showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
             // Find the event in the full events array
