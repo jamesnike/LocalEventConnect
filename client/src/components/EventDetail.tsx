@@ -534,28 +534,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     <MessageCircle className="w-5 h-5" />
                     <span>Group Chat</span>
                   </button>
-                  
-                  {/* Exit Group Chat Button - Show for all users who can access chat */}
-                  <button 
-                    onClick={() => {
-                      const confirmMessage = isOrganizer 
-                        ? 'Are you sure you want to leave this group chat? You will no longer receive messages from this event but will continue organizing it.'
-                        : 'Are you sure you want to leave this group chat? You will no longer receive messages from this event but will remain attending.';
-                      
-                      if (confirm(confirmMessage)) {
-                        leaveGroupChatMutation.mutate();
-                      }
-                    }}
-                    disabled={leaveGroupChatMutation.isPending}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded-lg flex items-center font-medium disabled:opacity-50"
-                    title="Leave group chat"
-                  >
-                    {leaveGroupChatMutation.isPending ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <X className="w-4 h-4" />
-                    )}
-                  </button>
                 </div>
               )
             )}
