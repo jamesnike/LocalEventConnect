@@ -121,6 +121,16 @@ export default function MyEvents() {
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
           <button 
+            onClick={() => setActiveTab('messages')}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeTab === 'messages' 
+                ? 'text-primary border-b-2 border-primary' 
+                : 'text-gray-600'
+            }`}
+          >
+            Messages
+          </button>
+          <button 
             onClick={() => setActiveTab('attending')}
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === 'attending' 
@@ -139,16 +149,6 @@ export default function MyEvents() {
             }`}
           >
             Organized
-          </button>
-          <button 
-            onClick={() => setActiveTab('messages')}
-            className={`flex-1 py-3 text-center font-medium ${
-              activeTab === 'messages' 
-                ? 'text-primary border-b-2 border-primary' 
-                : 'text-gray-600'
-            }`}
-          >
-            Messages
           </button>
         </div>
       </div>
