@@ -290,14 +290,19 @@ export default function EventContentCard({
               <button
                 onClick={handleExitGroupChat}
                 disabled={exitGroupChatMutation.isPending}
-                className="p-2 hover:bg-red-500/20 rounded-full transition-colors group"
+                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded-full transition-colors border border-red-300/50 text-white"
                 title="Leave group chat"
               >
-                {exitGroupChatMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <LogOut className="w-5 h-5 text-white group-hover:text-red-200" />
-                )}
+                <div className="flex items-center space-x-1">
+                  {exitGroupChatMutation.isPending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <>
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-xs font-medium">Exit</span>
+                    </>
+                  )}
+                </div>
               </button>
             )}
           </div>
