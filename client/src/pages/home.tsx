@@ -78,6 +78,7 @@ export default function Home() {
   });
   const [isFromMyEvents, setIsFromMyEvents] = useState(false);
   const [isFromBrowse, setIsFromBrowse] = useState(false);
+  const [isFromMessagesTab, setIsFromMessagesTab] = useState(false);
   const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
 
   const availableInterests = [
@@ -107,6 +108,7 @@ export default function Home() {
     const eventContentId = localStorage.getItem('eventContentId');
     const fromMyEvents = localStorage.getItem('fromMyEvents');
     const fromBrowse = localStorage.getItem('fromBrowse');
+    const fromMessagesTab = localStorage.getItem('fromMessagesTab');
     const preferredTab = localStorage.getItem('preferredTab');
     
     if (eventContentId && events) {
@@ -148,10 +150,16 @@ export default function Home() {
           setIsFromBrowse(true);
         }
         
+        // Check if coming from Messages tab specifically
+        if (fromMessagesTab === 'true') {
+          setIsFromMessagesTab(true);
+        }
+        
         // Clear the localStorage
         localStorage.removeItem('eventContentId');
         localStorage.removeItem('fromMyEvents');
         localStorage.removeItem('fromBrowse');
+        localStorage.removeItem('fromMessagesTab');
         localStorage.removeItem('preferredTab');
       }
     }
@@ -412,9 +420,13 @@ export default function Home() {
                   onTabChange={setLastActiveTab}
                   showBackButton={true}
                   onBackClick={() => {
-                    if (isFromMyEvents) {
-                      // Go back to My Events page
+                    if (isFromMessagesTab) {
+                      // Go back to My Events page with Messages tab active
                       setLocation('/my-events');
+                    } else if (isFromMyEvents) {
+                      // Go back to EventDetail for this event (came from EventDetail in My Events)
+                      setSelectedEvent(currentEvent);
+                      setShowContentCard(false);
                     } else if (isFromBrowse) {
                       // Go back to Browse page
                       setLocation('/browse');

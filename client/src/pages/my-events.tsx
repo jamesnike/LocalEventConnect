@@ -17,7 +17,7 @@ import { EventWithOrganizer } from "@shared/schema";
 export default function MyEvents() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'organized' | 'attending' | 'messages'>('attending');
+  const [activeTab, setActiveTab] = useState<'organized' | 'attending' | 'messages'>('messages');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [, setLocation] = useLocation();
@@ -177,6 +177,7 @@ export default function MyEvents() {
                     localStorage.setItem('eventContentId', event.id.toString());
                     localStorage.setItem('preferredTab', 'chat');
                     localStorage.setItem('fromMyEvents', 'true');
+                    localStorage.setItem('fromMessagesTab', 'true');
                     setLocation('/');
                   }}
                   className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100"
