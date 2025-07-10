@@ -231,17 +231,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Create a prompt to generate a personal signature
-        const prompt = `Create a funny personal signature/bio for someone with these characteristics:
+        const prompt = `Create an abstract, funny signature/bio for someone with these characteristics:
 
 Interests: ${interests.join(', ')}
 Personality: ${personality.join(', ')}
 
 The signature should be:
 - Maximum 10 words
-- Funny and witty
-- Creative and memorable
-- Playful tone
-- Suitable for a social profile
+- Abstract and cryptic
+- Hilariously weird
+- Unexpected combinations
+- Metaphorical or surreal
+- Makes people go "huh?" then laugh
 
 Please respond with just the signature text, nothing else.`;
 
@@ -274,13 +275,16 @@ Please respond with just the signature text, nothing else.`;
         const selectedTraits = shuffledTraits.slice(0, 3);
         
         const templates = [
-          `${selectedTraits[0]} addict seeking fellow weirdos.`,
-          `Professional ${selectedTraits[0]} enthusiast, amateur human.`,
-          `${selectedTraits[0]} powered, coffee fueled, adventure ready.`,
-          `Warning: May randomly discuss ${selectedTraits[0]}.`,
-          `${selectedTraits[0]} obsessed and proud of it.`,
-          `Collector of ${selectedTraits[0]} moments and bad jokes.`,
-          `${selectedTraits[0]} by day, dreamer by night.`,
+          `Quantum ${selectedTraits[0]} entity seeking parallel universe friends.`,
+          `Professional overthinker, amateur ${selectedTraits[0]} whisperer.`,
+          `${selectedTraits[0]} powered chaos generator with WiFi.`,
+          `Part human, part ${selectedTraits[0]}, all confusion.`,
+          `Collecting ${selectedTraits[0]} vibes and existential dread.`,
+          `${selectedTraits[0]} prophet preaching to houseplants.`,
+          `Sentient ${selectedTraits[0]} energy trapped in human form.`,
+          `${selectedTraits[0]} wizard disguised as functioning adult.`,
+          `Accidentally became ${selectedTraits[0]} overlord, send help.`,
+          `${selectedTraits[0]} archaeologist excavating childhood dreams.`,
         ];
         
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
