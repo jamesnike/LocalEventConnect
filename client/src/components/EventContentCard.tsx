@@ -41,6 +41,7 @@ export default function EventContentCard({
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
+  const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
@@ -63,7 +64,7 @@ export default function EventContentCard({
   });
 
   // WebSocket connection for real-time chat - always connect when component is active
-  const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
+  const { isConnected, messages: wsMessages, sendMessage, setMessages: setWsMessages } = useWebSocket(
     hasChatAccess && isActive ? event.id : null
   );
 
@@ -120,19 +121,21 @@ export default function EventContentCard({
   useEffect(() => {
     if (chatMessages && chatMessages.length > 0) {
       console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
-      setMessages(chatMessages);
+      setMessagesState(chatMessages);
+      setWsMessages(chatMessages);
     } else if (chatMessages && chatMessages.length === 0) {
       console.log('Clearing messages for event:', event.id);
-      setMessages([]);
+      setMessagesState([]);
+      setWsMessages([]);
     }
-  }, [chatMessages, event.id]);
+  }, [chatMessages, event.id, setWsMessages]);
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
     console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
     
     if (wsMessages.length > 0) {
-      setMessages(prevMessages => {
+      setMessagesState(prevMessages => {
         // Start with existing messages
         const existingMessages = [...prevMessages];
         
