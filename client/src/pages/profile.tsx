@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Edit, Bell, Shield, HelpCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Edit, Bell, Shield, HelpCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, Check, Sparkles, MapPin, Navigation } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -21,6 +21,9 @@ export default function Profile() {
   const [selectedPersonality, setSelectedPersonality] = useState<string[]>([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [aiSignature, setAiSignature] = useState<string>('');
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -249,6 +252,100 @@ export default function Profile() {
     },
   });
 
+  const updateLocationMutation = useMutation({
+    mutationFn: async (location: string) => {
+      await apiRequest('PUT', '/api/users/profile', { 
+        location,
+        interests: user?.interests || [],
+        personality: user?.personality || []
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Location Updated",
+        description: "Your location has been saved successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setEditingLocation(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Location detection function
+  const detectLocation = async () => {
+    setIsDetectingLocation(true);
+    
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          enableHighAccuracy: true
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Use reverse geocoding to get location name
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+      const data = await response.json();
+      
+      const city = data.address?.city || data.address?.town || data.address?.village;
+      const state = data.address?.state;
+      const country = data.address?.country;
+      
+      let locationName = '';
+      if (city && state) {
+        locationName = `${city}, ${state}`;
+      } else if (city && country) {
+        locationName = `${city}, ${country}`;
+      } else if (state && country) {
+        locationName = `${state}, ${country}`;
+      } else {
+        locationName = country || 'Location detected';
+      }
+      
+      setLocationInput(locationName);
+      updateLocationMutation.mutate(locationName);
+    } catch (error) {
+      toast({
+        title: "Location Detection Failed",
+        description: "Unable to detect your location. Please enter it manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  };
+
+  // Handler functions
+  const handleEditLocation = () => {
+    setEditingLocation(true);
+    setLocationInput(user?.location || '');
+  };
+
+  const handleSaveLocation = () => {
+    if (locationInput.trim()) {
+      updateLocationMutation.mutate(locationInput.trim());
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -266,6 +363,8 @@ export default function Profile() {
       setShowProfile(true);
       setSelectedInterests(user.interests || []);
       setSelectedPersonality(user.personality || []);
+      setAiSignature(user.aiSignature || '');
+      setLocationInput(user.location || '');
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
@@ -354,7 +453,55 @@ export default function Profile() {
                 ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
                 : 'Anonymous User'}
             </h3>
-            <p className="text-white/80 text-sm">{user?.location || "Location not set"}</p>
+            {editingLocation ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="Enter your location"
+                  className="text-sm bg-white/20 text-white placeholder-white/60 px-2 py-1 rounded border-none outline-none"
+                />
+                <button
+                  onClick={handleSaveLocation}
+                  disabled={updateLocationMutation.isPending}
+                  className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors"
+                >
+                  {updateLocationMutation.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingLocation(false);
+                    setLocationInput(user?.location || '');
+                  }}
+                  className="text-xs text-white/70 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <p className="text-white/80 text-sm">{user?.location || "Location not set"}</p>
+                <button
+                  onClick={handleEditLocation}
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  <Edit className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={detectLocation}
+                  disabled={isDetectingLocation}
+                  className="text-white/70 hover:text-white transition-colors"
+                  title="Detect my location"
+                >
+                  {isDetectingLocation ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-white/50 border-t-white border-[1px]"></div>
+                  ) : (
+                    <Navigation className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
         
