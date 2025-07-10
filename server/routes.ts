@@ -703,13 +703,25 @@ Please respond with just the signature text, nothing else.`;
 
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
-      // Use OpenAI DALL-E to generate anime-style avatar based on description
+      // Use a constant reference avatar style for consistency
+      const referenceAvatarUrl = "https://api.dicebear.com/7.x/adventurer/svg?seed=anime-reference&size=512";
+      
+      // Use OpenAI DALL-E to generate anime-style avatar based on description with style reference
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
         prompt: `Create an anime-style avatar portrait based on this description: "${prompt}". 
-                Style: Clean anime/manga art style similar to modern mobile app avatars. 
-                Format: Portrait headshot with clean background, suitable for profile picture.
-                Art direction: Consistent with Japanese anime aesthetic, professional quality, suitable for social app.`,
+
+                STYLE REFERENCE: Use the exact same art style as DiceBear's "adventurer" avatar style (${referenceAvatarUrl}) which features:
+                - Clean, minimalist cartoon anime aesthetic
+                - Simple flat colors with minimal gradients
+                - Bold, clean line art without heavy shading
+                - Bright, vibrant color palette
+                - Geometric shapes and simplified features
+                - Professional mobile app avatar look
+                - Clean white or transparent background
+                - Headshot portrait format suitable for profile pictures
+                
+                Match this specific visual style exactly while incorporating the user's description. The result should look like it belongs in the same avatar collection as the reference style.`,
         n: 1,
         size: "1024x1024",
         quality: "standard",
