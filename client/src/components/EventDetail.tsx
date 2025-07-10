@@ -245,6 +245,16 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === event.organizerId;
   
+  // Debug logging
+  console.log('EventDetail Debug:', {
+    userId: user?.id,
+    organizerId: event.organizerId,
+    isOrganizer,
+    eventTitle: event.title,
+    localRsvpStatus,
+    fullEvent: event
+  });
+  
 
 
   const availableInterests = [
