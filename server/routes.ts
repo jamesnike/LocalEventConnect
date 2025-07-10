@@ -629,27 +629,38 @@ Please respond with just the signature text, nothing else.`;
           
           const newMessage = await storage.createChatMessage(messageData);
           
-          // Get message with user data
+          // Get message with user data - get the most recent message
           const messagesWithUser = await storage.getChatMessages(eventId, 1);
-          const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
+          const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
+          
+          console.log('Created message:', newMessage);
+          console.log('Retrieved message with user:', messageWithUser);
+          console.log('Event connections for', eventId, ':', eventConnections.get(eventId)?.size || 0);
           
           // Broadcast to all connected clients in this event
           const connections = eventConnections.get(eventId);
-          if (connections && messageWithUser) {
-            const broadcastData = JSON.stringify({
-              type: 'newMessage',
-              eventId: eventId,
-              message: messageWithUser
-            });
-            
-            console.log(`Broadcasting message to ${connections.size} clients in event ${eventId}:`, messageWithUser);
-            connections.forEach(client => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(broadcastData);
-              }
-            });
+          if (connections && connections.size > 0) {
+            if (messageWithUser) {
+              const broadcastData = JSON.stringify({
+                type: 'newMessage',
+                eventId: eventId,
+                message: messageWithUser
+              });
+              
+              console.log(`Broadcasting message to ${connections.size} clients in event ${eventId}:`, messageWithUser);
+              connections.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                  console.log('Sending to client:', broadcastData);
+                  client.send(broadcastData);
+                } else {
+                  console.log('Client not ready, readyState:', client.readyState);
+                }
+              });
+            } else {
+              console.error('messageWithUser is null after retrieval');
+            }
           } else {
-            console.error('No connections found or messageWithUser is null:', { connections: connections?.size, messageWithUser });
+            console.error('No connections found for event:', eventId, connections?.size || 0);
           }
         }
       } catch (error) {
