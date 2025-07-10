@@ -140,29 +140,15 @@ export default function Home() {
     const fromMessagesTab = localStorage.getItem('fromMessagesTab');
     const preferredTab = localStorage.getItem('preferredTab');
     
-    console.log('Home page localStorage check:', {
-      eventContentId,
-      fromMyEvents,
-      fromBrowse,
-      fromMessagesTab,
-      preferredTab,
-      eventsLoaded: !!events,
-      eventsLength: events?.length
-    });
-    
     if (eventContentId && events) {
       const eventId = parseInt(eventContentId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
-      console.log(`Looking for event ${eventId} in home events, found at index: ${eventIndex}`);
-      
       if (eventIndex !== -1) {
         const event = events[eventIndex];
-        console.log(`Found event in home events: ${event.title}`);
         handleEventNavigation(event, eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
       } else {
         // Event not found in home page events, fetch it separately
-        console.log(`Event ${eventId} not found in home events, fetching separately...`);
         fetchSpecificEvent(eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
       }
     }
@@ -176,7 +162,6 @@ export default function Home() {
         throw new Error('Failed to fetch event');
       }
       const event = await response.json() as EventWithOrganizer;
-      console.log(`Successfully fetched event ${eventId}: ${event.title}`);
       handleEventNavigation(event, eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
     } catch (error) {
       console.error('Error fetching specific event:', error);
@@ -210,8 +195,6 @@ export default function Home() {
       setCurrentEventIndex(0);
       setShowContentCard(true);
       setShowDetailCard(false);
-      
-      console.log(`Group chat navigation to event ${eventId}: ${event.title}`);
     } else {
       // Normal navigation for events in swipe flow
       // Remove from swipedEvents to ensure it's available
