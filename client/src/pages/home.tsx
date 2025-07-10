@@ -52,25 +52,31 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Initialize state from localStorage or defaults
+  // Initialize state - always start with Event Card page when refreshed
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(() => {
-    const saved = loadHomeState();
-    return saved?.currentEventIndex || 0;
+    // Check if coming from other pages with specific event
+    const eventContentId = localStorage.getItem('eventContentId');
+    if (eventContentId) {
+      const saved = loadHomeState();
+      return saved?.currentEventIndex || 0;
+    }
+    // Always start at 0 for fresh page loads
+    return 0;
   });
   const [swipedEvents, setSwipedEvents] = useState<Set<number>>(() => {
-    const saved = loadHomeState();
-    return saved?.swipedEvents ? new Set(saved.swipedEvents) : new Set();
+    // Check if coming from other pages with specific event
+    const eventContentId = localStorage.getItem('eventContentId');
+    if (eventContentId) {
+      const saved = loadHomeState();
+      return saved?.swipedEvents ? new Set(saved.swipedEvents) : new Set();
+    }
+    // Always start fresh for page refreshes
+    return new Set();
   });
-  const [showDetailCard, setShowDetailCard] = useState(() => {
-    const saved = loadHomeState();
-    return saved?.showDetailCard || false;
-  });
-  const [showContentCard, setShowContentCard] = useState(() => {
-    const saved = loadHomeState();
-    return saved?.showContentCard || false;
-  });
+  const [showDetailCard, setShowDetailCard] = useState(false); // Always start with Event Card
+  const [showContentCard, setShowContentCard] = useState(false); // Always start with Event Card
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -104,6 +110,21 @@ export default function Home() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
   });
+
+  // Reset to Event Card view when page is refreshed (unless coming from other pages)
+  useEffect(() => {
+    const eventContentId = localStorage.getItem('eventContentId');
+    
+    // If no specific event navigation, ensure we start with Event Card view
+    if (!eventContentId) {
+      setShowDetailCard(false);
+      setShowContentCard(false);
+      setSelectedEvent(null);
+      setCurrentEventIndex(0);
+      setSwipedEvents(new Set());
+      clearHomeState();
+    }
+  }, []);  // Only run once on mount
 
   // Check for event ID from localStorage (when navigating from other pages)
   useEffect(() => {
