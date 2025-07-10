@@ -100,10 +100,8 @@ export default function EventContentCard({
     },
   });
 
-  // Combine API messages with WebSocket messages
-  const allMessages = [...chatMessages, ...wsMessages.filter(wsMsg => 
-    !chatMessages.some(apiMsg => apiMsg.id === wsMsg.id)
-  )];
+  // Use API messages as the primary source, WebSocket messages are for real-time updates
+  const allMessages = chatMessages.length > 0 ? chatMessages : wsMessages;
 
   // Set initial messages from API when loaded
   useEffect(() => {
