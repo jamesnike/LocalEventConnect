@@ -141,6 +141,8 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Created 25 comprehensive sample events with detailed descriptions hosted by 5 new users (Fan Jiang, Xiehuang, Tangbao, Riri, Susu) across all categories and time slots
+- July 10, 2025. Added 5 new users to database with diverse interests and locations (San Francisco, New York, Los Angeles, Seattle, Austin)
 - July 10, 2025. Enhanced Group Chat button visibility - now shows whenever user has RSVPed to an event ('going' status) regardless of entry point, enabling immediate access to group chat after RSVP
 - July 10, 2025. Fixed Group Chat navigation to properly open EventContent for specific event with chat tab active from all pages (Browse, My Events, Home)
 - July 10, 2025. Fixed Browse page time filtering to use local timezone instead of UTC, eliminating one-day difference in event filtering
