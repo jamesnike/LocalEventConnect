@@ -55,8 +55,8 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
-      <div className="overflow-x-scroll pb-2 scrollbar-visible">
-        <div className="flex flex-col space-y-2 min-w-max">
+      <div className="pb-2 scrollbar-always" style={{ overflowX: 'scroll' }}>
+        <div className="flex flex-col space-y-2" style={{ minWidth: 'calc(100% + 50px)' }}>
           {/* Top row: AM, Night, AM, Night... */}
           <div className="flex space-x-2">
             {topRowOptions.map((option) => {
