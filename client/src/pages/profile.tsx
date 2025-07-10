@@ -24,6 +24,9 @@ export default function Profile() {
   const [editingLocation, setEditingLocation] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [firstNameInput, setFirstNameInput] = useState('');
+  const [lastNameInput, setLastNameInput] = useState('');
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -338,6 +341,47 @@ export default function Profile() {
     },
   });
 
+  const updateUsernameMutation = useMutation({
+    mutationFn: async (names: { firstName: string; lastName: string }) => {
+      await apiRequest('/api/users/profile', { 
+        method: 'PUT',
+        body: JSON.stringify({
+          firstName: names.firstName,
+          lastName: names.lastName,
+          location: user?.location,
+          interests: user?.interests || [],
+          personality: user?.personality || []
+        })
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Username Updated",
+        description: "Your username has been saved successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setEditingUsername(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update username. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Location detection function
   const detectLocation = async () => {
     setIsDetectingLocation(true);
@@ -415,6 +459,8 @@ export default function Profile() {
       setSelectedPersonality(user.personality || []);
       setAiSignature(user.aiSignature || '');
       setLocationInput(user.location || '');
+      setFirstNameInput(user.firstName || '');
+      setLastNameInput(user.lastName || '');
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
@@ -458,6 +504,19 @@ export default function Profile() {
     setSelectedPersonality(user?.personality || []);
   };
 
+  const handleEditUsername = () => {
+    setEditingUsername(true);
+    setFirstNameInput(user?.firstName || '');
+    setLastNameInput(user?.lastName || '');
+  };
+
+  const handleSaveUsername = () => {
+    updateUsernameMutation.mutate({
+      firstName: firstNameInput.trim(),
+      lastName: lastNameInput.trim()
+    });
+  };
+
   if (isLoading || !showProfile) {
     return (
       <div className="max-w-sm mx-auto bg-white min-h-screen flex items-center justify-center">
@@ -482,15 +541,8 @@ export default function Profile() {
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="w-5 h-5"></div> {/* Empty space for balance */}
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-center">
         <h2 className="text-lg font-semibold">Profile</h2>
-        <button 
-          onClick={handleEditInterests}
-          className="text-primary font-medium"
-        >
-          <Edit className="w-5 h-5" />
-        </button>
       </header>
 
       {/* Profile Header */}
@@ -498,11 +550,59 @@ export default function Profile() {
         <div className="flex items-center space-x-4">
           <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="lg" />
           <div className="flex-1">
-            <h3 className="text-xl font-semibold mb-1">
-              {user?.firstName || user?.lastName 
-                ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-                : 'Anonymous User'}
-            </h3>
+            {editingUsername ? (
+              <div className="space-y-2">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={firstNameInput}
+                    onChange={(e) => setFirstNameInput(e.target.value)}
+                    placeholder="First name"
+                    className="text-sm bg-white/20 text-white placeholder-white/60 px-2 py-1 rounded border-none outline-none flex-1"
+                  />
+                  <input
+                    type="text"
+                    value={lastNameInput}
+                    onChange={(e) => setLastNameInput(e.target.value)}
+                    placeholder="Last name"
+                    className="text-sm bg-white/20 text-white placeholder-white/60 px-2 py-1 rounded border-none outline-none flex-1"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleSaveUsername}
+                    disabled={updateUsernameMutation.isPending}
+                    className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors"
+                  >
+                    {updateUsernameMutation.isPending ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingUsername(false);
+                      setFirstNameInput(user?.firstName || '');
+                      setLastNameInput(user?.lastName || '');
+                    }}
+                    className="text-xs text-white/70 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <h3 className="text-xl font-semibold">
+                  {user?.firstName || user?.lastName 
+                    ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                    : 'Anonymous User'}
+                </h3>
+                <button
+                  onClick={handleEditUsername}
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             {editingLocation ? (
               <div className="flex items-center space-x-2">
                 <input
