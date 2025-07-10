@@ -287,11 +287,25 @@ export default function EventContentCard({
             
             {/* Exit Group Chat Button */}
             {(() => {
-              const shouldShow = hasChatAccess && event.organizer.id !== user?.id;
+              // Check if event is in the past
+              const eventDate = new Date(event.date + 'T' + event.time);
+              const now = new Date();
+              const isPastEvent = eventDate < now;
+              
+              // For past events, show exit button for all participants (organizers and attendees)
+              // For current/future events, show exit button only for non-organizers
+              const shouldShow = hasChatAccess && (
+                isPastEvent || // Show for all participants in past events
+                event.organizer.id !== user?.id // Show for non-organizers in current/future events
+              );
+              
               console.log('Exit button debug:', {
                 hasChatAccess,
                 eventOrganizerIdd: event.organizer.id,
                 userId: user?.id,
+                isPastEvent,
+                eventDate: eventDate.toISOString(),
+                now: now.toISOString(),
                 shouldShow,
                 eventTitle: event.title
               });
