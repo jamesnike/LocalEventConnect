@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Browse() {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState(() => {
     // Load saved time filter from localStorage or default to "today_morning"
     return localStorage.getItem('browseTimeFilter') || "today_morning";
@@ -25,11 +26,25 @@ export default function Browse() {
   };
 
   const { data: allEvents, isLoading } = useQuery({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/events", "browse"],
     queryFn: async () => {
       const response = await fetch("/api/events?limit=100");
       return response.json() as Promise<EventWithOrganizer[]>;
     },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
+
+  // Fetch user's skipped events to filter them out
+  const { data: userProfile } = useQuery({
+    queryKey: ["/api/auth/user"],
+    queryFn: async () => {
+      const response = await fetch("/api/auth/user");
+      if (!response.ok) throw new Error('Failed to fetch user profile');
+      return response.json();
+    },
+    enabled: !!user?.id,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -81,9 +96,23 @@ export default function Browse() {
     });
   };
 
-  const events = filterEventsByTime(allEvents || [], selectedCategory);
+  // Filter out events that user is organizing, attending, or has skipped
+  const filteredByUser = allEvents?.filter(event => {
+    // Filter out events user is organizing
+    if (user?.id && event.organizerId === user.id) return false;
+    
+    // Filter out events user is attending/going to
+    if (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') return false;
+    
+    // Filter out events user has skipped
+    if (userProfile?.skippedEvents && userProfile.skippedEvents.includes(event.id)) return false;
+    
+    return true;
+  }) || [];
 
-  if (isLoading) {
+  const events = filterEventsByTime(filteredByUser, selectedCategory);
+
+  if (isLoading || (user?.id && !userProfile)) {
     return (
       <div className="max-w-sm mx-auto bg-white min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
