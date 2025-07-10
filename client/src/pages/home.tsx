@@ -114,8 +114,19 @@ export default function Home() {
       if (eventIndex !== -1) {
         const event = events[eventIndex];
         
+        // Remove from swipedEvents to ensure it's available
+        setSwipedEvents(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(eventId);
+          return newSet;
+        });
+        
+        // Calculate the correct index in availableEvents after removing from swipedEvents
+        const updatedAvailableEvents = events.filter(e => !swipedEvents.has(e.id) || e.id === eventId);
+        const availableEventIndex = updatedAvailableEvents.findIndex(e => e.id === eventId);
+        
         // Set up the interface to show EventContent for this event
-        setCurrentEventIndex(eventIndex);
+        setCurrentEventIndex(availableEventIndex >= 0 ? availableEventIndex : 0);
         setShowContentCard(true);
         setShowDetailCard(false);
         
@@ -129,13 +140,6 @@ export default function Home() {
           setIsFromMyEvents(true);
           setEventFromMyEvents(event); // Store the event for back navigation
         }
-        
-        // Remove from swipedEvents to ensure it's available
-        setSwipedEvents(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(eventId);
-          return newSet;
-        });
         
         // Clear the localStorage
         localStorage.removeItem('eventContentId');
