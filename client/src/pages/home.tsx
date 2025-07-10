@@ -242,6 +242,30 @@ export default function Home() {
   ) || [];
   const currentEvent = availableEvents[currentEventIndex];
 
+  // Reset local state when events data changes due to RSVPs/skips from other pages
+  useEffect(() => {
+    if (!events) return;
+    
+    // Check if any previously swiped events now have RSVP status or should be excluded
+    const shouldResetState = Array.from(swipedEvents).some(eventId => {
+      const event = events.find(e => e.id === eventId);
+      return event && (
+        event.userRsvpStatus === 'going' || 
+        event.userRsvpStatus === 'attending' ||
+        event.organizerId === user?.id
+      );
+    });
+    
+    if (shouldResetState) {
+      console.log('Resetting Home page state due to RSVP changes from other pages');
+      setSwipedEvents(new Set());
+      setCurrentEventIndex(0);
+      setShowDetailCard(false);
+      setShowContentCard(false);
+      clearHomeState();
+    }
+  }, [events, user?.id]);
+
   // Clear state when user has swiped through all events
   useEffect(() => {
     if (events && events.length > 0 && availableEvents.length === 0 && swipedEvents.size > 0) {
@@ -357,6 +381,8 @@ export default function Home() {
     if (user) {
       try {
         await apiRequest('/api/events/increment-shown', { method: 'POST' });
+        // Force cache invalidation to ensure RSVP'd event is removed from future queries
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error('Error incrementing events shown:', error);
       }
