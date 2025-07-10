@@ -195,14 +195,6 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30" />
-          
-
-          
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-3">
-            <button onClick={onInfoClick}>
-              <Info className="w-5 h-5 text-gray-700" />
-            </button>
-          </div>
           <div className="absolute bottom-4 left-4 right-4 text-white">
             <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
             <div className="flex items-center space-x-2 text-base">
