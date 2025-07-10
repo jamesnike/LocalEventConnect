@@ -50,8 +50,8 @@ export default function MyEvents() {
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     enabled: !!user?.id,
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    staleTime: 0, // Don't cache - always fetch fresh data
+    gcTime: 0, // Don't keep in cache
     refetchOnMount: true, // Always refetch when mounting
     refetchOnWindowFocus: true, // Refetch when window gains focus
   });
