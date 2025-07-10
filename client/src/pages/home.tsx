@@ -299,6 +299,8 @@ export default function Home() {
     if (user && currentEvent) {
       try {
         await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
+        // Invalidate the events query to refetch with updated skipped events
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error('Error skipping event:', error);
       }

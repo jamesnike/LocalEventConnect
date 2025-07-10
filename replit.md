@@ -141,6 +141,8 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Successfully fixed skipped events system - now properly updates both database AND React Query cache when events are skipped, ensuring persistent filtering across all navigation
+- July 10, 2025. Added cache invalidation to handleSkipAnimationComplete to refresh events query after skipping, eliminating stale data display
 - July 10, 2025. Successfully migrated skipped events system from localStorage to database storage with persistent tracking across sessions
 - July 10, 2025. Added skippedEvents (array) and eventsShownSinceSkip (integer) fields to user schema with automatic reset after 20 events
 - July 10, 2025. Implemented database-level filtering to exclude skipped events from getEvents query for improved performance
