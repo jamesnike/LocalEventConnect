@@ -508,7 +508,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               )}
             </button>
             {user && (isOrganizer || localRsvpStatus === 'going' || localRsvpStatus === 'attending') && (
-              userRsvp && userRsvp.hasLeftChat ? (
+              (userRsvp && userRsvp.hasLeftChat) ? (
                 <button 
                   onClick={() => rejoinChatMutation.mutate()}
                   disabled={rejoinChatMutation.isPending}

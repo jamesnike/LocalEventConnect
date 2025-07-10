@@ -318,7 +318,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
+      // Check if user is the organizer
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const isOrganizer = event.organizerId === userId;
+      
       const userRsvp = await storage.getUserRsvp(eventId, userId);
+      
+      // If user is organizer and has no RSVP, create a virtual RSVP status
+      if (isOrganizer && !userRsvp) {
+        return res.json({
+          id: null,
+          eventId: eventId,
+          userId: userId,
+          status: 'organizing',
+          hasLeftChat: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      
       if (!userRsvp) {
         return res.status(404).json({ message: "No RSVP found" });
       }
