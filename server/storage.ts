@@ -480,14 +480,15 @@ export class DatabaseStorage implements IStorage {
       .from(chatMessages)
       .leftJoin(users, eq(chatMessages.userId, users.id))
       .where(eq(chatMessages.eventId, eventId))
-      .orderBy(asc(chatMessages.createdAt))
+      .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
 
     const results = await query;
+    // Return in ascending order for proper chat display (oldest first)
     return results.map(result => ({
       ...result,
       user: result.user!,
-    }));
+    })).reverse();
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
