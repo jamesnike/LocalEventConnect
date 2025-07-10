@@ -273,7 +273,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
+      console.log(`API: User ${userId} attempting to leave chat for event ${eventId}`);
       await storage.leaveEventChat(eventId, userId);
+      console.log(`API: User ${userId} successfully left chat for event ${eventId}`);
       res.status(204).send();
     } catch (error) {
       console.error("Error leaving event chat:", error);
@@ -286,24 +288,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
-      // Check if event exists
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ message: "Event not found" });
-      }
-      
-      // Check if user has an RSVP or is the organizer
-      const userRsvp = await storage.getUserRsvp(eventId, userId);
-      const isOrganizer = event.organizerId === userId;
-      
-      if (!userRsvp && !isOrganizer) {
-        return res.status(403).json({ message: "You must RSVP to this event to join the chat" });
-      }
-      
-      // Re-join the chat by setting hasLeftChat to false
-      if (userRsvp) {
-        await storage.updateRsvp(eventId, userId, userRsvp.status);
-      }
+      console.log(`API: User ${userId} attempting to rejoin chat for event ${eventId}`);
+      await storage.rejoinEventChat(eventId, userId);
+      console.log(`API: User ${userId} successfully rejoined chat for event ${eventId}`);
       
       res.json({ message: "Successfully rejoined chat" });
     } catch (error) {

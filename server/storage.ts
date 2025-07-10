@@ -638,16 +638,62 @@ export class DatabaseStorage implements IStorage {
         );
       console.log(`Updated existing RSVP for user ${userId} event ${eventId} - hasLeftChat: true`);
     } else {
-      // Create new RSVP entry for organizer with hasLeftChat: true
+      // Check if user is the organizer of this event
+      const event = await this.getEvent(eventId);
+      if (event && event.organizerId === userId) {
+        // Create new RSVP entry for organizer with hasLeftChat: true
+        await db
+          .insert(eventRsvps)
+          .values({
+            eventId,
+            userId,
+            status: 'organizing', // Special status for organizer leaving chat
+            hasLeftChat: true,
+          });
+        console.log(`Created new RSVP for organizer ${userId} event ${eventId} - hasLeftChat: true`);
+      } else {
+        // User is neither attendee nor organizer - should not be able to leave chat
+        console.log(`User ${userId} attempted to leave chat for event ${eventId} but has no RSVP and is not organizer`);
+        throw new Error('User is not authorized to leave this chat');
+      }
+    }
+  }
+
+  async rejoinEventChat(eventId: number, userId: string): Promise<void> {
+    // Check if user has an existing RSVP entry
+    const existingRsvp = await this.getUserRsvp(eventId, userId);
+    
+    if (existingRsvp) {
+      // Update existing RSVP to mark as rejoined chat
       await db
-        .insert(eventRsvps)
-        .values({
-          eventId,
-          userId,
-          status: 'organizing', // Special status for organizer leaving chat
-          hasLeftChat: true,
-        });
-      console.log(`Created new RSVP for organizer ${userId} event ${eventId} - hasLeftChat: true`);
+        .update(eventRsvps)
+        .set({ hasLeftChat: false })
+        .where(
+          and(
+            eq(eventRsvps.eventId, eventId),
+            eq(eventRsvps.userId, userId)
+          )
+        );
+      console.log(`Updated existing RSVP for user ${userId} event ${eventId} - hasLeftChat: false`);
+    } else {
+      // Check if user is the organizer of this event
+      const event = await this.getEvent(eventId);
+      if (event && event.organizerId === userId) {
+        // Create new RSVP entry for organizer with hasLeftChat: false
+        await db
+          .insert(eventRsvps)
+          .values({
+            eventId,
+            userId,
+            status: 'organizing', // Special status for organizer rejoining chat
+            hasLeftChat: false,
+          });
+        console.log(`Created new RSVP for organizer ${userId} event ${eventId} - hasLeftChat: false`);
+      } else {
+        // User is neither attendee nor organizer - should not be able to rejoin chat
+        console.log(`User ${userId} attempted to rejoin chat for event ${eventId} but has no RSVP and is not organizer`);
+        throw new Error('User is not authorized to rejoin this chat');
+      }
     }
   }
 
@@ -850,11 +896,12 @@ export class DatabaseStorage implements IStorage {
       ...rsvpEvents.map(e => e.eventId),
     ]);
     
-    console.log(`getUserEventIds for user ${userId}:`, {
-      rsvpEvents: rsvpEvents.map(e => e.eventId),
-      organizerEvents: organizerEvents.map(e => e.id),
-      finalEventIds: Array.from(eventIds)
-    });
+    // Debug: Uncomment to see event filtering details
+    // console.log(`getUserEventIds for user ${userId}:`, {
+    //   rsvpEvents: rsvpEvents.map(e => e.eventId),
+    //   organizerEvents: organizerEvents.map(e => e.id),
+    //   finalEventIds: Array.from(eventIds)
+    // });
     
     return Array.from(eventIds);
   }
