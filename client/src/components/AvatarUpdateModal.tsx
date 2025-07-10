@@ -172,13 +172,13 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g., A friendly young person with short brown hair, wearing a casual blue shirt, smiling warmly..."
+                placeholder="e.g., Young person with short brown hair, blue shirt, smiling"
                 className="w-full h-24 text-sm bg-white text-black border-2 border-gray-300 rounded-md px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary placeholder-gray-400 resize-none"
-                maxLength={500}
+                maxLength={100}
                 style={{ color: '#000000', backgroundColor: '#ffffff' }}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {description.length}/500 characters
+                {description.length}/100 characters
               </p>
             </div>
 
