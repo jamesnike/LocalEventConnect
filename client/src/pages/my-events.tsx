@@ -44,14 +44,33 @@ export default function MyEvents() {
     enabled: !!user?.id,
   });
 
-  // Group chats are the events the user is attending (RSVPed to)
+  // Group chats are the events the user is attending (RSVPed to) OR organizing
   const { data: groupChats } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "group-chats"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/events?type=attending`);
-      if (!response.ok) throw new Error('Failed to fetch group chats');
-      return response.json() as Promise<EventWithOrganizer[]>;
+      
+      // Fetch both attending and organized events
+      const [attendingResponse, organizedResponse] = await Promise.all([
+        fetch(`/api/users/${user.id}/events?type=attending`),
+        fetch(`/api/users/${user.id}/events?type=organized`)
+      ]);
+      
+      if (!attendingResponse.ok || !organizedResponse.ok) {
+        throw new Error('Failed to fetch group chats');
+      }
+      
+      const attendingEvents = await attendingResponse.json() as EventWithOrganizer[];
+      const organizedEvents = await organizedResponse.json() as EventWithOrganizer[];
+      
+      // Combine and deduplicate events (in case user is both attending and organizing same event)
+      const allEvents = [...attendingEvents, ...organizedEvents];
+      const uniqueEvents = allEvents.filter((event, index, self) => 
+        index === self.findIndex((e) => e.id === event.id)
+      );
+      
+      // Sort by date
+      return uniqueEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     enabled: !!user?.id,
   });
@@ -62,6 +81,7 @@ export default function MyEvents() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
       toast({
         title: "Removed from attending",
         description: "You're no longer attending this event.",
@@ -90,6 +110,7 @@ export default function MyEvents() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Event Cancelled",
@@ -194,7 +215,7 @@ export default function MyEvents() {
                 No Group Chats
               </h3>
               <p className="text-gray-600">
-                Join events to start chatting with other attendees!
+                Join events or organize your own to start chatting with other attendees!
               </p>
             </div>
           ) : (
@@ -227,15 +248,28 @@ export default function MyEvents() {
                         <span>{new Date(event.date).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <div className="flex items-center mt-1">
-                      <div className="flex -space-x-1 mr-2">
-                        <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
-                        <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
-                        <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center">
+                        <div className="flex -space-x-1 mr-2">
+                          <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
+                          <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
+                          <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {event.rsvpCount} members
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {event.rsvpCount} members
-                      </span>
+                      <div className="flex items-center">
+                        {user?.id === event.organizerId ? (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            Organizing
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            Attending
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

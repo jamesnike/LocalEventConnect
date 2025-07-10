@@ -74,6 +74,8 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
         description: "Your event has been created successfully!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
       handleClose();
     },
     onError: (error) => {

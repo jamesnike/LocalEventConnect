@@ -53,6 +53,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       // Also invalidate MyEvents cache to ensure the event shows up there
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
       
       // If user is RSVPing "going", show celebration animation
       if (status === 'going') {
@@ -93,6 +94,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
       
       toast({
         title: "Event Canceled",
