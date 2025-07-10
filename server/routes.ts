@@ -421,8 +421,8 @@ Please respond with just the signature text, nothing else.`;
         return res.status(400).json({ message: "Message content is required" });
       }
       
-      if (message.length > 1000) {
-        return res.status(400).json({ message: "Message too long. Maximum 1000 characters." });
+      if (message.length > 3000) {
+        return res.status(400).json({ message: "Message too long. Maximum 3000 characters." });
       }
       
       // Check if event exists
