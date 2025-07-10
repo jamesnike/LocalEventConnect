@@ -334,12 +334,7 @@ export default function Profile() {
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <button 
-          onClick={() => window.history.back()}
-          className="text-gray-600"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        <div className="w-5 h-5"></div> {/* Empty space for balance */}
         <h2 className="text-lg font-semibold">Profile</h2>
         <button 
           onClick={handleEditInterests}
