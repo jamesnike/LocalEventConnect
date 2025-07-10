@@ -522,7 +522,7 @@ export default function Profile() {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-white/70 text-center">
+              <p className="text-sm text-white/70 text-center">
                 Generate a personalized signature based on your interests and personality
               </p>
               <button
