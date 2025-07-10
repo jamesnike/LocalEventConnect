@@ -435,13 +435,13 @@ Please respond with just the signature text, nothing else.`;
       // Get all user IDs who should receive notifications for this event
       const userEventIds = await storage.getUserEventIds(userId);
       
-      // Broadcast to notification subscribers (including same user on different devices)
+      // Broadcast to notification subscribers (excluding the sender to avoid self-notifications)
       notificationSubscribers.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           const subscriberUserId = (client as any).userId;
           
-          // Send notification to all users who are part of this event (including sender on other devices)
-          if (subscriberUserId && userEventIds.includes(eventId)) {
+          // Send notification only to OTHER users who are part of this event (not the sender)
+          if (subscriberUserId && subscriberUserId !== userId && userEventIds.includes(eventId)) {
             client.send(JSON.stringify({
               type: 'new_message_notification',
               eventId,

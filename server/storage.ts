@@ -529,13 +529,14 @@ export class DatabaseStorage implements IStorage {
             )
           );
         
-        // Count messages after last read timestamp
+        // Count messages after last read timestamp, excluding messages sent by this user
         const unreadCountQuery = db
           .select({ count: sql<number>`COUNT(*)::int` })
           .from(chatMessages)
           .where(
             and(
               eq(chatMessages.eventId, eventId),
+              ne(chatMessages.userId, userId), // Exclude messages sent by this user
               lastRead 
                 ? gt(chatMessages.createdAt, lastRead.lastReadAt)
                 : sql`TRUE` // If no read record, all messages are unread
