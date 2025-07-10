@@ -709,14 +709,28 @@ Please respond with just the signature text, nothing else.`;
         messages: [
           {
             role: "user",
-            content: `Create a unique DiceBear avatar seed based on this description: "${prompt}"
+            content: `You are creating an anime-style avatar seed for DiceBear's "adventurer" style. 
 
-Generate a JSON response with a unique seed that captures the essence of the description:
+User description: "${prompt}"
+
+Analyze the description and create a seed that captures:
+- Physical appearance (hair color, style, facial features)
+- Personality traits (friendly, serious, energetic, etc.)
+- Any specific details mentioned
+
+Generate a JSON response with a descriptive seed that will create a consistent anime-style avatar:
 {
-  "seed": "unique-descriptive-seed-here"
+  "seed": "descriptive-seed-here"
 }
 
-The seed should be a descriptive string that represents the person described. Keep it simple and unique.`
+The seed should be a short, descriptive phrase that captures the essence of the person. Focus on visual characteristics that would appear in an anime-style portrait.
+
+Examples:
+- "cheerful-girl-pink-hair-bright-eyes"
+- "serious-boy-dark-hair-glasses"
+- "energetic-teen-blonde-sporty"
+
+Keep it concise but descriptive.`
           }
         ],
         max_tokens: 100,
@@ -753,7 +767,7 @@ The seed should be a descriptive string that represents the person described. Ke
       };
 
       // Build DiceBear URL with validated parameters
-      const baseUrl = 'https://api.dicebear.com/7.x/avataaars/svg';
+      const baseUrl = 'https://api.dicebear.com/7.x/adventurer/svg';
       
       // Validate and build params object
       const urlParams: Record<string, string> = {
