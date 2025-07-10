@@ -24,6 +24,16 @@ const createEventSchema = insertEventSchema.extend({
   time: z.string().min(1, "Time is required"),
   isFree: z.boolean().default(true),
   price: z.string().optional(),
+  capacity: z.number().optional(),
+  maxAttendees: z.number().optional(),
+  parkingInfo: z.string().optional(),
+  meetingPoint: z.string().optional(),
+  duration: z.string().optional(),
+  whatToBring: z.string().optional(),
+  specialNotes: z.string().optional(),
+  requirements: z.string().optional(),
+  contactInfo: z.string().optional(),
+  cancellationPolicy: z.string().optional(),
 });
 
 type CreateEventFormData = z.infer<typeof createEventSchema>;
@@ -48,6 +58,7 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
       eventImageUrl: "",
       organizerId: user?.id || "",
       capacity: undefined,
+      maxAttendees: undefined,
       parkingInfo: "",
       meetingPoint: "",
       duration: "",
@@ -303,6 +314,195 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
                   />
                 )}
               </div>
+
+              {/* Capacity and Attendee Limits */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="capacity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Capacity</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Max capacity" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxAttendees"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Attendees</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Attendee limit" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Duration */}
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 2 hours, 3-4 hours, All day" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Meeting Point */}
+              <FormField
+                control={form.control}
+                name="meetingPoint"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meeting Point</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={2} 
+                        placeholder="Specific meeting location or entrance details..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Parking Info */}
+              <FormField
+                control={form.control}
+                name="parkingInfo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parking Information</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={2} 
+                        placeholder="Parking availability, costs, or restrictions..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* What to Bring */}
+              <FormField
+                control={form.control}
+                name="whatToBring"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What to Bring</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={3} 
+                        placeholder="What should attendees bring? (e.g., water bottle, comfortable shoes, ID)" 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Requirements */}
+              <FormField
+                control={form.control}
+                name="requirements"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Requirements</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={2} 
+                        placeholder="Age restrictions, skill level, or other requirements..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Special Notes */}
+              <FormField
+                control={form.control}
+                name="specialNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Special Notes</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={3} 
+                        placeholder="Any additional important information..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Contact Info */}
+              <FormField
+                control={form.control}
+                name="contactInfo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Information</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={2} 
+                        placeholder="Phone number, email, or other contact details..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Cancellation Policy */}
+              <FormField
+                control={form.control}
+                name="cancellationPolicy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cancellation Policy</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={3} 
+                        placeholder="Refund policy, cancellation terms, or weather contingency..." 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </form>
           </Form>
           </div>
