@@ -137,7 +137,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20): Promise<EventWithOrganizer[]> {
+  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20, excludePastEvents = false): Promise<EventWithOrganizer[]> {
     // Get user's skipped events if userId is provided
     let userSkippedEvents: number[] = [];
     if (userId) {
@@ -155,6 +155,16 @@ export class DatabaseStorage implements IStorage {
       category ? eq(events.category, category) : undefined,
       ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : []),
     ].filter(Boolean);
+
+    // Add past events filtering if requested
+    if (excludePastEvents) {
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
+      
+      // Filter out past events - event must be today with future time or future date
+      whereConditions.push(sql`(${events.date} > ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} > ${currentTime}))`);
+    }
 
     // Add skipped events exclusion if there are any
     if (userSkippedEvents.length > 0) {
