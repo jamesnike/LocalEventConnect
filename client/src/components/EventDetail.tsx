@@ -261,21 +261,22 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   ];
 
   return (
-    <div className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ${
-      isClosing ? 'translate-y-full' : 'translate-y-0'
-    }`}>
-      <div className="relative h-full">
-        <button 
-          onClick={handleClose}
-          className="absolute top-4 left-4 z-10 bg-white rounded-full p-2 shadow-md"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-        <button className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md">
-          <Share className="w-5 h-5 text-gray-700" />
-        </button>
-        
-        <div className="h-64 relative">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4`}>
+      <div className={`bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[80vh] overflow-hidden transform transition-transform duration-300 ${
+        isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
+      }`}>
+        <div className="relative h-full flex flex-col">
+          <button 
+            onClick={handleClose}
+            className="absolute top-2 left-2 z-10 bg-white rounded-full p-1.5 shadow-md"
+          >
+            <ArrowLeft className="w-4 h-4 text-gray-700" />
+          </button>
+          <button className="absolute top-2 right-2 z-10 bg-white rounded-full p-1.5 shadow-md">
+            <Share className="w-4 h-4 text-gray-700" />
+          </button>
+          
+          <div className="h-48 relative">
           <img 
             src={event.eventImageUrl || `https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600`}
             alt={event.title}
@@ -283,10 +284,10 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           />
         </div>
         
-        <div className="px-4 py-6 flex-1 overflow-y-auto">
-          <div className="flex justify-between items-start mb-4">
+          <div className="px-4 py-4 flex-1 overflow-y-auto">
+          <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{event.title}</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h2>
               <div className="flex items-center text-gray-600 mb-1">
                 <Clock className="w-4 h-4 mr-2" />
                 <span>{formatDate(event.date)} • {formatTime(event.time)}</span>
@@ -296,21 +297,21 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <span>{event.location}</span>
               </div>
             </div>
-            <button className="bg-white border-2 border-primary text-primary px-4 py-2 rounded-full font-medium ml-4">
-              <Heart className="w-4 h-4 mr-1 inline" />
+            <button className="bg-white border-2 border-primary text-primary px-3 py-1.5 rounded-full font-medium ml-3 text-sm">
+              <Heart className="w-3 h-3 mr-1 inline" />
               Save
             </button>
           </div>
           
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-800 mb-2">About this event</h3>
-            <p className="text-gray-600 leading-relaxed">
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm">About this event</h3>
+            <p className="text-gray-600 leading-relaxed text-sm">
               {event.description}
             </p>
           </div>
           
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-800 mb-3">
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm">
               Attendees ({localRsvpCount})
             </h3>
             <div className="flex items-center space-x-3">
@@ -327,8 +328,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             </div>
           </div>
           
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-800 mb-2">Organized by</h3>
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm">Organized by</h3>
             <div className="flex items-center space-x-3 mb-3">
               <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
               <div>
@@ -362,7 +363,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             )}
           </div>
           
-          <div className="flex space-x-3 pb-6">
+          <div className="flex space-x-3 pb-4">
             <button 
               onClick={handleButtonClick}
               onMouseEnter={() => setIsHovering(true)}
@@ -437,14 +438,17 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               </button>
             )}
           </div>
+          </div>
+          
+          {/* Celebration Animation */}
+          {showCelebration && (
+            <CelebrationAnimation 
+              isVisible={showCelebration}
+              onComplete={handleCelebrationComplete}
+            />
+          )}
         </div>
       </div>
-      
-      {/* Celebration Animation */}
-      <CelebrationAnimation 
-        isVisible={showCelebration}
-        onComplete={handleCelebrationComplete}
-      />
     </div>
   );
 }
