@@ -84,6 +84,11 @@ export default function EventContentCard({
     },
   });
 
+  // Combine API messages with WebSocket messages
+  const allMessages = [...chatMessages, ...wsMessages.filter(wsMsg => 
+    !chatMessages.some(apiMsg => apiMsg.id === wsMsg.id)
+  )];
+
   // Set initial messages from API when loaded
   useEffect(() => {
     if (chatMessages.length > 0) {
@@ -114,11 +119,6 @@ export default function EventContentCard({
       refetchMessages();
     }
   };
-
-  // Combine API messages with WebSocket messages
-  const allMessages = [...chatMessages, ...wsMessages.filter(wsMsg => 
-    !chatMessages.some(apiMsg => apiMsg.id === wsMsg.id)
-  )];
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     // Parse the date string as local time to avoid timezone issues
