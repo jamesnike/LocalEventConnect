@@ -741,13 +741,7 @@ The seed should be a descriptive string that represents the person described. Ke
         console.error("Raw response:", analysisResponse.choices[0].message.content);
         // Generate random parameters as fallback
         diceBearParams = {
-          seed: Math.random().toString(36).substring(2, 15),
-          backgroundColor: "transparent",
-          hair: ["short01", "short02", "short03", "long01", "long02"],
-          hairColor: ["3c4043", "6c5b7b", "c06c84", "a0522d", "8b4513"],
-          eyes: ["open", "happy", "smile"],
-          mouth: ["smile", "openSmile", "serious"],
-          skinColor: ["fdbcb4", "ecad80", "d08b5b", "ae5d29", "deb887"]
+          seed: Math.random().toString(36).substring(2, 15)
         };
       }
 
@@ -759,7 +753,7 @@ The seed should be a descriptive string that represents the person described. Ke
       };
 
       // Build DiceBear URL with validated parameters
-      const baseUrl = 'https://api.dicebear.com/7.x/notionists/svg';
+      const baseUrl = 'https://api.dicebear.com/7.x/avataaars/svg';
       
       // Validate and build params object
       const urlParams: Record<string, string> = {
