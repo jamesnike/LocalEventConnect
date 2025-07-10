@@ -695,7 +695,7 @@ Please respond with just the signature text, nothing else.`;
   // Avatar generation and update routes
   app.post('/api/generate-avatar', isAuthenticated, async (req: any, res) => {
     try {
-      const { prompt, referenceImageUrl } = req.body;
+      const { prompt } = req.body;
       
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ message: "Prompt is required" });
@@ -703,63 +703,64 @@ Please respond with just the signature text, nothing else.`;
 
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
-      // First, use GPT-4 Vision to analyze the reference image and create a style-matched prompt
-      let enhancedPrompt = prompt;
-      
-      if (referenceImageUrl) {
-        try {
-          const visionResponse = await openai.chat.completions.create({
-            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-            messages: [
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: `Analyze this reference avatar image and create a detailed DALL-E prompt that will generate a new avatar in the exact same art style. The new avatar should match this description: "${prompt}". 
+      // Use OpenAI to analyze the description and generate DiceBear parameters
+      const analysisResponse = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "user",
+            content: `Analyze this avatar description and suggest DiceBear API parameters for the 'notionists' style: "${prompt}"
 
-Focus on:
-- Exact art style (anime/cartoon/realistic etc.)
-- Color palette and shading technique
-- Line art style and thickness
-- Background style
-- Overall aesthetic and mood
-- Facial feature style
-- Hair rendering style
-- Clothing/accessories style
+Based on the description, provide a JSON response with these parameters:
+- seed: A unique random string based on the description
+- backgroundColor: A hex color or "transparent" 
+- hair: Array of hair styles like ["long01", "long02", "short01", "short02", "short03", "short04", "short05", "short06", "short07", "short08", "short09", "short10", "short11", "short12", "short13", "short14", "short15", "short16", "short17", "short18", "short19", "short20", "pixie", "dangerTop", "dreads01", "dreads02", "bun", "bun02", "afro", "bob", "mohawk", "mohawk02", "pigtails", "straight01", "straight02", "curly", "curly02", "wavy", "wavy02"]
+- hairColor: Array of colors like ["0e0e0e", "3c4043", "6c5b7b", "c06c84", "f8b500", "ffd1dc", "d4af37", "a0522d", "8b4513", "ff6347", "32cd32", "4169e1", "9370db", "ff1493"]
+- eyes: Array of eye styles like ["open", "closed", "wink", "happy", "love", "surprised", "sleepy"]
+- mouth: Array of mouth styles like ["smile", "openSmile", "serious", "tongue", "piercedTongue", "eating", "surprised", "disbelief", "sad", "twinkle"]
+- skinColor: Array of skin tones like ["fdbcb4", "ecad80", "d08b5b", "ae5d29", "614335", "a0522d", "8b4513", "deb887", "f5deb3", "ffe4c4", "ffdbac", "ffdab9", "edb98a", "d2b48c", "bc9a6a", "a0522d", "8b4513", "654321", "5d4037", "4e342e", "3c2415", "2e1b0e"]
 
-Generate a comprehensive DALL-E prompt that will create a new avatar matching this person description but in the exact same artistic style as the reference image.`
-                  },
-                  {
-                    type: "image_url",
-                    image_url: {
-                      url: referenceImageUrl
-                    }
-                  }
-                ],
-              },
-            ],
-            max_tokens: 500,
-          });
-          
-          enhancedPrompt = visionResponse.choices[0].message.content || prompt;
-        } catch (visionError) {
-          console.error("Vision analysis failed, using original prompt:", visionError);
-          // Fall back to original prompt if vision fails
-        }
-      }
-      
-      const response = await openai.images.generate({
-        model: "dall-e-3",
-        prompt: enhancedPrompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
+Choose parameters that best match the description. Respond with valid JSON only.`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7,
       });
 
-      const imageUrl = response.data[0].url;
+      let diceBearParams;
+      try {
+        const responseText = analysisResponse.choices[0].message.content?.trim();
+        diceBearParams = JSON.parse(responseText || '{}');
+      } catch (parseError) {
+        console.error("Failed to parse OpenAI response, using defaults:", parseError);
+        // Generate random parameters as fallback
+        diceBearParams = {
+          seed: Math.random().toString(36).substring(2, 15),
+          backgroundColor: "transparent",
+          hair: ["short01", "short02", "short03", "long01", "long02"],
+          hairColor: ["3c4043", "6c5b7b", "c06c84", "a0522d", "8b4513"],
+          eyes: ["open", "happy", "smile"],
+          mouth: ["smile", "openSmile", "serious"],
+          skinColor: ["fdbcb4", "ecad80", "d08b5b", "ae5d29", "deb887"]
+        };
+      }
+
+      // Build DiceBear URL with parameters
+      const baseUrl = 'https://api.dicebear.com/7.x/notionists/svg';
+      const params = new URLSearchParams({
+        seed: diceBearParams.seed,
+        size: '512',
+        backgroundColor: diceBearParams.backgroundColor || 'transparent',
+        hair: (diceBearParams.hair || ['short01']).join(','),
+        hairColor: (diceBearParams.hairColor || ['3c4043']).join(','),
+        eyes: (diceBearParams.eyes || ['open']).join(','),
+        mouth: (diceBearParams.mouth || ['smile']).join(','),
+        skinColor: (diceBearParams.skinColor || ['fdbcb4']).join(',')
+      });
+
+      const diceBearUrl = `${baseUrl}?${params.toString()}`;
       
-      res.json({ url: imageUrl });
+      res.json({ url: diceBearUrl });
     } catch (error) {
       console.error("Error generating avatar:", error);
       res.status(500).json({ message: "Failed to generate avatar" });

@@ -25,10 +25,7 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
     mutationFn: async (prompt: string) => {
       const response = await apiRequest('/api/generate-avatar', {
         method: 'POST',
-        body: JSON.stringify({ 
-          prompt,
-          referenceImageUrl: currentAvatarUrl
-        }),
+        body: JSON.stringify({ prompt }),
       });
       
       if (!response.ok) {
@@ -123,22 +120,8 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
       return;
     }
 
-    // Create a detailed prompt for avatar generation that matches the app's anime aesthetic
-    const prompt = `Create a high-quality anime-style avatar portrait with the following description: ${description}. 
-
-Art style specifications:
-- Clean anime/manga art style similar to modern mobile app avatars
-- Bright, vibrant colors with soft shading
-- Large expressive eyes in anime style
-- Smooth, clean vector-like appearance
-- Professional quality suitable for social media profile
-- Focus on head and shoulders only
-- Solid or simple gradient background
-- Well-lit with soft lighting
-- Sharp, clean lines and details
-- Modern anime aesthetic (not overly cartoonish)
-
-The avatar should look consistent with other anime-style profile pictures in a mobile social app.`;
+    // Pass the description directly to OpenAI for DiceBear parameter generation
+    const prompt = description;
     
     generateAvatarMutation.mutate(prompt);
   };
