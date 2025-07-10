@@ -23,6 +23,7 @@ export default function MyEvents() {
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [, setLocation] = useLocation();
+  const [messagesTabFirstAccess, setMessagesTabFirstAccess] = useState(true);
 
   // Check URL for tab parameter and set active tab
   useEffect(() => {
@@ -40,6 +41,17 @@ export default function MyEvents() {
       queryClient.invalidateQueries({ queryKey: ["/api/users", user.id, "events"] });
     }
   }, [user?.id]);
+
+  // Handle Messages tab access - trigger background refresh on first access
+  useEffect(() => {
+    if (activeTab === 'messages' && messagesTabFirstAccess && user?.id) {
+      // Trigger background refresh without showing loading state
+      setTimeout(() => {
+        refetchGroupChats();
+        setMessagesTabFirstAccess(false);
+      }, 100); // Small delay to ensure cache is shown first
+    }
+  }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats]);
 
   const { data: organizedEvents, isLoading: isLoadingOrganized } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized", "current"],
@@ -89,10 +101,10 @@ export default function MyEvents() {
       return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     enabled: !!user?.id,
-    staleTime: 0, // Don't cache - always fetch fresh data
-    gcTime: 0, // Don't keep in cache
-    refetchOnMount: true, // Always refetch when mounting
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - show cached data first
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnMount: false, // Don't refetch on mount - use cache first
+    refetchOnWindowFocus: false, // Don't refetch on window focus - use cache first
     refetchInterval: activeTab === 'messages' ? 30000 : false, // Auto-refresh every 30 seconds when messages tab is active
   });
 
@@ -192,8 +204,10 @@ export default function MyEvents() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center relative">
         <h2 className="text-lg font-semibold">My Events</h2>
-        {/* Subtle loading indicator when refetching */}
-        {(isLoadingOrganized || isLoadingAttending || isLoadingGroupChats) && (
+        {/* Subtle loading indicator when refetching (but not initial loading) */}
+        {((activeTab === 'organized' && isLoadingOrganized && organizedEvents) || 
+          (activeTab === 'attending' && isLoadingAttending && attendingEvents) ||
+          (activeTab === 'messages' && isLoadingGroupChats && groupChats)) && (
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500 opacity-60"></div>
           </div>
@@ -203,7 +217,14 @@ export default function MyEvents() {
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
           <button 
-            onClick={() => setActiveTab('messages')}
+            onClick={() => {
+              setActiveTab('messages');
+              setSelectedEvent(null);
+              // Reset first access flag to trigger background refresh
+              if (activeTab !== 'messages') {
+                setMessagesTabFirstAccess(true);
+              }
+            }}
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === 'messages' 
                 ? 'text-primary border-b-2 border-primary' 
@@ -213,7 +234,10 @@ export default function MyEvents() {
             Messages
           </button>
           <button 
-            onClick={() => setActiveTab('attending')}
+            onClick={() => {
+              setActiveTab('attending');
+              setSelectedEvent(null);
+            }}
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === 'attending' 
                 ? 'text-primary border-b-2 border-primary' 
@@ -223,7 +247,10 @@ export default function MyEvents() {
             Attending
           </button>
           <button 
-            onClick={() => setActiveTab('organized')}
+            onClick={() => {
+              setActiveTab('organized');
+              setSelectedEvent(null);
+            }}
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === 'organized' 
                 ? 'text-primary border-b-2 border-primary' 
@@ -328,8 +355,9 @@ export default function MyEvents() {
           // Regular Events Tab Content
           (!currentEvents || currentEvents.length === 0 ? (
             // Only show loading if no cached data and currently loading
-            ((activeTab === 'organized' && isLoadingOrganized) || 
-             (activeTab === 'attending' && isLoadingAttending)) && !currentEvents ? (
+            (((activeTab === 'organized' && isLoadingOrganized) || 
+              (activeTab === 'attending' && isLoadingAttending) ||
+              (activeTab === 'messages' && isLoadingGroupChats)) && !currentEvents) ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
                 <p className="text-gray-500 text-sm mt-2">Loading events...</p>
