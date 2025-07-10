@@ -231,7 +231,7 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
                     onClick={handleGenerate}
                     disabled={generateAvatarMutation.isPending}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-50 hover:border-gray-400"
                   >
                     {generateAvatarMutation.isPending ? (
                       <>
