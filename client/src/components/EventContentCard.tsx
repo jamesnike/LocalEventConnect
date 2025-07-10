@@ -294,7 +294,7 @@ export default function EventContentCard({
             </div>
             
             {/* Exit Group Chat Button */}
-            {hasChatAccess && (
+            {true && (
               <button
                 onClick={handleExitGroupChat}
                 disabled={exitGroupChatMutation.isPending}
