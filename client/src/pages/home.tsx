@@ -326,22 +326,14 @@ export default function Home() {
           <div className="flex items-center space-x-3">
             <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="sm" />
             
-            {/* User Interests */}
+            {/* User Signature */}
             <div className="flex items-center space-x-1">
-              {user?.interests && user.interests.length > 0 ? (
-                user.interests.slice(0, 2).map((interest) => {
-                  const interestData = availableInterests.find(i => i.id === interest);
-                  const Icon = interestData?.icon || Activity;
-                  
-                  return (
-                    <div key={interest} className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      <Icon className="w-3 h-3" />
-                      <span>{interestData?.name || interest}</span>
-                    </div>
-                  );
-                })
+              {user?.aiSignature ? (
+                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs italic max-w-32 truncate">
+                  "{user.aiSignature}"
+                </div>
               ) : (
-                <span className="text-xs text-gray-500">Set interests</span>
+                <span className="text-xs text-gray-500">Set signature</span>
               )}
             </div>
           </div>
