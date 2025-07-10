@@ -444,9 +444,7 @@ Please respond with just the signature text, nothing else.`;
         user: messageWithUserQuery[0].user!,
       } : null;
       
-      console.log('HTTP POST: Created message:', newMessage);
-      console.log('HTTP POST: Retrieved message with user:', messageWithUser);
-      console.log('HTTP POST: Event connections for', eventId, ':', eventConnections.get(eventId)?.size || 0);
+      // Debugging removed - system working correctly
       
       // Broadcast new message to all connected clients in this event room
       if (eventConnections.has(eventId) && eventConnections.get(eventId)!.size > 0) {
@@ -458,20 +456,12 @@ Please respond with just the signature text, nothing else.`;
             message: messageWithUser
           };
           
-          console.log(`HTTP POST: Broadcasting message to ${connections.size} clients in event ${eventId}:`, messageWithUser);
           connections.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
-              console.log('HTTP POST: Sending to client:', JSON.stringify(broadcastMessage));
               client.send(JSON.stringify(broadcastMessage));
-            } else {
-              console.log('HTTP POST: Client not ready, readyState:', client.readyState);
             }
           });
-        } else {
-          console.error('HTTP POST: messageWithUser is null after retrieval');
         }
-      } else {
-        console.error('HTTP POST: No connections found for event:', eventId, eventConnections.get(eventId)?.size || 0);
       }
       
       // Broadcast notification to all users subscribed to notifications
