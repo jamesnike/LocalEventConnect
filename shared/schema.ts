@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  customAvatarUrl: varchar("custom_avatar_url"), // AI-generated custom avatar URL
   animeAvatarSeed: varchar("anime_avatar_seed").notNull().default("default"), // For generating consistent anime avatars
   location: varchar("location"),
   interests: text("interests").array().default([]), // Array of interest categories

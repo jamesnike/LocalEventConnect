@@ -278,7 +278,11 @@ export default function EventContentCard({
                   <ArrowLeft className="w-5 h-5 text-white" />
                 </button>
               )}
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
+              <AnimeAvatar 
+                seed={event.organizer.animeAvatarSeed} 
+                size="sm"
+                customAvatarUrl={event.organizer.customAvatarUrl}
+              />
               <div>
                 <h3 className="font-semibold text-lg">{event.title}</h3>
                 <p className="text-sm opacity-90">{event.rsvpCount} members</p>
@@ -363,7 +367,11 @@ export default function EventContentCard({
                   ) : (
                     allMessages.map((msg) => (
                       <div key={msg.id} className="flex space-x-3">
-                        <AnimeAvatar seed={msg.user.animeAvatarSeed} size="xs" />
+                        <AnimeAvatar 
+                          seed={msg.user.animeAvatarSeed} 
+                          size="xs"
+                          customAvatarUrl={msg.user.customAvatarUrl}
+                        />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
                             <span className="font-medium text-sm text-gray-800">

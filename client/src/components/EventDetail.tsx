@@ -415,7 +415,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             </h3>
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
-                <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
+                <AnimeAvatar 
+                  seed={event.organizer.animeAvatarSeed} 
+                  size="md"
+                  customAvatarUrl={event.organizer.customAvatarUrl}
+                />
                 <AnimeAvatar seed={`attendee_1_${event.id}`} size="md" />
                 <AnimeAvatar seed={`attendee_2_${event.id}`} size="md" />
                 <AnimeAvatar seed={`attendee_3_${event.id}`} size="md" />
@@ -430,7 +434,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           <div className="mb-4">
             <h3 className="font-semibold text-gray-800 mb-2 text-sm">Organized by</h3>
             <div className="flex items-center space-x-3 mb-3">
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
+              <AnimeAvatar 
+                seed={event.organizer.animeAvatarSeed} 
+                size="md"
+                customAvatarUrl={event.organizer.customAvatarUrl}
+              />
               <div>
                 <p className="font-medium text-gray-800">
                   {event.organizer.firstName || event.organizer.lastName 

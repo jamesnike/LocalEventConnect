@@ -224,7 +224,11 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
           {/* Organizer */}
           <div className="flex items-center space-x-3">
-            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="md" />
+            <AnimeAvatar 
+              seed={event.organizer.animeAvatarSeed} 
+              size="md"
+              customAvatarUrl={event.organizer.customAvatarUrl}
+            />
             <div>
               <p className="font-medium text-gray-800">
                 {event.organizer.firstName || event.organizer.lastName 

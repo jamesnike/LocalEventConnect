@@ -692,6 +692,55 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Avatar generation and update routes
+  app.post('/api/generate-avatar', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+      });
+
+      const imageUrl = response.data[0].url;
+      
+      res.json({ url: imageUrl });
+    } catch (error) {
+      console.error("Error generating avatar:", error);
+      res.status(500).json({ message: "Failed to generate avatar" });
+    }
+  });
+
+  app.post('/api/update-avatar', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { customAvatarUrl } = req.body;
+      
+      if (!customAvatarUrl || typeof customAvatarUrl !== 'string') {
+        return res.status(400).json({ message: "Custom avatar URL is required" });
+      }
+
+      // Update user's custom avatar URL in database
+      await db.update(users)
+        .set({ customAvatarUrl })
+        .where(eq(users.id, userId));
+      
+      res.json({ message: "Avatar updated successfully" });
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      res.status(500).json({ message: "Failed to update avatar" });
+    }
+  });
+
   // Skipped events routes
   app.post('/api/events/:id/skip', isAuthenticated, async (req: any, res) => {
     try {

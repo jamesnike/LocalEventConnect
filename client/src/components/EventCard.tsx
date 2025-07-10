@@ -157,7 +157,11 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <div className="flex -space-x-2">
-              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
+              <AnimeAvatar 
+                seed={event.organizer.animeAvatarSeed} 
+                size="xs"
+                customAvatarUrl={event.organizer.customAvatarUrl}
+              />
               {event.rsvpCount > 0 && (
                 <>
                   <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />

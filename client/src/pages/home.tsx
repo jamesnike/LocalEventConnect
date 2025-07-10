@@ -590,7 +590,11 @@ export default function Home() {
         <div className="flex items-center justify-between">
           {/* User Avatar */}
           <div className="flex items-center space-x-3">
-            <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="sm" />
+            <AnimeAvatar 
+              seed={user?.animeAvatarSeed || user?.id || "default"} 
+              size="sm" 
+              customAvatarUrl={user?.customAvatarUrl}
+            />
             
             {/* User Signature */}
             <div className="flex items-center space-x-1">

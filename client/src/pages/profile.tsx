@@ -548,7 +548,11 @@ export default function Profile() {
       {/* Profile Header */}
       <div className="bg-gradient-to-br from-primary to-accent p-6 text-white">
         <div className="flex items-center space-x-4">
-          <AnimeAvatar seed={user?.animeAvatarSeed || user?.id || "default"} size="lg" />
+          <AnimeAvatar 
+            seed={user?.animeAvatarSeed || user?.id || "default"} 
+            size="lg" 
+            customAvatarUrl={user?.customAvatarUrl}
+          />
           <div className="flex-1">
             {editingUsername ? (
               <div className="space-y-2">
