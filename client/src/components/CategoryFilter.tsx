@@ -39,27 +39,17 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   
   // Reorganize options into the desired layout: 
   // Top row: Wed AM, Wed Night, Thu AM, Thu Night...
-  // Bottom row: Wed PM, Thu AM, Thu PM, Fri AM...
+  // Bottom row: Wed PM, Thu PM, Fri AM, Fri PM...
   const topRowOptions = [];
   const bottomRowOptions = [];
   
-  // Pattern: Column 1: Wed AM (top), Wed PM (bottom)
-  //         Column 2: Wed Night (top), Thu AM (bottom) 
-  //         Column 3: Thu PM (top), Thu Night (bottom)
-  //         Column 4: Fri AM (top), Fri PM (bottom)
-  for (let i = 0; i < timeOptions.length; i += 3) {
-    const dayOptions = timeOptions.slice(i, i + 3); // [AM, PM, Night] for each day
-    if (dayOptions.length >= 3) {
-      // Column 1: AM on top, PM on bottom
-      topRowOptions.push(dayOptions[0]); // AM
-      bottomRowOptions.push(dayOptions[1]); // PM
-      
-      // Column 2: Night on top, next day AM on bottom
-      topRowOptions.push(dayOptions[2]); // Night
-      if (i + 3 < timeOptions.length) {
-        const nextDayAM = timeOptions[i + 3];
-        if (nextDayAM) bottomRowOptions.push(nextDayAM);
-      }
+  // Create balanced alternating pattern:
+  // Split all options into two even rows
+  for (let i = 0; i < timeOptions.length; i++) {
+    if (i % 2 === 0) {
+      topRowOptions.push(timeOptions[i]);
+    } else {
+      bottomRowOptions.push(timeOptions[i]);
     }
   }
   
