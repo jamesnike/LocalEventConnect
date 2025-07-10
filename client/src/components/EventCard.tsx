@@ -119,9 +119,16 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
           )}
         </div>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-          <span className={`inline-block ${getCategoryColor(event.category)} text-white text-xs px-2 py-1 rounded-full mb-2`}>
-            {getCategoryIcon(event.category)} {event.category}
-          </span>
+          <div className="flex flex-wrap gap-2 mb-2">
+            <span className={`inline-block ${getCategoryColor(event.category)} text-white text-xs px-2 py-1 rounded-full`}>
+              {getCategoryIcon(event.category)} {event.category}
+            </span>
+            {event.subCategory && (
+              <span className="inline-block bg-white bg-opacity-90 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
+                {event.subCategory}
+              </span>
+            )}
+          </div>
         </div>
       </div>
       

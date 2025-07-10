@@ -391,9 +391,20 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <Clock className="w-4 h-4 mr-2" />
                 <span>{formatDate(event.date)} • {formatTime(event.time)}</span>
               </div>
-              <div className="flex items-center text-gray-600">
+              <div className="flex items-center text-gray-600 mb-2">
                 <MapPin className="w-4 h-4 mr-2" />
                 <span>{event.location}</span>
+              </div>
+              {/* Category and Subcategory */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                <span className="inline-block bg-primary text-white text-xs px-2 py-1 rounded-full font-medium">
+                  {event.category}
+                </span>
+                {event.subCategory && (
+                  <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">
+                    {event.subCategory}
+                  </span>
+                )}
               </div>
             </div>
             <button className="bg-white border-2 border-primary text-primary px-3 py-1.5 rounded-full font-medium ml-3 text-sm">

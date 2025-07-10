@@ -285,7 +285,17 @@ export default function EventContentCard({
               />
               <div>
                 <h3 className="font-semibold text-lg">{event.title}</h3>
-                <p className="text-sm opacity-90">{event.rsvpCount} members</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm opacity-90">{event.rsvpCount} members</p>
+                  {event.subCategory && (
+                    <>
+                      <span className="text-xs opacity-70">•</span>
+                      <span className="text-xs opacity-90 bg-white/20 px-2 py-0.5 rounded-full">
+                        {event.subCategory}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             
