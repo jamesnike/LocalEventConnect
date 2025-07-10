@@ -305,6 +305,7 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
               </div>
             </form>
           </Form>
+          </div>
         </div>
       </div>
     </div>
