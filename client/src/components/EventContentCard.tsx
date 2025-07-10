@@ -109,44 +109,45 @@ export default function EventContentCard({
     },
   });
 
-  // Display WebSocket messages first for real-time, then fallback to API
+  // Use messages from local state which gets updated by both API and WebSocket
   const allMessages = useMemo(() => {
-    // If we have WebSocket messages, use them for real-time updates
-    if (wsMessages.length > 0) {
-      console.log('Using WebSocket messages for real-time display:', wsMessages.length);
-      return wsMessages.sort((a, b) => 
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-    }
-    
-    // Otherwise use API messages
-    const apiMessages = chatMessages || [];
-    console.log('Using API messages:', apiMessages.length);
-    return apiMessages.sort((a, b) => 
+    return messages.sort((a, b) => 
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-  }, [chatMessages, wsMessages]);
+  }, [messages]);
 
-  // Set initial messages from API when loaded - but only for current event
+  // Set initial messages from API when loaded
   useEffect(() => {
-    if (chatMessages && chatMessages.length > 0 && wsMessages.length === 0) {
-      console.log('Setting initial messages for event:', event.id, chatMessages.length, 'messages');
+    if (chatMessages && chatMessages.length > 0) {
+      console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
       setMessages(chatMessages);
     } else if (chatMessages && chatMessages.length === 0) {
-      // Clear messages when API returns empty (switching events)
       console.log('Clearing messages for event:', event.id);
       setMessages([]);
     }
-  }, [chatMessages, event.id, wsMessages.length]);
+  }, [chatMessages, event.id]);
 
-  // Auto-refresh messages when WebSocket receives new messages
+  // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
     if (wsMessages.length > 0) {
-      console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
-      // Force refetch messages to get the latest from server
-      refetchMessages();
+      console.log('WebSocket messages received for event:', event.id, 'count:', wsMessages.length);
+      setMessages(prevMessages => {
+        // Merge API messages with WebSocket messages, removing duplicates
+        const allMessages = [...prevMessages];
+        
+        wsMessages.forEach(wsMsg => {
+          const exists = allMessages.some(msg => msg.id === wsMsg.id);
+          if (!exists) {
+            allMessages.push(wsMsg);
+          }
+        });
+        
+        return allMessages.sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
     }
-  }, [wsMessages.length]);
+  }, [wsMessages, event.id]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {

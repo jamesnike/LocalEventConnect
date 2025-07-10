@@ -50,7 +50,16 @@ export function useWebSocket(eventId: number | null) {
           // Only process message if it's for the current event
           if (data.eventId === currentEventId.current) {
             // Add message to local state for immediate display
-            setMessages(prev => [...prev, data.message!]);
+            setMessages(prev => {
+              // Check if message already exists to avoid duplicates
+              const messageExists = prev.some(msg => msg.id === data.message!.id);
+              if (messageExists) {
+                console.log('Message already exists, skipping duplicate');
+                return prev;
+              }
+              console.log('Adding new message to WebSocket state');
+              return [...prev, data.message!];
+            });
             
             // Invalidate queries to refresh UI and notifications
             queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'messages'] });
