@@ -45,12 +45,7 @@ export default function EventContentCard({
   // Allow all users to access chat
   const hasChatAccess = user !== null;
 
-  // WebSocket connection for real-time chat
-  const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
-    activeTab === 'chat' && hasChatAccess ? event.id : null
-  );
-
-  // Fetch chat messages
+  // Fetch chat messages - always fetch when chat is accessed
   const { data: chatMessages = [], isLoading: isLoadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/events', event.id, 'messages'],
     queryFn: async () => {
@@ -61,10 +56,16 @@ export default function EventContentCard({
       console.log('Received messages:', messages);
       return messages;
     },
-    enabled: activeTab === 'chat' && hasChatAccess,
+    enabled: hasChatAccess,
     staleTime: 0, // Always refetch when needed
     refetchOnWindowFocus: false,
+    refetchInterval: activeTab === 'chat' ? 5000 : false, // Auto-refresh every 5 seconds when chat is active
   });
+
+  // WebSocket connection for real-time chat - only connect when chat tab is active
+  const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
+    activeTab === 'chat' && hasChatAccess && isActive ? event.id : null
+  );
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -77,6 +78,10 @@ export default function EventContentCard({
         body: JSON.stringify({ message }),
       });
       console.log('Message sent response:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.status}`);
+      }
       
       // Check if response has content before parsing
       const contentType = response.headers.get('content-type');
@@ -94,18 +99,20 @@ export default function EventContentCard({
       console.log('Message sent successfully:', data);
       // Immediately invalidate and refetch messages to show the new message
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
+      // Force refetch to ensure we get the latest messages
+      refetchMessages();
     },
     onError: (error) => {
       console.error('Failed to send message:', error);
     },
   });
 
-  // Use API messages as the primary source, WebSocket messages are for real-time updates
-  const allMessages = chatMessages.length > 0 ? chatMessages : wsMessages;
+  // Use API messages as the primary source, merge with WebSocket messages
+  const allMessages = chatMessages || [];
 
   // Set initial messages from API when loaded
   useEffect(() => {
-    if (chatMessages.length > 0) {
+    if (chatMessages && chatMessages.length > 0) {
       setMessages(chatMessages);
     }
   }, [chatMessages, setMessages]);

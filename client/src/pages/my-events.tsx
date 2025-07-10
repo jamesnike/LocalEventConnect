@@ -72,15 +72,15 @@ export default function MyEvents() {
   });
 
   // Group chats are the events the user is attending (RSVPed to) OR organizing
-  const { data: groupChats, isLoading: isLoadingGroupChats } = useQuery({
+  const { data: groupChats, isLoading: isLoadingGroupChats, refetch: refetchGroupChats } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "group-chats"],
     queryFn: async () => {
       if (!user?.id) return [];
       
       // Fetch both attending and organized events
       const [attendingResponse, organizedResponse] = await Promise.all([
-        fetch(`/api/users/${user.id}/events?type=attending`),
-        fetch(`/api/users/${user.id}/events?type=organized`)
+        apiRequest(`/api/users/${user.id}/events?type=attending`),
+        apiRequest(`/api/users/${user.id}/events?type=organized`)
       ]);
       
       if (!attendingResponse.ok || !organizedResponse.ok) {
@@ -96,7 +96,7 @@ export default function MyEvents() {
         index === self.findIndex((e) => e.id === event.id)
       );
       
-      // Sort by date
+      // Sort by date - show upcoming events first, then past events
       return uniqueEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     enabled: !!user?.id,
@@ -104,6 +104,7 @@ export default function MyEvents() {
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnMount: true, // Always refetch when mounting
     refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: activeTab === 'messages' ? 30000 : false, // Auto-refresh every 30 seconds when messages tab is active
   });
 
   const removeRsvpMutation = useMutation({
@@ -269,6 +270,9 @@ export default function MyEvents() {
               <div 
                 key={event.id}
                 onClick={() => {
+                  // Mark event as read when user clicks on group chat
+                  markEventAsRead(event.id);
+                  
                   // Navigate to group chat
                   localStorage.setItem('eventContentId', event.id.toString());
                   localStorage.setItem('preferredTab', 'chat');
@@ -276,7 +280,7 @@ export default function MyEvents() {
                   localStorage.setItem('fromMessagesTab', 'true');
                   setLocation('/');
                 }}
-                className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
               >
                 <div className="flex-shrink-0 mr-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
