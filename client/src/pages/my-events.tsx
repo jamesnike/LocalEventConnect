@@ -182,7 +182,6 @@ export default function MyEvents() {
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 text-center">
         <h2 className="text-lg font-semibold">My Events</h2>
       </header>
-
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
@@ -213,138 +212,124 @@ export default function MyEvents() {
                 ? 'text-primary border-b-2 border-primary' 
                 : 'text-gray-600'
             }`}
-          >
-            Organized
-          </button>
+          >Organizing</button>
         </div>
       </div>
-
       {/* Events List */}
       <div className="flex-1 overflow-y-auto pb-20">
         {activeTab === 'messages' ? (
           // Messages Tab Content
-          !groupChats || groupChats.length === 0 ? (
-            <div className="p-8 text-center">
-              <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                No Group Chats
-              </h3>
-              <p className="text-gray-600">
-                Join events or organize your own to start chatting with other attendees!
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {groupChats.map((event) => (
-                <div 
-                  key={event.id}
-                  onClick={() => {
-                    // Navigate to group chat
-                    localStorage.setItem('eventContentId', event.id.toString());
-                    localStorage.setItem('preferredTab', 'chat');
-                    localStorage.setItem('fromMyEvents', 'true');
-                    localStorage.setItem('fromMessagesTab', 'true');
-                    setLocation('/');
-                  }}
-                  className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100"
-                >
-                  <div className="flex-shrink-0 mr-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                      <MessageCircle className="w-6 h-6 text-white" />
+          (!groupChats || groupChats.length === 0 ? (<div className="p-8 text-center">
+            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              No Group Chats
+            </h3>
+            <p className="text-gray-600">
+              Join events or organize your own to start chatting with other attendees!
+            </p>
+          </div>) : (<div className="space-y-1">
+            {groupChats.map((event) => (
+              <div 
+                key={event.id}
+                onClick={() => {
+                  // Navigate to group chat
+                  localStorage.setItem('eventContentId', event.id.toString());
+                  localStorage.setItem('preferredTab', 'chat');
+                  localStorage.setItem('fromMyEvents', 'true');
+                  localStorage.setItem('fromMessagesTab', 'true');
+                  setLocation('/');
+                }}
+                className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+              >
+                <div className="flex-shrink-0 mr-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-900 truncate">
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      {/* Unread badge */}
+                      {(() => {
+                        const unreadCount = unreadByEvent.find(u => u.eventId === event.id)?.unreadCount || 0;
+                        return unreadCount > 0 ? (
+                          <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        ) : null;
+                      })()}
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>{new Date(event.date).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center space-x-2">
-                        {/* Unread badge */}
-                        {(() => {
-                          const unreadCount = unreadByEvent.find(u => u.eventId === event.id)?.unreadCount || 0;
-                          return unreadCount > 0 ? (
-                            <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          ) : null;
-                        })()}
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Clock className="w-3 h-3 mr-1" />
-                          <span>{new Date(event.date).toLocaleDateString()}</span>
-                        </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center">
+                      <div className="flex -space-x-1 mr-2">
+                        <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
+                        <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
+                        <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
                       </div>
+                      <span className="text-xs text-gray-500">
+                        {event.rsvpCount} members
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center">
-                        <div className="flex -space-x-1 mr-2">
-                          <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
-                          <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
-                          <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {event.rsvpCount} members
+                    <div className="flex items-center">
+                      {user?.id === event.organizerId ? (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                          Organizing
                         </span>
-                      </div>
-                      <div className="flex items-center">
-                        {user?.id === event.organizerId ? (
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                            Organizing
-                          </span>
-                        ) : (
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                            Attending
-                          </span>
-                        )}
-                      </div>
+                      ) : (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          Attending
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )
+              </div>
+            ))}
+          </div>))
         ) : (
           // Regular Events Tab Content
-          !currentEvents || currentEvents.length === 0 ? (
-            <div className="p-8 text-center">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {activeTab === 'organized' ? 'No Events Created' : 'No Events Attending'}
-              </h3>
-              <p className="text-gray-600">
-                {activeTab === 'organized' 
-                  ? 'Create your first event to get started!'
-                  : 'Browse events and start attending some!'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {currentEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  onEventClick={() => setSelectedEvent(event)}
-                  showStatus={activeTab === 'organized' ? 'hosting' : 'attending'}
-                  onRemoveClick={activeTab === 'organized' ? () => cancelEventMutation.mutate(event.id) : 
-                                activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
-                />
-              ))}
-            </div>
-          )
+          (!currentEvents || currentEvents.length === 0 ? (<div className="p-8 text-center">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              {activeTab === 'organized' ? 'No Events Created' : 'No Events Attending'}
+            </h3>
+            <p className="text-gray-600">
+              {activeTab === 'organized' 
+                ? 'Create your first event to get started!'
+                : 'Browse events and start attending some!'
+              }
+            </p>
+          </div>) : (<div className="space-y-2">
+            {currentEvents.map((event) => (
+              <EventCard 
+                key={event.id} 
+                event={event} 
+                onEventClick={() => setSelectedEvent(event)}
+                showStatus={activeTab === 'organized' ? 'hosting' : 'attending'}
+                onRemoveClick={activeTab === 'organized' ? () => cancelEventMutation.mutate(event.id) : 
+                              activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
+              />
+            ))}
+          </div>))
         )}
       </div>
-
       {/* Bottom Navigation */}
       <BottomNav 
         currentPage="my-events" 
         onCreateEvent={() => setShowCreateEvent(true)}
       />
-
       {/* Modals */}
       {showCreateEvent && (
         <CreateEvent onClose={() => setShowCreateEvent(false)} />
       )}
-      
       {selectedEvent && (
         <EventDetail 
           event={selectedEvent} 
