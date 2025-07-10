@@ -46,13 +46,15 @@ export default function EventContentCard({
   );
 
   // Fetch chat messages
-  const { data: chatMessages = [], isLoading: isLoadingMessages } = useQuery({
+  const { data: chatMessages = [], isLoading: isLoadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/events', event.id, 'messages'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/messages`);
       return response.json() as Promise<ChatMessageWithUser[]>;
     },
     enabled: activeTab === 'chat' && user !== null,
+    staleTime: 0, // Always refetch when needed
+    refetchOnWindowFocus: false,
   });
 
   // Send message mutation
@@ -89,6 +91,14 @@ export default function EventContentCard({
     }
   }, [chatMessages, setMessages]);
 
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    const messagesContainer = document.getElementById(`messages-${event.id}`);
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }, [allMessages, event.id]);
+
   // Reset tab when event changes
   useEffect(() => {
     setActiveTab(initialTab);
@@ -98,6 +108,11 @@ export default function EventContentCard({
   const handleTabChange = (tab: 'chat' | 'similar') => {
     setActiveTab(tab);
     onTabChange?.(tab);
+    
+    // Refetch messages when switching to chat tab
+    if (tab === 'chat') {
+      refetchMessages();
+    }
   };
 
   // Combine API messages with WebSocket messages
@@ -202,7 +217,10 @@ export default function EventContentCard({
                 className="h-full flex flex-col"
               >
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div 
+                  id={`messages-${event.id}`}
+                  className="flex-1 overflow-y-auto p-4 space-y-4"
+                >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
