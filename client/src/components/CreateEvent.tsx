@@ -115,25 +115,26 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
   const isFree = form.watch('isFree');
 
   return (
-    <div className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ${
-      isClosing ? 'translate-y-full' : 'translate-y-0'
-    }`}>
-      <div className="h-full flex flex-col">
-        <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-          <button onClick={handleClose} className="text-gray-600">
-            <X className="w-5 h-5" />
-          </button>
-          <h2 className="text-lg font-semibold">Create Event</h2>
-          <button 
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={createEventMutation.isPending}
-            className="text-primary font-medium disabled:opacity-50"
-          >
-            {createEventMutation.isPending ? 'Publishing...' : 'Publish'}
-          </button>
-        </header>
-        
-        <div className="flex-1 overflow-y-auto p-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4`}>
+      <div className={`bg-white rounded-lg shadow-xl max-w-sm w-full h-[85vh] overflow-hidden transform transition-transform duration-300 ${
+        isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
+      }`}>
+        <div className="relative h-full flex flex-col">
+          <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+            <button onClick={handleClose} className="text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-lg font-semibold">Create Event</h2>
+            <button 
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={createEventMutation.isPending}
+              className="text-primary font-medium disabled:opacity-50"
+            >
+              {createEventMutation.isPending ? 'Publishing...' : 'Publish'}
+            </button>
+          </header>
+          
+          <div className="flex-1 overflow-y-auto p-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div>
