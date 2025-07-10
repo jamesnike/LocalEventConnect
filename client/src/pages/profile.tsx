@@ -528,9 +528,9 @@ export default function Profile() {
               <button
                 onClick={() => generateSignatureMutation.mutate()}
                 disabled={generateSignatureMutation.isPending || (!user?.interests?.length && !user?.personality?.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed block mx-auto"
+                className="bg-white/20 hover:bg-white/30 hover:shadow-md text-white px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed block mx-auto border border-white/30 hover:border-white/50"
               >
-                {generateSignatureMutation.isPending ? 'Generating...' : 'Generate AI Signature'}
+                {generateSignatureMutation.isPending ? 'Generating...' : 'Generate Signature'}
               </button>
               {!user?.interests?.length && !user?.personality?.length && (
                 <p className="text-xs text-white/60 mt-1 text-center">
