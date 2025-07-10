@@ -622,16 +622,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async leaveEventChat(eventId: number, userId: string): Promise<void> {
-    // Mark the user as having left the chat without removing their RSVP
-    await db
-      .update(eventRsvps)
-      .set({ hasLeftChat: true })
-      .where(
-        and(
-          eq(eventRsvps.eventId, eventId),
-          eq(eventRsvps.userId, userId)
-        )
-      );
+    // Check if user has an existing RSVP entry
+    const existingRsvp = await this.getUserRsvp(eventId, userId);
+    
+    if (existingRsvp) {
+      // Update existing RSVP to mark as left chat
+      await db
+        .update(eventRsvps)
+        .set({ hasLeftChat: true })
+        .where(
+          and(
+            eq(eventRsvps.eventId, eventId),
+            eq(eventRsvps.userId, userId)
+          )
+        );
+      console.log(`Updated existing RSVP for user ${userId} event ${eventId} - hasLeftChat: true`);
+    } else {
+      // Create new RSVP entry for organizer with hasLeftChat: true
+      await db
+        .insert(eventRsvps)
+        .values({
+          eventId,
+          userId,
+          status: 'organizing', // Special status for organizer leaving chat
+          hasLeftChat: true,
+        });
+      console.log(`Created new RSVP for organizer ${userId} event ${eventId} - hasLeftChat: true`);
+    }
   }
 
   // Chat operations
@@ -832,6 +849,12 @@ export class DatabaseStorage implements IStorage {
       ...organizerEvents.map(e => e.id),
       ...rsvpEvents.map(e => e.eventId),
     ]);
+    
+    console.log(`getUserEventIds for user ${userId}:`, {
+      rsvpEvents: rsvpEvents.map(e => e.eventId),
+      organizerEvents: organizerEvents.map(e => e.id),
+      finalEventIds: Array.from(eventIds)
+    });
     
     return Array.from(eventIds);
   }
