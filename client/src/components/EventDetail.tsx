@@ -144,16 +144,19 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       return;
     }
 
-    const newStatus = event.userRsvpStatus === 'going' ? 'not_going' : 'going';
+    const newStatus = (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? 'not_going' : 'going';
     rsvpMutation.mutate(newStatus);
   };
 
   const handleButtonClick = () => {
-    if (isOrganizer) {
-      // If user is organizer, cancel the event
+    if (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') {
+      // If user has RSVP'd (going or attending), remove RSVP
+      handleRsvp();
+    } else if (isOrganizer) {
+      // If user is organizer and hasn't RSVP'd, cancel the event
       cancelEventMutation.mutate();
     } else {
-      // If user is attendee, handle RSVP
+      // If user is not organizer and hasn't RSVP'd, add RSVP
       handleRsvp();
     }
   };
@@ -169,6 +172,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === event.organizerId;
+  
+
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -290,11 +295,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 (rsvpMutation.isPending || cancelEventMutation.isPending) 
                   ? 'opacity-50 cursor-not-allowed'
                   : isHovering 
-                  ? (isOrganizer ? 'bg-red-500 text-white' : (event.userRsvpStatus === 'going' ? 'bg-red-500 text-white' : 'bg-primary text-white'))
-                  : (isOrganizer 
-                    ? 'bg-blue-500 text-white hover:bg-red-500'
-                    : event.userRsvpStatus === 'going'
+                  ? ((event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? 'bg-red-500 text-white' : isOrganizer ? 'bg-red-500 text-white' : 'bg-primary text-white')
+                  : ((event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending')
                     ? 'bg-success text-white hover:bg-red-500'
+                    : isOrganizer 
+                    ? 'bg-blue-500 text-white hover:bg-red-500'
                     : 'bg-primary text-white hover:bg-primary/90')
               }`}
             >
@@ -305,15 +310,15 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </div>
               ) : isHovering ? (
                 <>
-                  {isOrganizer ? (
-                    <>
-                      <X className="w-4 h-4 mr-2 inline" />
-                      Cancel Event
-                    </>
-                  ) : event.userRsvpStatus === 'going' ? (
+                  {(event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? (
                     <>
                       <Trash2 className="w-4 h-4 mr-2 inline" />
                       Remove RSVP
+                    </>
+                  ) : isOrganizer ? (
+                    <>
+                      <X className="w-4 h-4 mr-2 inline" />
+                      Cancel Event
                     </>
                   ) : (
                     <>
@@ -323,15 +328,15 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               ) : (
                 <>
-                  {isOrganizer ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2 inline" />
-                      Organizing
-                    </>
-                  ) : event.userRsvpStatus === 'going' ? (
+                  {(event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
                       Going
+                    </>
+                  ) : isOrganizer ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2 inline" />
+                      Organizing
                     </>
                   ) : (
                     <>
