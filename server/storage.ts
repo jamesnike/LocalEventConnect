@@ -477,7 +477,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .groupBy(events.id, users.id)
-        .orderBy(desc(events.date));
+        .orderBy(asc(events.date), asc(events.time));
 
       const results = await query;
       return results.map(result => ({
@@ -559,7 +559,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
         .groupBy(events.id, users.id, eventRsvps.status)
-        .orderBy(desc(events.date));
+        .orderBy(asc(events.date), asc(events.time));
 
       const results = await query;
       console.log(`getUserEvents attending query results for user ${userId}:`, results.length, "events");
