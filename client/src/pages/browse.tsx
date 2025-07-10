@@ -10,10 +10,19 @@ import BottomNav from "@/components/BottomNav";
 import { EventWithOrganizer } from "@shared/schema";
 
 export default function Browse() {
-  const [selectedCategory, setSelectedCategory] = useState("today_morning");
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    // Load saved time filter from localStorage or default to "today_morning"
+    return localStorage.getItem('browseTimeFilter') || "today_morning";
+  });
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [, setLocation] = useLocation();
+
+  // Save time filter to localStorage whenever it changes
+  const handleCategoryChange = (timeFilter: string) => {
+    setSelectedCategory(timeFilter);
+    localStorage.setItem('browseTimeFilter', timeFilter);
+  };
 
   const { data: allEvents, isLoading } = useQuery({
     queryKey: ["/api/events"],
@@ -92,7 +101,7 @@ export default function Browse() {
       {/* Category Filter */}
       <CategoryFilter 
         selectedCategory={selectedCategory} 
-        onCategoryChange={setSelectedCategory} 
+        onCategoryChange={handleCategoryChange} 
       />
 
       {/* Events List */}

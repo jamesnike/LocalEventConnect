@@ -144,6 +144,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 - July 10, 2025. Enhanced Group Chat button visibility - now shows whenever user has RSVPed to an event ('going' status) regardless of entry point, enabling immediate access to group chat after RSVP
 - July 10, 2025. Fixed Group Chat navigation to properly open EventContent for specific event with chat tab active from all pages (Browse, My Events, Home)
 - July 10, 2025. Fixed Browse page time filtering to use local timezone instead of UTC, eliminating one-day difference in event filtering
+- July 10, 2025. Added persistent time filter selection for Browse page - now remembers selected time filter when switching away and returning
 - July 10, 2025. Fixed EventContent navigation from Browse page - now shows back button and hides "Keep Exploring" button when entering from Browse, with proper back navigation to main swipe interface
 - July 10, 2025. Fixed back button behavior in EventContent to always return to EventDetail component regardless of entry point
 - July 10, 2025. Enhanced all 61 sample events with comprehensive details including capacity, duration, meeting points, parking info, what to bring, requirements, special notes, contact info, and cancellation policies
