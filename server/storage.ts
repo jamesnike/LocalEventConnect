@@ -550,11 +550,6 @@ export class DatabaseStorage implements IStorage {
               eq(eventRsvps.status, 'going'),
               eq(eventRsvps.status, 'maybe')
             ),
-            // Filter out events where user has left the chat
-            or(
-              eq(eventRsvps.hasLeftChat, false),
-              sql`${eventRsvps.hasLeftChat} IS NULL`
-            ),
             // Filter based on pastOnly parameter
             pastOnly === true
               ? sql`(${events.date} < ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} < ${currentTime}))`
