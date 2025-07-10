@@ -171,7 +171,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         onTouchEnd={handleTouchEnd}
       >
         {/* Header with image */}
-        <div className="relative h-64 flex-shrink-0">
+        <div className="relative h-48 flex-shrink-0">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
