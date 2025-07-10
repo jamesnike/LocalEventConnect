@@ -232,14 +232,10 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
                   : 'Anonymous Organizer'}
               </p>
               <p className="text-sm text-gray-600">Event Organizer</p>
-              {event.organizer.interests && event.organizer.interests.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {event.organizer.interests.slice(0, 3).map((interest, index) => (
-                    <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                      {interest}
-                    </span>
-                  ))}
-                </div>
+              {event.organizer.aiSignature && (
+                <p className="text-[10px] text-gray-500 italic mt-1">
+                  "{event.organizer.aiSignature}"
+                </p>
               )}
             </div>
           </div>

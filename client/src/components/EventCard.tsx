@@ -153,19 +153,11 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
           </div>
         </div>
         
-        {event.organizer.interests && event.organizer.interests.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {event.organizer.interests.slice(0, 2).map((interest) => {
-              const interestData = availableInterests.find(i => i.id === interest);
-              const Icon = interestData?.icon || Activity;
-              
-              return (
-                <div key={interest} className="flex items-center space-x-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                  <Icon className="w-3 h-3" />
-                  <span>{interestData?.name || interest}</span>
-                </div>
-              );
-            })}
+        {event.organizer.aiSignature && (
+          <div className="mt-2">
+            <p className="text-[10px] text-gray-500 italic">
+              "{event.organizer.aiSignature}"
+            </p>
           </div>
         )}
         

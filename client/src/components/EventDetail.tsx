@@ -268,6 +268,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     : 'Anonymous Organizer'}
                 </p>
                 <p className="text-sm text-gray-600">{event.organizer.location}</p>
+                {event.organizer.aiSignature && (
+                  <p className="text-[10px] text-gray-500 italic mt-1">
+                    "{event.organizer.aiSignature}"
+                  </p>
+                )}
               </div>
             </div>
             {event.organizer.interests && event.organizer.interests.length > 0 && (
