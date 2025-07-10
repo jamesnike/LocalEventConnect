@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft } from "lucide-react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -67,6 +67,32 @@ export default function EventContentCard({
   const { isConnected, messages: wsMessages, sendMessage, setMessages: setWsMessages } = useWebSocket(
     hasChatAccess && isActive ? event.id : null
   );
+
+  // Exit group chat mutation (remove RSVP)
+  const exitGroupChatMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/rsvp`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to exit group chat');
+      }
+      return response;
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries to update UI
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+      // Navigate back since user no longer has access
+      if (onBackClick) {
+        onBackClick();
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to exit group chat:', error);
+    },
+  });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -223,6 +249,12 @@ export default function EventContentCard({
     }, 800);
   };
 
+  const handleExitGroupChat = () => {
+    if (confirm('Are you sure you want to leave this group chat? You will no longer receive messages from this event.')) {
+      exitGroupChatMutation.mutate();
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       <div
@@ -236,20 +268,38 @@ export default function EventContentCard({
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
-          <div className="flex items-center space-x-3">
-            {showBackButton && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {showBackButton && (
+                <button
+                  onClick={onBackClick}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-white" />
+                </button>
+              )}
+              <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
+              <div>
+                <h3 className="font-semibold text-lg">{event.title}</h3>
+                <p className="text-sm opacity-90">{event.rsvpCount} members</p>
+              </div>
+            </div>
+            
+            {/* Exit Group Chat Button */}
+            {hasChatAccess && event.organizer.id !== user?.id && (
               <button
-                onClick={onBackClick}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                onClick={handleExitGroupChat}
+                disabled={exitGroupChatMutation.isPending}
+                className="p-2 hover:bg-red-500/20 rounded-full transition-colors group"
+                title="Leave group chat"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                {exitGroupChatMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <LogOut className="w-5 h-5 text-white group-hover:text-red-200" />
+                )}
               </button>
             )}
-            <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="sm" />
-            <div>
-              <h3 className="font-semibold text-lg">{event.title}</h3>
-              <p className="text-sm opacity-90">{event.rsvpCount} members</p>
-            </div>
           </div>
         </div>
 
