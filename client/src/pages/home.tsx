@@ -17,23 +17,67 @@ import BottomNav from "@/components/BottomNav";
 import AnimeAvatar from "@/components/AnimeAvatar";
 import { EventWithOrganizer } from "@shared/schema";
 
+// Helper functions for state persistence
+const saveHomeState = (state: any) => {
+  try {
+    localStorage.setItem('homePageState', JSON.stringify(state));
+  } catch (error) {
+    console.error('Failed to save home state:', error);
+  }
+};
+
+const loadHomeState = () => {
+  try {
+    const saved = localStorage.getItem('homePageState');
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error('Failed to load home state:', error);
+    return null;
+  }
+};
+
+const clearHomeState = () => {
+  try {
+    localStorage.removeItem('homePageState');
+  } catch (error) {
+    console.error('Failed to clear home state:', error);
+  }
+};
+
 export default function Home() {
   const { user } = useAuth();
-  const [showCreateEvent, setShowCreateEvent] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [swipedEvents, setSwipedEvents] = useState<Set<number>>(new Set());
-  const [showDetailCard, setShowDetailCard] = useState(false);
-  const [showContentCard, setShowContentCard] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [showSkipAnimation, setShowSkipAnimation] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>('chat');
-  const [isFromMyEvents, setIsFromMyEvents] = useState(false);
-  const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Initialize state from localStorage or defaults
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
+  const [currentEventIndex, setCurrentEventIndex] = useState(() => {
+    const saved = loadHomeState();
+    return saved?.currentEventIndex || 0;
+  });
+  const [swipedEvents, setSwipedEvents] = useState<Set<number>>(() => {
+    const saved = loadHomeState();
+    return saved?.swipedEvents ? new Set(saved.swipedEvents) : new Set();
+  });
+  const [showDetailCard, setShowDetailCard] = useState(() => {
+    const saved = loadHomeState();
+    return saved?.showDetailCard || false;
+  });
+  const [showContentCard, setShowContentCard] = useState(() => {
+    const saved = loadHomeState();
+    return saved?.showContentCard || false;
+  });
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showSkipAnimation, setShowSkipAnimation] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
+    const saved = loadHomeState();
+    return saved?.lastActiveTab || 'chat';
+  });
+  const [isFromMyEvents, setIsFromMyEvents] = useState(false);
+  const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -119,8 +163,32 @@ export default function Home() {
     },
   });
 
+  // Save state whenever key state changes
+  useEffect(() => {
+    const stateToSave = {
+      currentEventIndex,
+      swipedEvents: Array.from(swipedEvents),
+      showDetailCard,
+      showContentCard,
+      lastActiveTab,
+    };
+    saveHomeState(stateToSave);
+  }, [currentEventIndex, swipedEvents, showDetailCard, showContentCard, lastActiveTab]);
+
   const availableEvents = events?.filter(event => !swipedEvents.has(event.id)) || [];
   const currentEvent = availableEvents[currentEventIndex];
+
+  // Clear state when user has swiped through all events
+  useEffect(() => {
+    if (events && events.length > 0 && availableEvents.length === 0 && swipedEvents.size > 0) {
+      // User has swiped through all events, reset state
+      setCurrentEventIndex(0);
+      setSwipedEvents(new Set());
+      setShowDetailCard(false);
+      setShowContentCard(false);
+      clearHomeState();
+    }
+  }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = () => {
     if (!currentEvent || isTransitioning) return;

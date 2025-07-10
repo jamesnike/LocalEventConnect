@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Implemented Home page state persistence using localStorage - preserves current event, swipe history, and view mode when switching between navigation tabs
 - July 10, 2025. Added back button to EventContent when entering from My Events, returns to EventDetail modal, hides "Keep Exploring" button
 - July 10, 2025. Enhanced Group Chat button in MyEvents event details with proper navigation
 - July 10, 2025. Fixed toast notification duration to 2 seconds for better user experience
