@@ -86,6 +86,42 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     },
   });
 
+  const removeRsvpMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest('DELETE', `/api/events/${event.id}/rsvp`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+      
+      toast({
+        title: "RSVP Removed",
+        description: "Your RSVP has been removed successfully.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to remove RSVP. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const cancelEventMutation = useMutation({
     mutationFn: async () => {
       await apiRequest('DELETE', `/api/events/${event.id}`);
@@ -146,8 +182,13 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       return;
     }
 
-    const newStatus = (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? 'not_going' : 'going';
-    rsvpMutation.mutate(newStatus);
+    if (event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') {
+      // Remove RSVP
+      removeRsvpMutation.mutate();
+    } else {
+      // Add RSVP
+      rsvpMutation.mutate('going');
+    }
   };
 
   const handleButtonClick = () => {
@@ -297,9 +338,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               onClick={handleButtonClick}
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
-              disabled={rsvpMutation.isPending || cancelEventMutation.isPending}
+              disabled={rsvpMutation.isPending || removeRsvpMutation.isPending || cancelEventMutation.isPending}
               className={`flex-1 py-3 rounded-lg font-medium transition-all duration-200 ${
-                (rsvpMutation.isPending || cancelEventMutation.isPending) 
+                (rsvpMutation.isPending || removeRsvpMutation.isPending || cancelEventMutation.isPending) 
                   ? 'opacity-50 cursor-not-allowed'
                   : isHovering 
                   ? ((event.userRsvpStatus === 'going' || event.userRsvpStatus === 'attending') ? 'bg-red-500 text-white' : isOrganizer ? 'bg-red-500 text-white' : 'bg-primary text-white')
@@ -310,10 +351,10 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     : 'bg-primary text-white hover:bg-primary/90')
               }`}
             >
-              {(rsvpMutation.isPending || cancelEventMutation.isPending) ? (
+              {(rsvpMutation.isPending || removeRsvpMutation.isPending || cancelEventMutation.isPending) ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isOrganizer ? 'Canceling...' : 'Updating...'}
+                  {cancelEventMutation.isPending ? 'Canceling...' : 'Updating...'}
                 </div>
               ) : isHovering ? (
                 <>
