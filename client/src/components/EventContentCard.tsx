@@ -154,7 +154,7 @@ export default function EventContentCard({
         setWsMessages([]);
       }
     }
-  }, [chatMessages, event.id]); // setWsMessages is stable from useWebSocket hook
+  }, [chatMessages, event.id, setWsMessages]); // Include setWsMessages but make sure it's stable
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {

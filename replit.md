@@ -141,6 +141,8 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. FIXED GROUP CHAT EXIT SYSTEM: Enhanced getUserEventIds function to properly exclude events where users have left group chats from appearing in Messages tab, ensuring clean chat participation management with proper database-level filtering that respects both organizer and attendee left-chat states
+- July 10, 2025. COMPLETED CHAT REJOIN FUNCTIONALITY: Implemented rejoin-chat API endpoint with EventDetail component integration showing "Rejoin Chat" button (green) when user has left chat, enabling seamless re-entry to group conversations while preserving RSVP status
 - July 10, 2025. ENHANCED EXIT BUTTON FOR PAST EVENTS: Modified EventContentCard exit button logic to show for ALL participants (organizers and attendees) in past events, while maintaining current behavior for future events (non-organizers only), enabling users to leave group chats for events that have already concluded
 - July 10, 2025. ENHANCED EVENT HISTORY SECTION: Updated Profile page Event History to show up to 6 past events (increased from 2) with smaller 8x8 icons (reduced from 12x12), combined hosted and attended events in single chronological list sorted by date descending (most recent first), with compact layout and reduced padding for better space utilization
 - July 10, 2025. IMPLEMENTED HISTORICAL EVENTS FILTERING: Added pastOnly parameter to user events API allowing Profile page to display Event History section showing only past events user attended or organized, with updated UI labels "Hosted/Attended" and gray icons to distinguish from current events

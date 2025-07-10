@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChatMessageWithUser } from '@shared/schema';
@@ -174,10 +174,15 @@ export function useWebSocket(eventId: number | null) {
     };
   }, [eventId, user]);
 
+  // Stabilize setMessages function to prevent infinite loops
+  const stableSetMessages = useCallback((messages: ChatMessageWithUser[] | ((prev: ChatMessageWithUser[]) => ChatMessageWithUser[])) => {
+    setMessages(messages);
+  }, []);
+
   return {
     isConnected,
     messages,
     sendMessage,
-    setMessages // Allow external setting of messages (for initial load)
+    setMessages: stableSetMessages // Allow external setting of messages (for initial load)
   };
 }
