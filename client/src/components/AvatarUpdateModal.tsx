@@ -120,8 +120,22 @@ export default function AvatarUpdateModal({ isOpen, onClose, currentAvatarUrl }:
       return;
     }
 
-    // Create a detailed prompt for avatar generation
-    const prompt = `Create a professional portrait avatar of a person with the following description: ${description}. The image should be suitable for a social media profile photo, well-lit, and focused on the face and upper body. Style should be modern and clean.`;
+    // Create a detailed prompt for avatar generation that matches the app's anime aesthetic
+    const prompt = `Create a high-quality anime-style avatar portrait with the following description: ${description}. 
+
+Art style specifications:
+- Clean anime/manga art style similar to modern mobile app avatars
+- Bright, vibrant colors with soft shading
+- Large expressive eyes in anime style
+- Smooth, clean vector-like appearance
+- Professional quality suitable for social media profile
+- Focus on head and shoulders only
+- Solid or simple gradient background
+- Well-lit with soft lighting
+- Sharp, clean lines and details
+- Modern anime aesthetic (not overly cartoonish)
+
+The avatar should look consistent with other anime-style profile pictures in a mobile social app.`;
     
     generateAvatarMutation.mutate(prompt);
   };
