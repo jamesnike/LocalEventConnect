@@ -265,6 +265,19 @@ Please respond with just the signature text, nothing else.`;
           signature = words.slice(0, 10).join(' ');
         }
 
+        // Save the signature to the database
+        await storage.upsertUser({
+          id: userId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          location: user.location,
+          interests: user.interests,
+          personality: user.personality,
+          aiSignature: signature,
+        });
+
         res.json({ signature });
       } catch (openaiError) {
         console.error("OpenAI error:", openaiError);
@@ -288,6 +301,19 @@ Please respond with just the signature text, nothing else.`;
         ];
         
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
+        
+        // Save the fallback signature to the database
+        await storage.upsertUser({
+          id: userId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          location: user.location,
+          interests: user.interests,
+          personality: user.personality,
+          aiSignature: fallbackSignature,
+        });
         
         // Return fallback signature with a note about AI generation
         return res.status(503).json({ 

@@ -267,6 +267,9 @@ export default function Profile() {
     onSuccess: ({ data, status }) => {
       setAiSignature(data.signature);
       
+      // Invalidate and refetch user data to get the updated signature from database
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
       if (status === 503) {
         // Fallback signature was generated
         toast({
@@ -545,10 +548,10 @@ export default function Profile() {
         
         {/* AI Signature Section */}
         <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          {aiSignature ? (
+          {(aiSignature || user?.aiSignature) ? (
             <div className="space-y-2">
               <p className="text-base text-white/90 italic leading-relaxed text-center">
-                "{aiSignature}"
+                "{aiSignature || user?.aiSignature}"
               </p>
               <button
                 onClick={() => generateSignatureMutation.mutate()}

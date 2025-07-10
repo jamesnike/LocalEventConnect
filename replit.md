@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Fixed AI signature database storage - now saves generated signatures to user profile and displays persisted signature from database instead of local state
 - July 10, 2025. Expanded personality options from 24 to 60 traits with diverse characteristics, reduced selection limit from 5 to 3 traits for more focused personality profiles
 - July 10, 2025. Enhanced AI signature display by removing title/icon header and increasing text size from small to base for better readability and cleaner appearance
 - July 10, 2025. Added AI-powered personal signature generation using OpenAI GPT-4o based on user's selected interests and personality traits, displayed in profile header with generate/regenerate functionality
