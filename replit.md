@@ -141,6 +141,9 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Enhanced My Events tab filtering to exclude user-organized events from "Attending" tab - events now only show in appropriate tabs (Organizing vs Attending)
+- July 10, 2025. Confirmed Home page correctly filters out events user is organizing or attending - only shows new discovery events for swiping
+- July 10, 2025. Successfully resized EventDetail modal from full-screen to centered card layout matching Home page proportions
 - July 10, 2025. Removed all group chat access restrictions - now allows any authenticated user to join any event's group chat
 - July 10, 2025. Updated server-side authentication checks to only verify event exists, not user permissions
 - July 10, 2025. Simplified Group Chat button logic to show for all authenticated users on all events
