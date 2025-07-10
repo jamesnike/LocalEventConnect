@@ -71,37 +71,26 @@ export default function MyEvents() {
     refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
-  // Group chats are the events the user is attending (RSVPed to) OR organizing
+  // Group chats are events where user can participate in chat (hasn't left chat)
   const { data: groupChats, isLoading: isLoadingGroupChats, refetch: refetchGroupChats } = useQuery({
-    queryKey: ["/api/users", user?.id, "events", "group-chats"],
+    queryKey: ["/api/users", user?.id, "group-chats"],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // Fetch both attending and organized events
-      const [attendingResponse, organizedResponse] = await Promise.all([
-        apiRequest(`/api/users/${user.id}/events?type=attending`),
-        apiRequest(`/api/users/${user.id}/events?type=organized`)
-      ]);
+      const response = await apiRequest(`/api/users/${user.id}/group-chats`);
       
-      if (!attendingResponse.ok || !organizedResponse.ok) {
+      if (!response.ok) {
         throw new Error('Failed to fetch group chats');
       }
       
-      const attendingEvents = await attendingResponse.json() as EventWithOrganizer[];
-      const organizedEvents = await organizedResponse.json() as EventWithOrganizer[];
-      
-      // Combine and deduplicate events (in case user is both attending and organizing same event)
-      const allEvents = [...attendingEvents, ...organizedEvents];
-      const uniqueEvents = allEvents.filter((event, index, self) => 
-        index === self.findIndex((e) => e.id === event.id)
-      );
+      const events = await response.json() as EventWithOrganizer[];
       
       // Sort by date - show upcoming events first, then past events
-      return uniqueEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     enabled: !!user?.id,
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    staleTime: 0, // Don't cache - always fetch fresh data
+    gcTime: 0, // Don't keep in cache
     refetchOnMount: true, // Always refetch when mounting
     refetchOnWindowFocus: true, // Refetch when window gains focus
     refetchInterval: activeTab === 'messages' ? 30000 : false, // Auto-refresh every 30 seconds when messages tab is active

@@ -186,6 +186,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Group chats - events where user can participate in chat (hasn't left chat)
+  app.get('/api/users/:userId/group-chats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      
+      // Users can only view their own group chats
+      if (userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Not authorized to view these events" });
+      }
+      
+      // Get event IDs where user can participate in chat
+      const eventIds = await storage.getUserEventIds(userId);
+      
+      if (eventIds.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get full event details for these events
+      const events = await Promise.all(
+        eventIds.map(eventId => storage.getEvent(eventId, userId))
+      );
+      
+      // Filter out any null results and sort by date
+      const validEvents = events.filter(event => event !== undefined) as EventWithOrganizer[];
+      const sortedEvents = validEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      res.json(sortedEvents);
+    } catch (error) {
+      console.error("Error fetching group chats:", error);
+      res.status(500).json({ message: "Failed to fetch group chats" });
+    }
+  });
+
   // RSVP routes
   app.post('/api/events/:id/rsvp', isAuthenticated, async (req: any, res) => {
     try {

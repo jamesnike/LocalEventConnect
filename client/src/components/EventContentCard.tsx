@@ -82,6 +82,7 @@ export default function EventContentCard({
     onSuccess: () => {
       // Force remove cache to ensure fresh data
       queryClient.removeQueries({ queryKey: ['/api/users', user?.id, 'events'] });
+      queryClient.removeQueries({ queryKey: ['/api/users', user?.id, 'group-chats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
       // Navigate back since user no longer has chat access
       if (onBackClick) {
