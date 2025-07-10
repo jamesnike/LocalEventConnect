@@ -79,7 +79,9 @@ export default function MyEvents() {
 
   const removeRsvpMutation = useMutation({
     mutationFn: async (eventId: number) => {
-      await apiRequest("DELETE", `/api/events/${eventId}/rsvp`);
+      await apiRequest(`/api/events/${eventId}/rsvp`, { 
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
@@ -108,7 +110,9 @@ export default function MyEvents() {
 
   const cancelEventMutation = useMutation({
     mutationFn: async (eventId: number) => {
-      await apiRequest("DELETE", `/api/events/${eventId}`);
+      await apiRequest(`/api/events/${eventId}`, { 
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });

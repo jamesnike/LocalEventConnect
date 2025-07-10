@@ -54,7 +54,10 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   const rsvpMutation = useMutation({
     mutationFn: async (status: string) => {
-      await apiRequest('POST', `/api/events/${event.id}/rsvp`, { status });
+      await apiRequest(`/api/events/${event.id}/rsvp`, { 
+        method: 'POST',
+        body: JSON.stringify({ status })
+      });
     },
     onSuccess: (_, status) => {
       // Invalidate all relevant queries to ensure UI updates
@@ -104,7 +107,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   const removeRsvpMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('DELETE', `/api/events/${event.id}/rsvp`);
+      await apiRequest(`/api/events/${event.id}/rsvp`, { 
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       // Invalidate all relevant queries to ensure UI updates
@@ -146,7 +151,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   const cancelEventMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('DELETE', `/api/events/${event.id}`);
+      await apiRequest(`/api/events/${event.id}`, { 
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });

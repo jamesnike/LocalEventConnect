@@ -179,10 +179,13 @@ export default function Profile() {
 
   const updateInterestsMutation = useMutation({
     mutationFn: async (interests: string[]) => {
-      await apiRequest('PUT', '/api/users/profile', { 
-        location: user?.location,
-        interests,
-        personality: user?.personality || []
+      await apiRequest('/api/users/profile', { 
+        method: 'PUT',
+        body: JSON.stringify({
+          location: user?.location,
+          interests,
+          personality: user?.personality || []
+        })
       });
     },
     onSuccess: () => {
@@ -215,10 +218,13 @@ export default function Profile() {
 
   const updatePersonalityMutation = useMutation({
     mutationFn: async (personality: string[]) => {
-      await apiRequest('PUT', '/api/users/profile', { 
-        location: user?.location,
-        interests: user?.interests || [],
-        personality
+      await apiRequest('/api/users/profile', { 
+        method: 'PUT',
+        body: JSON.stringify({
+          location: user?.location,
+          interests: user?.interests || [],
+          personality
+        })
       });
     },
     onSuccess: () => {
@@ -295,10 +301,13 @@ export default function Profile() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async (location: string) => {
-      await apiRequest('PUT', '/api/users/profile', { 
-        location,
-        interests: user?.interests || [],
-        personality: user?.personality || []
+      await apiRequest('/api/users/profile', { 
+        method: 'PUT',
+        body: JSON.stringify({
+          location,
+          interests: user?.interests || [],
+          personality: user?.personality || []
+        })
       });
     },
     onSuccess: () => {

@@ -66,7 +66,10 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
         price: data.isFree ? "0.00" : data.price || "0.00",
         organizerId: user?.id || "",
       };
-      await apiRequest('POST', '/api/events', eventData);
+      await apiRequest('/api/events', { 
+        method: 'POST',
+        body: JSON.stringify(eventData)
+      });
     },
     onSuccess: () => {
       toast({

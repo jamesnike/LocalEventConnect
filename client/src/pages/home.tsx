@@ -169,7 +169,10 @@ export default function Home() {
 
   const rsvpMutation = useMutation({
     mutationFn: async ({ eventId, status }: { eventId: number; status: string }) => {
-      await apiRequest("POST", `/api/events/${eventId}/rsvp`, { status });
+      await apiRequest(`/api/events/${eventId}/rsvp`, { 
+        method: 'POST',
+        body: JSON.stringify({ status })
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
