@@ -16,6 +16,7 @@ export function useWebSocket(eventId: number | null) {
   const [messages, setMessages] = useState<ChatMessageWithUser[]>([]);
   const ws = useRef<WebSocket | null>(null);
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
+  const currentEventId = useRef<number | null>(null);
 
   const connect = () => {
     if (!user || !eventId) return;
@@ -43,16 +44,21 @@ export function useWebSocket(eventId: number | null) {
         
         if (data.type === 'joined') {
           console.log('Joined event room:', data.eventId);
-        } else if (data.type === 'newMessage' && data.message) {
-          console.log('Received new message via WebSocket:', data.message);
+        } else if (data.type === 'newMessage' && data.message && data.eventId === eventId) {
+          console.log('Received new message via WebSocket for event:', data.eventId, data.message);
           
-          // Add message to local state for immediate display
-          setMessages(prev => [...prev, data.message!]);
-          
-          // Invalidate queries to refresh UI and notifications
-          queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'messages'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
-          queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+          // Only process message if it's for the current event
+          if (data.eventId === currentEventId.current) {
+            // Add message to local state for immediate display
+            setMessages(prev => [...prev, data.message!]);
+            
+            // Invalidate queries to refresh UI and notifications
+            queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'messages'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+            queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });
+          } else {
+            console.log('Ignoring message for different event:', data.eventId, 'current:', currentEventId.current);
+          }
           
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
@@ -106,8 +112,17 @@ export function useWebSocket(eventId: number | null) {
   };
 
   useEffect(() => {
+    // Clear messages when event changes
+    if (currentEventId.current !== eventId) {
+      console.log('Event changed from', currentEventId.current, 'to', eventId, '- clearing messages');
+      setMessages([]);
+      currentEventId.current = eventId;
+    }
+
     if (eventId && user) {
       connect();
+    } else {
+      disconnect();
     }
 
     return () => {

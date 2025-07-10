@@ -53,13 +53,13 @@ export default function EventContentCard({
       const response = await apiRequest(`/api/events/${event.id}/messages`);
       console.log('Messages fetch response:', response.status);
       const messages = await response.json() as ChatMessageWithUser[];
-      console.log('Received messages:', messages);
+      console.log('Received messages for event', event.id, ':', messages.length, 'messages');
       return messages;
     },
     enabled: hasChatAccess,
     staleTime: 0, // Always refetch when needed
     refetchOnWindowFocus: false,
-    refetchInterval: activeTab === 'chat' ? 5000 : false, // Auto-refresh every 5 seconds when chat is active
+    refetchInterval: activeTab === 'chat' && isActive ? 5000 : false, // Auto-refresh only when chat is active AND component is active
   });
 
   // WebSocket connection for real-time chat - only connect when chat tab is active
@@ -120,12 +120,17 @@ export default function EventContentCard({
     );
   }, [chatMessages, wsMessages]);
 
-  // Set initial messages from API when loaded
+  // Set initial messages from API when loaded - but only for current event
   useEffect(() => {
     if (chatMessages && chatMessages.length > 0) {
+      console.log('Setting initial messages for event:', event.id, chatMessages.length, 'messages');
       setMessages(chatMessages);
+    } else if (chatMessages && chatMessages.length === 0) {
+      // Clear messages when API returns empty (switching events)
+      console.log('Clearing messages for event:', event.id);
+      setMessages([]);
     }
-  }, [chatMessages, setMessages]);
+  }, [chatMessages, event.id]);
 
   // Auto-refresh messages when WebSocket receives new messages
   useEffect(() => {
@@ -143,36 +148,28 @@ export default function EventContentCard({
     }
   }, [allMessages, event.id]);
 
-  // Reset tab when event changes
+  // Reset tab and clear state when event changes
   useEffect(() => {
+    console.log('EventContentCard: Event changed to', event.id);
     setActiveTab(initialTab);
+    setNewMessage(''); // Clear any pending message
   }, [event.id, initialTab]);
 
-  // Mark event as read when entering the component or when chat tab is active
+  // Mark event as read when entering the component
   useEffect(() => {
     if (isActive && hasChatAccess) {
-      // Mark as read when entering the component (regardless of tab)
       markEventAsRead(event.id);
     }
-  }, [isActive, event.id, hasChatAccess, markEventAsRead]);
-
-  // Also mark as read when switching to chat tab
-  useEffect(() => {
-    if (activeTab === 'chat' && isActive && hasChatAccess) {
-      markEventAsRead(event.id);
-    }
-  }, [activeTab, isActive, event.id, hasChatAccess, markEventAsRead]);
+  }, [isActive, event.id, hasChatAccess]);
 
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
     setActiveTab(tab);
     onTabChange?.(tab);
     
-    // Refetch messages when switching to chat tab and mark as read
+    // Refetch messages when switching to chat tab
     if (tab === 'chat' && hasChatAccess) {
       refetchMessages();
-      // Mark event as read when user opens chat
-      markEventAsRead(event.id);
     }
   };
 
