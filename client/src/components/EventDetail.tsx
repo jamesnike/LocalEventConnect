@@ -52,6 +52,24 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const getSubCategoryColor = (subCategory: string) => {
+    const colors = [
+      'bg-pink-500', 'bg-indigo-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
+      'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-violet-500',
+      'bg-teal-500', 'bg-lime-500', 'bg-fuchsia-500', 'bg-sky-500', 'bg-slate-500',
+      'bg-orange-400', 'bg-purple-400', 'bg-blue-400', 'bg-green-400', 'bg-red-400'
+    ];
+    
+    // Create a simple hash from the subcategory string to ensure consistent colors
+    let hash = 0;
+    for (let i = 0; i < subCategory.length; i++) {
+      hash = ((hash << 5) - hash) + subCategory.charCodeAt(i);
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   const rsvpMutation = useMutation({
     mutationFn: async (status: string) => {
       await apiRequest(`/api/events/${event.id}/rsvp`, { 
@@ -401,7 +419,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   {event.category}
                 </span>
                 {event.subCategory && (
-                  <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">
+                  <span className={`inline-block ${getSubCategoryColor(event.subCategory)} text-white text-xs px-2 py-1 rounded-full font-medium`}>
                     {event.subCategory}
                   </span>
                 )}
