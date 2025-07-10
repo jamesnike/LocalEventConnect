@@ -42,17 +42,6 @@ export default function MyEvents() {
     }
   }, [user?.id]);
 
-  // Handle Messages tab access - trigger background refresh on first access
-  useEffect(() => {
-    if (activeTab === 'messages' && messagesTabFirstAccess && user?.id) {
-      // Trigger background refresh without showing loading state
-      setTimeout(() => {
-        refetchGroupChats();
-        setMessagesTabFirstAccess(false);
-      }, 100); // Small delay to ensure cache is shown first
-    }
-  }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats]);
-
   const { data: organizedEvents, isLoading: isLoadingOrganized } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized", "current"],
     queryFn: async () => {
@@ -107,6 +96,17 @@ export default function MyEvents() {
     refetchOnWindowFocus: false, // Don't refetch on window focus - use cache first
     refetchInterval: activeTab === 'messages' ? 30000 : false, // Auto-refresh every 30 seconds when messages tab is active
   });
+
+  // Handle Messages tab access - trigger background refresh on first access
+  useEffect(() => {
+    if (activeTab === 'messages' && messagesTabFirstAccess && user?.id) {
+      // Trigger background refresh without showing loading state
+      setTimeout(() => {
+        refetchGroupChats();
+        setMessagesTabFirstAccess(false);
+      }, 100); // Small delay to ensure cache is shown first
+    }
+  }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats]);
 
   const removeRsvpMutation = useMutation({
     mutationFn: async (eventId: number) => {
