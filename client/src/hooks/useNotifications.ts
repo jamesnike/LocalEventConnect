@@ -83,7 +83,7 @@ export function useNotifications() {
 
   // Request notification permission on first use
   useEffect(() => {
-    if (user && Notification.permission === 'default') {
+    if (user && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, [user]);
