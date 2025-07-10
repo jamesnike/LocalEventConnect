@@ -40,6 +40,7 @@ export interface IStorage {
   updateRsvp(eventId: number, userId: string, status: string): Promise<EventRsvp>;
   deleteRsvp(eventId: number, userId: string): Promise<void>;
   getUserRsvp(eventId: number, userId: string): Promise<EventRsvp | undefined>;
+  leaveEventChat(eventId: number, userId: string): Promise<void>;
   
   // Chat operations
   getChatMessages(eventId: number, limit?: number): Promise<ChatMessageWithUser[]>;
@@ -615,6 +616,19 @@ export class DatabaseStorage implements IStorage {
     return rsvp;
   }
 
+  async leaveEventChat(eventId: number, userId: string): Promise<void> {
+    // Mark the user as having left the chat without removing their RSVP
+    await db
+      .update(eventRsvps)
+      .set({ hasLeftChat: true })
+      .where(
+        and(
+          eq(eventRsvps.eventId, eventId),
+          eq(eventRsvps.userId, userId)
+        )
+      );
+  }
+
   // Chat operations
   async getChatMessages(eventId: number, limit = 1000): Promise<ChatMessageWithUser[]> {
     const query = db
@@ -770,7 +784,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserEventIds(userId: string): Promise<number[]> {
-    // Get events where user is organizer or has RSVPed
+    // Get events where user is organizer or has RSVPed but hasn't left the chat
     const organizerEvents = await db
       .select({ id: events.id })
       .from(events)
@@ -779,7 +793,15 @@ export class DatabaseStorage implements IStorage {
     const rsvpEvents = await db
       .select({ eventId: eventRsvps.eventId })
       .from(eventRsvps)
-      .where(eq(eventRsvps.userId, userId));
+      .where(
+        and(
+          eq(eventRsvps.userId, userId),
+          or(
+            eq(eventRsvps.hasLeftChat, false),
+            sql`${eventRsvps.hasLeftChat} IS NULL`
+          )
+        )
+      );
     
     const eventIds = new Set([
       ...organizerEvents.map(e => e.id),

@@ -82,6 +82,7 @@ export const eventRsvps = pgTable("event_rsvps", {
   eventId: integer("event_id").notNull().references(() => events.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   status: varchar("status", { length: 20 }).notNull().default("going"), // going, maybe, not_going
+  hasLeftChat: boolean("has_left_chat").default(false), // Track if user has left the group chat
   createdAt: timestamp("created_at").defaultNow(),
 });
 

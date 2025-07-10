@@ -235,6 +235,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/events/:id/leave-chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      await storage.leaveEventChat(eventId, userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error leaving event chat:", error);
+      res.status(500).json({ message: "Failed to leave event chat" });
+    }
+  });
+
   // Update user profile
   app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {

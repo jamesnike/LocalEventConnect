@@ -68,29 +68,28 @@ export default function EventContentCard({
     hasChatAccess && isActive ? event.id : null
   );
 
-  // Exit group chat mutation (remove RSVP)
+  // Exit group chat mutation (leave chat but keep RSVP)
   const exitGroupChatMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/events/${event.id}/rsvp`, {
-        method: 'DELETE',
+      const response = await apiRequest(`/api/events/${event.id}/leave-chat`, {
+        method: 'POST',
       });
       if (!response.ok) {
-        throw new Error('Failed to exit group chat');
+        throw new Error('Failed to leave group chat');
       }
       return response;
     },
     onSuccess: () => {
       // Invalidate relevant queries to update UI
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'events'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
-      // Navigate back since user no longer has access
+      // Navigate back since user no longer has chat access
       if (onBackClick) {
         onBackClick();
       }
     },
     onError: (error) => {
-      console.error('Failed to exit group chat:', error);
+      console.error('Failed to leave group chat:', error);
     },
   });
 
