@@ -146,77 +146,111 @@ export default function Home() {
       
       if (eventIndex !== -1) {
         const event = events[eventIndex];
-        
-        // Check if this is a group chat navigation (user is attending/organizing this event)
-        const isGroupChatNavigation = event.userRsvpStatus === 'going' || 
-                                    event.userRsvpStatus === 'attending' || 
-                                    event.organizerId === user?.id;
-        
-        if (isGroupChatNavigation) {
-          // For group chat navigation, we need to temporarily show this event
-          // even though it's not in the normal swipe flow
-          
-          // Set the group chat event and show EventContent
-          setGroupChatEvent(event);
-          setCurrentEventIndex(0);
-          setShowContentCard(true);
-          setShowDetailCard(false);
-          
-          console.log(`Group chat navigation to event ${eventId}: ${event.title}`);
-        } else {
-          // Normal navigation for events in swipe flow
-          // Remove from swipedEvents to ensure it's available
-          setSwipedEvents(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(eventId);
-            return newSet;
-          });
-          
-          // Calculate the correct index in availableEvents after removing from swipedEvents
-          const updatedAvailableEvents = events.filter(e => 
-            (!swipedEvents.has(e.id) || e.id === eventId) && 
-            e.organizerId !== user?.id && 
-            e.userRsvpStatus !== 'going' && 
-            e.userRsvpStatus !== 'attending'
-          );
-          const availableEventIndex = updatedAvailableEvents.findIndex(e => e.id === eventId);
-          
-          // Set up the interface to show EventContent for this event
-          setCurrentEventIndex(availableEventIndex >= 0 ? availableEventIndex : 0);
-          setShowContentCard(true);
-          setShowDetailCard(false);
-        }
-        
-        // Set the preferred tab if specified
-        if (preferredTab === 'chat' || preferredTab === 'similar') {
-          setLastActiveTab(preferredTab);
-        }
-        
-        // Check if coming from My Events
-        if (fromMyEvents === 'true') {
-          setIsFromMyEvents(true);
-          setEventFromMyEvents(event); // Store the event for back navigation
-        }
-        
-        // Check if coming from Browse page
-        if (fromBrowse === 'true') {
-          setIsFromBrowse(true);
-        }
-        
-        // Check if coming from Messages tab specifically
-        if (fromMessagesTab === 'true') {
-          setIsFromMessagesTab(true);
-        }
-        
-        // Clear the localStorage
-        localStorage.removeItem('eventContentId');
-        localStorage.removeItem('fromMyEvents');
-        localStorage.removeItem('fromBrowse');
-        localStorage.removeItem('fromMessagesTab');
-        localStorage.removeItem('preferredTab');
+        handleEventNavigation(event, eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
+      } else {
+        // Event not found in home page events, fetch it separately
+        console.log(`Event ${eventId} not found in home events, fetching separately...`);
+        fetchSpecificEvent(eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
       }
     }
   }, [events]);
+
+  // Helper function to fetch a specific event when it's not in the home page events
+  const fetchSpecificEvent = async (eventId: number, fromMyEvents: string | null, fromBrowse: string | null, fromMessagesTab: string | null, preferredTab: string | null) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch event');
+      }
+      const event = await response.json() as EventWithOrganizer;
+      console.log(`Successfully fetched event ${eventId}: ${event.title}`);
+      handleEventNavigation(event, eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
+    } catch (error) {
+      console.error('Error fetching specific event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load the event. Please try again.",
+        variant: "destructive",
+      });
+      // Clear the localStorage on error
+      localStorage.removeItem('eventContentId');
+      localStorage.removeItem('fromMyEvents');
+      localStorage.removeItem('fromBrowse');
+      localStorage.removeItem('fromMessagesTab');
+      localStorage.removeItem('preferredTab');
+    }
+  };
+
+  // Helper function to handle event navigation logic
+  const handleEventNavigation = (event: EventWithOrganizer, eventId: number, fromMyEvents: string | null, fromBrowse: string | null, fromMessagesTab: string | null, preferredTab: string | null) => {
+    // Check if this is a group chat navigation (user is attending/organizing this event)
+    const isGroupChatNavigation = event.userRsvpStatus === 'going' || 
+                                event.userRsvpStatus === 'attending' || 
+                                event.organizerId === user?.id;
+    
+    if (isGroupChatNavigation) {
+      // For group chat navigation, we need to temporarily show this event
+      // even though it's not in the normal swipe flow
+      
+      // Set the group chat event and show EventContent
+      setGroupChatEvent(event);
+      setCurrentEventIndex(0);
+      setShowContentCard(true);
+      setShowDetailCard(false);
+      
+      console.log(`Group chat navigation to event ${eventId}: ${event.title}`);
+    } else {
+      // Normal navigation for events in swipe flow
+      // Remove from swipedEvents to ensure it's available
+      setSwipedEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+      
+      // Calculate the correct index in availableEvents after removing from swipedEvents
+      const updatedAvailableEvents = events ? events.filter(e => 
+        (!swipedEvents.has(e.id) || e.id === eventId) && 
+        e.organizerId !== user?.id && 
+        e.userRsvpStatus !== 'going' && 
+        e.userRsvpStatus !== 'attending'
+      ) : [];
+      const availableEventIndex = updatedAvailableEvents.findIndex(e => e.id === eventId);
+      
+      // Set up the interface to show EventContent for this event
+      setCurrentEventIndex(availableEventIndex >= 0 ? availableEventIndex : 0);
+      setShowContentCard(true);
+      setShowDetailCard(false);
+    }
+    
+    // Set the preferred tab if specified
+    if (preferredTab === 'chat' || preferredTab === 'similar') {
+      setLastActiveTab(preferredTab);
+    }
+    
+    // Check if coming from My Events
+    if (fromMyEvents === 'true') {
+      setIsFromMyEvents(true);
+      setEventFromMyEvents(event); // Store the event for back navigation
+    }
+    
+    // Check if coming from Browse page
+    if (fromBrowse === 'true') {
+      setIsFromBrowse(true);
+    }
+    
+    // Check if coming from Messages tab specifically
+    if (fromMessagesTab === 'true') {
+      setIsFromMessagesTab(true);
+    }
+    
+    // Clear the localStorage
+    localStorage.removeItem('eventContentId');
+    localStorage.removeItem('fromMyEvents');
+    localStorage.removeItem('fromBrowse');
+    localStorage.removeItem('fromMessagesTab');
+    localStorage.removeItem('preferredTab');
+  };
 
   const rsvpMutation = useMutation({
     mutationFn: async ({ eventId, status }: { eventId: number; status: string }) => {
