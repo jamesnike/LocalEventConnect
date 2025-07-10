@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Edit, Bell, Shield, HelpCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, Check } from "lucide-react";
+import { ArrowLeft, Edit, Bell, Shield, HelpCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, Check, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -20,6 +20,7 @@ export default function Profile() {
   const [editingPersonality, setEditingPersonality] = useState(false);
   const [selectedPersonality, setSelectedPersonality] = useState<string[]>([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [aiSignature, setAiSignature] = useState<string>('');
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -207,6 +208,34 @@ export default function Profile() {
     },
   });
 
+  const generateSignatureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/users/generate-signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate signature');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setAiSignature(data.signature);
+      toast({
+        title: "AI Signature Generated",
+        description: "Your personalized signature is ready!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -316,6 +345,47 @@ export default function Profile() {
             : 'Anonymous User'}
         </h3>
         <p className="text-white/80 text-sm">{user?.location || "Location not set"}</p>
+        
+        {/* AI Signature Section */}
+        <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+          <div className="flex items-center justify-center space-x-2 mb-3">
+            <Sparkles className="w-4 h-4 text-yellow-300" />
+            <span className="text-sm font-medium">AI Signature</span>
+          </div>
+          
+          {aiSignature ? (
+            <div className="space-y-2">
+              <p className="text-sm text-white/90 italic leading-relaxed">
+                "{aiSignature}"
+              </p>
+              <button
+                onClick={() => generateSignatureMutation.mutate()}
+                disabled={generateSignatureMutation.isPending}
+                className="text-xs text-white/70 hover:text-white transition-colors"
+              >
+                {generateSignatureMutation.isPending ? 'Generating...' : 'Generate New'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs text-white/70">
+                Generate a personalized signature based on your interests and personality
+              </p>
+              <button
+                onClick={() => generateSignatureMutation.mutate()}
+                disabled={generateSignatureMutation.isPending || (!user?.interests?.length && !user?.personality?.length)}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {generateSignatureMutation.isPending ? 'Generating...' : 'Generate AI Signature'}
+              </button>
+              {!user?.interests?.length && !user?.personality?.length && (
+                <p className="text-xs text-white/60 mt-1">
+                  Add interests and personality traits first
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Profile Content */}

@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. Added AI-powered personal signature generation using OpenAI GPT-4o based on user's selected interests and personality traits, displayed in profile header with generate/regenerate functionality
 - July 10, 2025. Expanded interests options from 10 to 59 diverse categories including outdoor activities, intellectual pursuits, creative hobbies, lifestyle interests, and professional development areas with scrollable compact grid layout
 - July 10, 2025. Added comprehensive Personality section to Profile page with 24 personality traits, allowing users to select up to 5 traits that describe them best with emoji icons and purple-themed UI
 - July 10, 2025. Fixed EventContent navigation from EventDetailCard to hide back button and show "Keep Exploring" button, while showing back button when entered from other pages (Browse, My Events, Messages)

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertEventSchema, insertRsvpSchema } from "@shared/schema";
 import { z } from "zod";
+import OpenAI from "openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -205,6 +206,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Generate AI signature based on user's interests and personality
+  app.post('/api/users/generate-signature', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Get user's selected interests and personality traits
+      const interests = user.interests || [];
+      const personality = user.personality || [];
+
+      if (interests.length === 0 && personality.length === 0) {
+        return res.status(400).json({ message: "Please select some interests and personality traits first" });
+      }
+
+      // Create a prompt to generate a personal signature
+      const prompt = `Create a creative and engaging personal signature/bio for someone with these characteristics:
+
+Interests: ${interests.join(', ')}
+Personality: ${personality.join(', ')}
+
+The signature should be:
+- 1-2 sentences long
+- Creative and memorable
+- Authentic and personal
+- Suitable for a social profile
+- Engaging for others to read
+
+Please respond with just the signature text, nothing else.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 100,
+        temperature: 0.8,
+      });
+
+      const signature = response.choices[0].message.content?.trim();
+      
+      if (!signature) {
+        return res.status(500).json({ message: "Failed to generate signature" });
+      }
+
+      res.json({ signature });
+    } catch (error) {
+      console.error("Error generating signature:", error);
+      res.status(500).json({ message: "Failed to generate signature" });
     }
   });
 
