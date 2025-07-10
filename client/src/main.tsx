@@ -1,31 +1,65 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import TestApp from "./TestApp";
-import "./index.css";
+import { createElement } from "react";
 
-console.log("React app starting...");
+console.log("Starting main.tsx module...");
 
-const rootElement = document.getElementById("root");
-console.log("Root element:", rootElement);
-
-if (rootElement) {
-  try {
-    const root = createRoot(rootElement);
-    console.log("Root created successfully");
-    
-    // Test with simple component first
-    root.render(<TestApp />);
-    console.log("Test app rendered successfully");
-    
-    // Switch to full app after 2 seconds
-    setTimeout(() => {
-      console.log("Switching to full app");
-      root.render(<App />);
-      console.log("Full app rendered successfully");
-    }, 2000);
-  } catch (error) {
-    console.error("Error rendering app:", error);
-  }
-} else {
-  console.error("Root element not found");
+// Simple test component without JSX
+function TestComponent() {
+  return createElement("div", {
+    style: { padding: "20px", color: "green", fontSize: "20px" }
+  }, [
+    createElement("h1", null, "✓ React is working!"),
+    createElement("p", null, "Loading EventConnect app...")
+  ]);
 }
+
+async function initApp() {
+  try {
+    console.log("Importing CSS...");
+    await import("./index.css");
+    console.log("CSS imported successfully");
+
+    console.log("Looking for root element...");
+    const rootElement = document.getElementById("root");
+    console.log("Root element found:", !!rootElement);
+
+    if (rootElement) {
+      console.log("Creating React root...");
+      const root = createRoot(rootElement);
+      console.log("React root created successfully");
+      
+      console.log("Rendering simple test first...");
+      root.render(createElement(TestComponent));
+      console.log("Test component rendered");
+      
+      setTimeout(async () => {
+        try {
+          console.log("Importing App component...");
+          const { default: App } = await import("./App");
+          console.log("App component imported successfully");
+          
+          console.log("Rendering full app...");
+          root.render(createElement(App));
+          console.log("Full app rendered");
+        } catch (error) {
+          console.error("Error loading full app:", error);
+          root.render(createElement("div", {
+            style: { color: "red", padding: "20px" }
+          }, `Error: ${error.message}`));
+        }
+      }, 2000);
+    } else {
+      console.error("Root element not found!");
+      document.body.innerHTML = '<div style="color: red; padding: 20px;">ERROR: Root element not found</div>';
+    }
+  } catch (error) {
+    console.error("Critical error in main.tsx:", error);
+    document.body.innerHTML = `<div style="color: red; padding: 20px;">
+      <h1>Error loading app</h1>
+      <p>Check console for details</p>
+      <pre>${error.message}</pre>
+    </div>`;
+  }
+}
+
+initApp();
