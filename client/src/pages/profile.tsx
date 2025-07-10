@@ -697,7 +697,7 @@ export default function Profile() {
         {/* Event History */}
         <div>
           <h4 className="font-semibold text-gray-800 mb-3">Event History</h4>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             {(() => {
               // Combine and sort all past events by date descending
               const allPastEvents = [
@@ -707,18 +707,18 @@ export default function Profile() {
               
               return allPastEvents.length > 0 ? (
                 allPastEvents.slice(0, 6).map((event) => (
-                  <div key={`${event.type}-${event.id}`} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                  <div key={`${event.type}-${event.id}`} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                    <div className="w-6 h-6 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0">
                       {getEventIcon(event.category)}
                     </div>
-                    <div className="flex-1">
-                      <h5 className="font-medium text-gray-800 text-sm">{event.title}</h5>
-                      <p className="text-xs text-gray-600">{event.type === 'hosted' ? 'Hosted' : 'Attended'} • {event.date}</p>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-medium text-gray-800 text-xs truncate">{event.title}</h5>
+                      <p className="text-xs text-gray-600 truncate">{event.type === 'hosted' ? 'Hosted' : 'Attended'}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4 text-gray-500">
+                <div className="col-span-2 text-center py-4 text-gray-500">
                   <p>No past events yet</p>
                 </div>
               );
