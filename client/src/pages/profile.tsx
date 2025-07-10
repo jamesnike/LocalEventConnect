@@ -507,38 +507,33 @@ export default function Profile() {
         
         {/* AI Signature Section */}
         <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div className="flex items-center justify-center space-x-2 mb-3">
-            <Sparkles className="w-4 h-4 text-yellow-300" />
-            <span className="text-sm font-medium">AI Signature</span>
-          </div>
-          
           {aiSignature ? (
             <div className="space-y-2">
-              <p className="text-sm text-white/90 italic leading-relaxed">
+              <p className="text-base text-white/90 italic leading-relaxed text-center">
                 "{aiSignature}"
               </p>
               <button
                 onClick={() => generateSignatureMutation.mutate()}
                 disabled={generateSignatureMutation.isPending}
-                className="text-xs text-white/70 hover:text-white transition-colors"
+                className="text-xs text-white/70 hover:text-white transition-colors block mx-auto"
               >
                 {generateSignatureMutation.isPending ? 'Generating...' : 'Generate New'}
               </button>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-white/70">
+              <p className="text-xs text-white/70 text-center">
                 Generate a personalized signature based on your interests and personality
               </p>
               <button
                 onClick={() => generateSignatureMutation.mutate()}
                 disabled={generateSignatureMutation.isPending || (!user?.interests?.length && !user?.personality?.length)}
-                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed block mx-auto"
               >
                 {generateSignatureMutation.isPending ? 'Generating...' : 'Generate AI Signature'}
               </button>
               {!user?.interests?.length && !user?.personality?.length && (
-                <p className="text-xs text-white/60 mt-1">
+                <p className="text-xs text-white/60 mt-1 text-center">
                   Add interests and personality traits first
                 </p>
               )}
