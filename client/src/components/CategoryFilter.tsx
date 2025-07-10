@@ -55,7 +55,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
-      <div className="overflow-x-auto pb-2">
+      <div className="overflow-x-auto pb-2 scrollbar-visible">
         <div className="flex flex-col space-y-2 min-w-max">
           {/* Top row: AM, Night, AM, Night... */}
           <div className="flex space-x-2">

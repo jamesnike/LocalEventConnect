@@ -76,6 +76,31 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Custom scrollbar styles */
+  .scrollbar-visible {
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af #f3f4f6;
+  }
+  
+  .scrollbar-visible::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  
+  .scrollbar-visible::-webkit-scrollbar-track {
+    background-color: #f3f4f6;
+    border-radius: 4px;
+  }
+  
+  .scrollbar-visible::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 4px;
+  }
+  
+  .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+  }
 }
 
 /* Custom colors for categories */
