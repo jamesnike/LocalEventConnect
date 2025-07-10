@@ -351,14 +351,17 @@ export default function Home() {
                 {user?.location || "San Francisco, CA"}
               </span>
             </div>
-            <div className="relative">
+            <button 
+              onClick={() => setLocation('/my-events?tab=messages')}
+              className="relative p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
               <Bell className="w-5 h-5 text-gray-600" />
               {totalUnread > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {totalUnread > 9 ? '9+' : totalUnread}
                 </span>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </header>

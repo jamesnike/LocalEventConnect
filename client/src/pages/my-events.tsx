@@ -24,6 +24,15 @@ export default function MyEvents() {
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [, setLocation] = useLocation();
 
+  // Check URL for tab parameter and set active tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam === 'messages' || tabParam === 'organized' || tabParam === 'attending') {
+      setActiveTab(tabParam as 'organized' | 'attending' | 'messages');
+    }
+  }, []);
+
   const { data: organizedEvents } = useQuery({
     queryKey: ["/api/users", user?.id, "events", "organized"],
     queryFn: async () => {
