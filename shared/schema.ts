@@ -11,6 +11,7 @@ import {
   decimal,
   date,
   time,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -87,6 +88,7 @@ export const userRelations = relations(users, ({ many }) => ({
   organizedEvents: many(events),
   rsvps: many(eventRsvps),
   chatMessages: many(chatMessages),
+  messageReads: many(messageReads),
 }));
 
 export const eventRelations = relations(events, ({ one, many }) => ({
@@ -96,6 +98,7 @@ export const eventRelations = relations(events, ({ one, many }) => ({
   }),
   rsvps: many(eventRsvps),
   chatMessages: many(chatMessages),
+  messageReads: many(messageReads),
 }));
 
 export const eventRsvpRelations = relations(eventRsvps, ({ one }) => ({
@@ -122,6 +125,23 @@ export const chatMessages = pgTable("chat_messages", {
 export const chatMessageRelations = relations(chatMessages, ({ one }) => ({
   event: one(events, { fields: [chatMessages.eventId], references: [events.id] }),
   user: one(users, { fields: [chatMessages.userId], references: [users.id] }),
+}));
+
+// Message reads table to track which messages users have read
+export const messageReads = pgTable("message_reads", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userEventUnique: unique().on(table.userId, table.eventId),
+}));
+
+export const messageReadRelations = relations(messageReads, ({ one }) => ({
+  user: one(users, { fields: [messageReads.userId], references: [users.id] }),
+  event: one(events, { fields: [messageReads.eventId], references: [events.id] }),
 }));
 
 // Zod schemas
@@ -155,6 +175,12 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   updatedAt: true,
 });
 
+export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -172,3 +198,5 @@ export type ChatMessageWithUser = ChatMessage & {
   user: User;
 };
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type MessageRead = typeof messageReads.$inferSelect;
+export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;

@@ -409,6 +409,44 @@ Please respond with just the signature text, nothing else.`;
       const messagesWithUser = await storage.getChatMessages(eventId, 1);
       const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
       
+      // Broadcast new message to all connected clients in this event room
+      if (eventConnections.has(eventId)) {
+        const connections = eventConnections.get(eventId)!;
+        const broadcastMessage = {
+          type: 'newMessage',
+          eventId,
+          message: messageWithUser
+        };
+        
+        connections.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(broadcastMessage));
+          }
+        });
+      }
+      
+      // Broadcast notification to all users subscribed to notifications
+      const eventData = await storage.getEvent(eventId);
+      const senderUser = await storage.getUser(userId);
+      
+      // Broadcast to notification subscribers (users not currently in the chat)
+      notificationSubscribers.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          const subscriberUserId = (client as any).userId;
+          
+          // Don't send notification to the sender
+          if (subscriberUserId !== userId) {
+            client.send(JSON.stringify({
+              type: 'new_message_notification',
+              eventId,
+              eventTitle: eventData?.title,
+              senderName: senderUser ? `${senderUser.firstName} ${senderUser.lastName}` : 'Someone',
+              message: message.trim()
+            }));
+          }
+        }
+      });
+      
       res.status(201).json(messageWithUser);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -439,6 +477,44 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Notification endpoints
+  app.get('/api/notifications/unread', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const unreadCounts = await storage.getUnreadCounts(userId);
+      res.json(unreadCounts);
+    } catch (error) {
+      console.error("Error fetching unread counts:", error);
+      res.status(500).json({ message: "Failed to fetch unread counts" });
+    }
+  });
+
+  app.post('/api/events/:id/mark-read', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if user has access to this event
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const isOrganizer = event.organizerId === userId;
+      
+      if (!isOrganizer && !userRsvp) {
+        return res.status(403).json({ message: "Not authorized to mark this event as read" });
+      }
+      
+      await storage.markEventAsRead(eventId, userId);
+      res.status(200).json({ message: "Event marked as read" });
+    } catch (error) {
+      console.error("Error marking event as read:", error);
+      res.status(500).json({ message: "Failed to mark event as read" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket server for real-time chat
@@ -446,6 +522,9 @@ Please respond with just the signature text, nothing else.`;
   
   // Store WebSocket connections by event ID
   const eventConnections = new Map<number, Set<WebSocket>>();
+  
+  // Store notification subscribers (users listening for all their events)
+  const notificationSubscribers = new Set<WebSocket>();
   
   wss.on('connection', (ws: WebSocket, req) => {
     console.log('WebSocket connection established');
@@ -483,6 +562,16 @@ Please respond with just the signature text, nothing else.`;
           (ws as any).userId = userId;
           
           ws.send(JSON.stringify({ type: 'joined', eventId }));
+        } else if (message.type === 'subscribe_notifications') {
+          const { userId } = message;
+          
+          // Add to notification subscribers
+          notificationSubscribers.add(ws);
+          
+          // Store user ID on the WebSocket for filtering
+          (ws as any).userId = userId;
+          
+          ws.send(JSON.stringify({ type: 'subscribed_notifications', userId }));
         }
         
         if (message.type === 'message') {
@@ -540,6 +629,9 @@ Please respond with just the signature text, nothing else.`;
     ws.on('close', () => {
       // Clean up connection from event rooms
       const eventId = (ws as any).eventId;
+      
+      // Remove from notification subscribers
+      notificationSubscribers.delete(ws);
       if (eventId && eventConnections.has(eventId)) {
         eventConnections.get(eventId)!.delete(ws);
         if (eventConnections.get(eventId)!.size === 0) {

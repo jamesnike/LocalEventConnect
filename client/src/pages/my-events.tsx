@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { Calendar, MapPin, MessageCircle, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -17,6 +18,7 @@ import { EventWithOrganizer } from "@shared/schema";
 export default function MyEvents() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { unreadByEvent, markEventAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState<'organized' | 'attending' | 'messages'>('messages');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
@@ -243,9 +245,20 @@ export default function MyEvents() {
                       <h3 className="text-sm font-medium text-gray-900 truncate">
                         {event.title}
                       </h3>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="w-3 h-3 mr-1" />
-                        <span>{new Date(event.date).toLocaleDateString()}</span>
+                      <div className="flex items-center space-x-2">
+                        {/* Unread badge */}
+                        {(() => {
+                          const unreadCount = unreadByEvent.find(u => u.eventId === event.id)?.unreadCount || 0;
+                          return unreadCount > 0 ? (
+                            <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                          ) : null;
+                        })()}
+                        <div className="flex items-center text-xs text-gray-500">
+                          <Clock className="w-3 h-3 mr-1" />
+                          <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-1">

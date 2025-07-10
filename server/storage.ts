@@ -3,6 +3,7 @@ import {
   events,
   eventRsvps,
   chatMessages,
+  messageReads,
   type User,
   type UpsertUser,
   type Event,
@@ -13,9 +14,11 @@ import {
   type ChatMessage,
   type ChatMessageWithUser,
   type InsertChatMessage,
+  type MessageRead,
+  type InsertMessageRead,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql, desc, asc, gte, lte, between } from "drizzle-orm";
+import { eq, and, or, sql, desc, asc, gte, lte, between, gt } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -41,6 +44,11 @@ export interface IStorage {
   getChatMessages(eventId: number, limit?: number): Promise<ChatMessageWithUser[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   deleteChatMessage(messageId: number, userId: string): Promise<void>;
+  
+  // Notification operations
+  getUnreadCounts(userId: string): Promise<{totalUnread: number, unreadByEvent: Array<{eventId: number, eventTitle: string, unreadCount: number}>}>;
+  markEventAsRead(eventId: number, userId: string): Promise<void>;
+  getUserEventIds(userId: string): Promise<number[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -460,6 +468,103 @@ export class DatabaseStorage implements IStorage {
         eq(chatMessages.userId, userId)
       )
     );
+  }
+
+  // Notification operations
+  async getUnreadCounts(userId: string): Promise<{totalUnread: number, unreadByEvent: Array<{eventId: number, eventTitle: string, unreadCount: number}>}> {
+    // Get all events user is attending or organizing
+    const userEventIds = await this.getUserEventIds(userId);
+    
+    if (userEventIds.length === 0) {
+      return { totalUnread: 0, unreadByEvent: [] };
+    }
+    
+    // Get unread counts for each event
+    const unreadByEvent = await Promise.all(
+      userEventIds.map(async (eventId) => {
+        // Get user's last read timestamp for this event
+        const [lastRead] = await db
+          .select()
+          .from(messageReads)
+          .where(
+            and(
+              eq(messageReads.userId, userId),
+              eq(messageReads.eventId, eventId)
+            )
+          );
+        
+        // Count messages after last read timestamp
+        const unreadCountQuery = db
+          .select({ count: sql<number>`COUNT(*)::int` })
+          .from(chatMessages)
+          .where(
+            and(
+              eq(chatMessages.eventId, eventId),
+              lastRead 
+                ? gt(chatMessages.createdAt, lastRead.lastReadAt)
+                : sql`TRUE` // If no read record, all messages are unread
+            )
+          );
+        
+        const [{ count }] = await unreadCountQuery;
+        
+        // Get event title
+        const [event] = await db
+          .select({ title: events.title })
+          .from(events)
+          .where(eq(events.id, eventId));
+        
+        return {
+          eventId,
+          eventTitle: event?.title || 'Unknown Event',
+          unreadCount: count || 0,
+        };
+      })
+    );
+    
+    const totalUnread = unreadByEvent.reduce((sum, event) => sum + event.unreadCount, 0);
+    
+    return {
+      totalUnread,
+      unreadByEvent: unreadByEvent.filter(event => event.unreadCount > 0),
+    };
+  }
+
+  async markEventAsRead(eventId: number, userId: string): Promise<void> {
+    await db
+      .insert(messageReads)
+      .values({
+        userId,
+        eventId,
+        lastReadAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [messageReads.userId, messageReads.eventId],
+        set: {
+          lastReadAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  async getUserEventIds(userId: string): Promise<number[]> {
+    // Get events where user is organizer or has RSVPed
+    const organizerEvents = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(eq(events.organizerId, userId));
+    
+    const rsvpEvents = await db
+      .select({ eventId: eventRsvps.eventId })
+      .from(eventRsvps)
+      .where(eq(eventRsvps.userId, userId));
+    
+    const eventIds = new Set([
+      ...organizerEvents.map(e => e.id),
+      ...rsvpEvents.map(e => e.eventId),
+    ]);
+    
+    return Array.from(eventIds);
   }
 }
 

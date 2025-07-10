@@ -4,6 +4,7 @@ import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Hea
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import SwipeCard from "@/components/SwipeCard";
@@ -47,6 +48,7 @@ const clearHomeState = () => {
 export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { totalUnread } = useNotifications();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -346,7 +348,14 @@ export default function Home() {
                 {user?.location || "San Francisco, CA"}
               </span>
             </div>
-            <Bell className="w-5 h-5 text-gray-600" />
+            <div className="relative">
+              <Bell className="w-5 h-5 text-gray-600" />
+              {totalUnread > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  {totalUnread > 9 ? '9+' : totalUnread}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>
