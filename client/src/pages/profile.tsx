@@ -697,36 +697,32 @@ export default function Profile() {
         {/* Event History */}
         <div>
           <h4 className="font-semibold text-gray-800 mb-3">Event History</h4>
-          <div className="space-y-3">
-            {userEvents && userEvents.length > 0 ? (
-              userEvents.slice(0, 2).map((event) => (
-                <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                    {getEventIcon(event.category)}
+          <div className="space-y-2">
+            {(() => {
+              // Combine and sort all past events by date descending
+              const allPastEvents = [
+                ...(userEvents || []).map(event => ({ ...event, type: 'hosted' })),
+                ...(attendingEvents || []).map(event => ({ ...event, type: 'attended' }))
+              ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+              
+              return allPastEvents.length > 0 ? (
+                allPastEvents.slice(0, 6).map((event) => (
+                  <div key={`${event.type}-${event.id}`} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                      {getEventIcon(event.category)}
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-gray-800 text-sm">{event.title}</h5>
+                      <p className="text-xs text-gray-600">{event.type === 'hosted' ? 'Hosted' : 'Attended'} • {event.date}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-800">{event.title}</h5>
-                    <p className="text-sm text-gray-600">Hosted • {event.date}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <p>No past events yet</p>
                 </div>
-              ))
-            ) : attendingEvents && attendingEvents.length > 0 ? (
-              attendingEvents.slice(0, 2).map((event) => (
-                <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                    {getEventIcon(event.category)}
-                  </div>
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-800">{event.title}</h5>
-                    <p className="text-sm text-gray-600">Attended • {event.date}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-500">
-                <p>No past events yet</p>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
 

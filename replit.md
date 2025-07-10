@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. ENHANCED EVENT HISTORY SECTION: Updated Profile page Event History to show up to 6 past events (increased from 2) with smaller 8x8 icons (reduced from 12x12), combined hosted and attended events in single chronological list sorted by date descending (most recent first), with compact layout and reduced padding for better space utilization
 - July 10, 2025. IMPLEMENTED HISTORICAL EVENTS FILTERING: Added pastOnly parameter to user events API allowing Profile page to display Event History section showing only past events user attended or organized, with updated UI labels "Hosted/Attended" and gray icons to distinguish from current events
 - July 10, 2025. ADDED EXTERNAL WEB CRAWL API: Created `/api/external/events` endpoint for partners to post events from web crawl jobs without authentication, automatically handles organizer creation and includes comprehensive API documentation with examples
 - July 10, 2025. ADDED EXIT GROUP CHAT BUTTON: Implemented exit button in EventContentCard header allowing users to leave group chats by removing their RSVP, with confirmation dialog and automatic navigation back to previous view (only visible to non-organizers)
