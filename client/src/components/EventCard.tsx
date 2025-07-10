@@ -1,4 +1,4 @@
-import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop, Trash2 } from "lucide-react";
+import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop, Trash2, X } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
@@ -74,13 +74,25 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
           className="w-full h-48 object-cover"
         />
         <div className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md">
-          {showStatus === 'attending' && onRemoveClick ? (
+          {showStatus === 'hosting' && onRemoveClick ? (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onRemoveClick();
               }}
               className="text-red-500 hover:text-red-700"
+              title="Cancel Event"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : showStatus === 'attending' && onRemoveClick ? (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveClick();
+              }}
+              className="text-red-500 hover:text-red-700"
+              title="Remove RSVP"
             >
               <Trash2 className="w-4 h-4" />
             </button>

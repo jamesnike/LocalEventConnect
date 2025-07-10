@@ -84,6 +84,36 @@ export default function MyEvents() {
     },
   });
 
+  const cancelEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      await apiRequest("DELETE", `/api/events/${eventId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Event Cancelled",
+        description: "Your event has been cancelled successfully.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Please Sign In",
+          description: "You need to sign in to manage your events.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to cancel event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -235,7 +265,8 @@ export default function MyEvents() {
                   event={event} 
                   onEventClick={() => setSelectedEvent(event)}
                   showStatus={activeTab === 'organized' ? 'hosting' : 'attending'}
-                  onRemoveClick={activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
+                  onRemoveClick={activeTab === 'organized' ? () => cancelEventMutation.mutate(event.id) : 
+                                activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
                 />
               ))}
             </div>
