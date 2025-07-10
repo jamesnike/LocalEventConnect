@@ -286,7 +286,17 @@ export default function EventContentCard({
             </div>
             
             {/* Exit Group Chat Button */}
-            {hasChatAccess && event.organizer.id !== user?.id && (
+            {(() => {
+              const shouldShow = hasChatAccess && event.organizer.id !== user?.id;
+              console.log('Exit button debug:', {
+                hasChatAccess,
+                eventOrganizerIdd: event.organizer.id,
+                userId: user?.id,
+                shouldShow,
+                eventTitle: event.title
+              });
+              return shouldShow;
+            })() && (
               <button
                 onClick={handleExitGroupChat}
                 disabled={exitGroupChatMutation.isPending}
