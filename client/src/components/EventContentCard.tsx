@@ -48,10 +48,10 @@ export default function EventContentCard({
 
   // Fetch chat messages - always fetch when chat is accessed
   const { data: chatMessages = [], isLoading: isLoadingMessages, refetch: refetchMessages } = useQuery({
-    queryKey: ['/api/events', event.id, 'messages'],
+    queryKey: ['/api/events', event.id, 'messages', 'v2'], // Added v2 to force cache invalidation
     queryFn: async () => {
       console.log('Fetching messages for event:', event.id);
-      const response = await apiRequest(`/api/events/${event.id}/messages`);
+      const response = await apiRequest(`/api/events/${event.id}/messages?limit=1000`);
       console.log('Messages fetch response:', response.status);
       const messages = await response.json() as ChatMessageWithUser[];
       console.log('Received messages for event', event.id, ':', messages.length, 'messages');

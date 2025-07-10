@@ -366,7 +366,7 @@ Please respond with just the signature text, nothing else.`;
     try {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
       
       // Check if event exists
       const event = await storage.getEvent(eventId, userId);
