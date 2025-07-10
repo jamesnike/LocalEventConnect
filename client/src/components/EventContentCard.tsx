@@ -62,9 +62,9 @@ export default function EventContentCard({
     refetchInterval: activeTab === 'chat' && isActive ? 5000 : false, // Auto-refresh only when chat is active AND component is active
   });
 
-  // WebSocket connection for real-time chat - only connect when chat tab is active
+  // WebSocket connection for real-time chat - always connect when component is active
   const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
-    activeTab === 'chat' && hasChatAccess && isActive ? event.id : null
+    hasChatAccess && isActive ? event.id : null
   );
 
   // Send message mutation
@@ -130,15 +130,18 @@ export default function EventContentCard({
       console.log('Clearing messages for event:', event.id);
       setMessages([]);
     }
-  }, [chatMessages, event.id]);
+  }, [chatMessages, event.id, setMessages]);
 
   // Auto-refresh messages when WebSocket receives new messages
   useEffect(() => {
     if (wsMessages.length > 0) {
+      console.log('WebSocket messages updated, refreshing API data for event:', event.id);
       // Force refetch messages to get the latest from server
       refetchMessages();
+      // Also invalidate cache to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
     }
-  }, [wsMessages.length, refetchMessages]);
+  }, [wsMessages.length, refetchMessages, queryClient, event.id]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
