@@ -40,7 +40,11 @@ export default function Browse() {
     
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + dayOffset);
-    const dateString = targetDate.toISOString().split('T')[0];
+    // Use local timezone instead of UTC to avoid timezone issues
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
     
     // Define time ranges
     let startTime: string, endTime: string;
