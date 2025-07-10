@@ -349,17 +349,10 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       
-      // Check if user has access to this event (is organizer or has RSVP'd)
+      // Check if event exists
       const event = await storage.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
-      }
-      
-      const userRsvp = await storage.getUserRsvp(eventId, userId);
-      const isOrganizer = event.organizerId === userId;
-      
-      if (!isOrganizer && !userRsvp) {
-        return res.status(403).json({ message: "Not authorized to access this chat" });
       }
       
       const messages = await storage.getChatMessages(eventId, limit);
@@ -384,17 +377,10 @@ Please respond with just the signature text, nothing else.`;
         return res.status(400).json({ message: "Message too long. Maximum 1000 characters." });
       }
       
-      // Check if user has access to this event (is organizer or has RSVP'd)
+      // Check if event exists
       const event = await storage.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
-      }
-      
-      const userRsvp = await storage.getUserRsvp(eventId, userId);
-      const isOrganizer = event.organizerId === userId;
-      
-      if (!isOrganizer && !userRsvp) {
-        return res.status(403).json({ message: "Not authorized to post to this chat" });
       }
       
       const messageData = insertChatMessageSchema.parse({
@@ -494,7 +480,7 @@ Please respond with just the signature text, nothing else.`;
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
-      // Check if user has access to this event
+      // Check if event exists
       const event = await storage.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });

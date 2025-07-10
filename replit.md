@@ -141,8 +141,11 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
-- July 10, 2025. Fixed event filtering in Home page swipe interface - now excludes events user is already attending or organizing to prevent duplicate interactions
-- July 10, 2025. Fixed organizer button priority in EventDetail - now correctly shows "Organizing" status for events user organizes, regardless of RSVP status
+- July 10, 2025. Removed all group chat access restrictions - now allows any authenticated user to join any event's group chat
+- July 10, 2025. Updated server-side authentication checks to only verify event exists, not user permissions
+- July 10, 2025. Simplified Group Chat button logic to show for all authenticated users on all events
+- July 10, 2025. Successfully implemented event filtering in Home page swipe interface - now excludes events user is already attending or organizing to prevent duplicate interactions
+- July 10, 2025. Successfully fixed organizer button priority in EventDetail - now correctly shows "Organizing" status for events user organizes, regardless of RSVP status (confirmed working)
 - July 10, 2025. Updated button click behavior to prioritize organizer actions (cancel event) over RSVP actions (remove RSVP) when user is the organizer
 - July 10, 2025. Implemented complete notification system with mark-as-read functionality - unread message indicators disappear when users view group chat messages, bell icon navigates to My Events Messages tab
 - July 10, 2025. Fixed RSVP system - users can now properly remove and re-add RSVPs using separate POST/DELETE endpoints instead of status toggling

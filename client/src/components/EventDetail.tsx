@@ -423,7 +423,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               )}
             </button>
-            {(showGroupChatButton || localRsvpStatus === 'going') ? (
+            {user && (
               <button 
                 onClick={() => {
                   if (onNavigateToContent) {
@@ -434,10 +434,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               >
                 <MessageCircle className="w-5 h-5" />
                 <span>Group Chat</span>
-              </button>
-            ) : (
-              <button className="bg-gray-100 text-gray-700 px-4 py-3 rounded-lg">
-                <MessageCircle className="w-5 h-5" />
               </button>
             )}
           </div>

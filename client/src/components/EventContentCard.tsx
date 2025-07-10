@@ -42,9 +42,12 @@ export default function EventContentCard({
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
 
+  // Allow all users to access chat
+  const hasChatAccess = user !== null;
+
   // WebSocket connection for real-time chat
   const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
-    activeTab === 'chat' ? event.id : null
+    activeTab === 'chat' && hasChatAccess ? event.id : null
   );
 
   // Fetch chat messages
@@ -58,7 +61,7 @@ export default function EventContentCard({
       console.log('Received messages:', messages);
       return messages;
     },
-    enabled: activeTab === 'chat' && user !== null,
+    enabled: activeTab === 'chat' && hasChatAccess,
     staleTime: 0, // Always refetch when needed
     refetchOnWindowFocus: false,
   });
@@ -124,10 +127,10 @@ export default function EventContentCard({
 
   // Mark event as read when chat tab is active and component is visible
   useEffect(() => {
-    if (activeTab === 'chat' && isActive && user) {
+    if (activeTab === 'chat' && isActive && hasChatAccess) {
       markEventAsRead(event.id);
     }
-  }, [activeTab, isActive, event.id, user, markEventAsRead]);
+  }, [activeTab, isActive, event.id, hasChatAccess, markEventAsRead]);
 
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
@@ -135,7 +138,7 @@ export default function EventContentCard({
     onTabChange?.(tab);
     
     // Refetch messages when switching to chat tab and mark as read
-    if (tab === 'chat') {
+    if (tab === 'chat' && hasChatAccess) {
       refetchMessages();
       // Mark event as read when user opens chat
       markEventAsRead(event.id);
