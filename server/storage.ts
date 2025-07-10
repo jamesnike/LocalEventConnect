@@ -467,9 +467,11 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(events.isActive, true),
             eq(events.organizerId, userId),
-            // Filter for past events only if pastOnly is true
-            pastOnly 
+            // Filter based on pastOnly parameter
+            pastOnly === true
               ? sql`(${events.date} < ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} < ${currentTime}))`
+              : pastOnly === false
+              ? sql`(${events.date} > ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} >= ${currentTime}))`
               : undefined
           )
         )
@@ -547,9 +549,11 @@ export class DatabaseStorage implements IStorage {
               eq(eventRsvps.status, 'going'),
               eq(eventRsvps.status, 'maybe')
             ),
-            // Filter for past events only if pastOnly is true
-            pastOnly 
+            // Filter based on pastOnly parameter
+            pastOnly === true
               ? sql`(${events.date} < ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} < ${currentTime}))`
+              : pastOnly === false
+              ? sql`(${events.date} > ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} >= ${currentTime}))`
               : undefined
           )
         )

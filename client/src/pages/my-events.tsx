@@ -42,10 +42,10 @@ export default function MyEvents() {
   }, [user?.id]);
 
   const { data: organizedEvents, isLoading: isLoadingOrganized } = useQuery({
-    queryKey: ["/api/users", user?.id, "events", "organized"],
+    queryKey: ["/api/users", user?.id, "events", "organized", "current"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/events?type=organized`);
+      const response = await fetch(`/api/users/${user.id}/events?type=organized&pastOnly=false`);
       if (!response.ok) throw new Error('Failed to fetch organized events');
       return response.json() as Promise<EventWithOrganizer[]>;
     },
@@ -57,10 +57,10 @@ export default function MyEvents() {
   });
 
   const { data: attendingEvents, isLoading: isLoadingAttending } = useQuery({
-    queryKey: ["/api/users", user?.id, "events", "attending"],
+    queryKey: ["/api/users", user?.id, "events", "attending", "current"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/events?type=attending`);
+      const response = await fetch(`/api/users/${user.id}/events?type=attending&pastOnly=false`);
       if (!response.ok) throw new Error('Failed to fetch attending events');
       return response.json() as Promise<EventWithOrganizer[]>;
     },
