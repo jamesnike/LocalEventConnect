@@ -429,13 +429,9 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning}
-              className="w-16 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {showDetailCard ? (
-                <ArrowLeft className="w-6 h-6" />
-              ) : (
-                <span className="text-sm font-medium">Skip</span>
-              )}
+              <X className="w-6 h-6" />
             </button>
             
             <button
@@ -454,7 +450,7 @@ export default function Home() {
           {/* Action Labels */}
           <div className="flex justify-center space-x-16 mt-2">
             <span className="text-xs text-gray-600 w-14 text-center">
-              {showDetailCard ? 'Back' : 'Skip'}
+              Skip
             </span>
             <span className="text-xs text-gray-600 w-14 text-center">
               {showDetailCard ? 'RSVP' : 'Details'}
