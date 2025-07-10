@@ -148,7 +148,15 @@ export default function EventContentCard({
     setActiveTab(initialTab);
   }, [event.id, initialTab]);
 
-  // Mark event as read when chat tab is active and component is visible
+  // Mark event as read when entering the component or when chat tab is active
+  useEffect(() => {
+    if (isActive && hasChatAccess) {
+      // Mark as read when entering the component (regardless of tab)
+      markEventAsRead(event.id);
+    }
+  }, [isActive, event.id, hasChatAccess, markEventAsRead]);
+
+  // Also mark as read when switching to chat tab
   useEffect(() => {
     if (activeTab === 'chat' && isActive && hasChatAccess) {
       markEventAsRead(event.id);
