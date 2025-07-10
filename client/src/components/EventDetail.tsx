@@ -221,12 +221,12 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   };
 
   const handleButtonClick = () => {
-    if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
+    if (isOrganizer) {
+      // If user is organizer, cancel the event
+      cancelEventMutation.mutate();
+    } else if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
       // If user has RSVP'd (going or attending), remove RSVP
       handleRsvp();
-    } else if (isOrganizer) {
-      // If user is organizer and hasn't RSVP'd, cancel the event
-      cancelEventMutation.mutate();
     } else {
       // If user is not organizer and hasn't RSVP'd, add RSVP
       handleRsvp();
@@ -244,16 +244,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === event.organizerId;
-  
-  // Debug logging
-  console.log('EventDetail Debug:', {
-    userId: user?.id,
-    organizerId: event.organizerId,
-    isOrganizer,
-    eventTitle: event.title,
-    localRsvpStatus,
-    fullEvent: event
-  });
   
 
 
@@ -397,15 +387,15 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </div>
               ) : isHovering ? (
                 <>
-                  {(localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
-                    <>
-                      <Trash2 className="w-4 h-4 mr-2 inline" />
-                      Remove RSVP
-                    </>
-                  ) : isOrganizer ? (
+                  {isOrganizer ? (
                     <>
                       <X className="w-4 h-4 mr-2 inline" />
                       Cancel Event
+                    </>
+                  ) : (localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2 inline" />
+                      Remove RSVP
                     </>
                   ) : (
                     <>
@@ -415,15 +405,15 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 </>
               ) : (
                 <>
-                  {(localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2 inline" />
-                      Going
-                    </>
-                  ) : isOrganizer ? (
+                  {isOrganizer ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
                       Organizing
+                    </>
+                  ) : (localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2 inline" />
+                      Going
                     </>
                   ) : (
                     <>

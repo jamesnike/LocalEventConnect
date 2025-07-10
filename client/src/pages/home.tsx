@@ -228,7 +228,12 @@ export default function Home() {
     saveHomeState(stateToSave);
   }, [currentEventIndex, swipedEvents, showDetailCard, showContentCard, lastActiveTab]);
 
-  const availableEvents = events?.filter(event => !swipedEvents.has(event.id)) || [];
+  const availableEvents = events?.filter(event => 
+    !swipedEvents.has(event.id) && 
+    event.organizerId !== user?.id && 
+    event.userRsvpStatus !== 'going' && 
+    event.userRsvpStatus !== 'attending'
+  ) || [];
   const currentEvent = availableEvents[currentEventIndex];
 
   // Clear state when user has swiped through all events
