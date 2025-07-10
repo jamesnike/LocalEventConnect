@@ -60,6 +60,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
         toast({
           title: "RSVP Updated",
           description: "Your RSVP has been updated successfully.",
+          duration: 2000,
         });
       }
     },
@@ -78,6 +79,44 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       toast({
         title: "Error",
         description: "Failed to update RSVP. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelEventMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest('DELETE', `/api/events/${event.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
+      
+      toast({
+        title: "Event Canceled",
+        description: "Your event has been canceled successfully.",
+        duration: 2000,
+      });
+      
+      // Close the modal after canceling
+      handleClose();
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to cancel event. Please try again.",
         variant: "destructive",
       });
     },
@@ -106,6 +145,16 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
     const newStatus = event.userRsvpStatus === 'going' ? 'not_going' : 'going';
     rsvpMutation.mutate(newStatus);
+  };
+
+  const handleButtonClick = () => {
+    if (isOrganizer) {
+      // If user is organizer, cancel the event
+      cancelEventMutation.mutate();
+    } else {
+      // If user is attendee, handle RSVP
+      handleRsvp();
+    }
   };
 
   const handleCelebrationComplete = () => {
@@ -232,26 +281,26 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="flex space-x-3 pb-6">
             <button 
-              onClick={isOrganizer ? undefined : handleRsvp}
-              disabled={rsvpMutation.isPending || isOrganizer}
+              onClick={handleButtonClick}
+              disabled={rsvpMutation.isPending || cancelEventMutation.isPending}
               className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
                 isOrganizer 
-                  ? 'bg-blue-500 text-white'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
                   : event.userRsvpStatus === 'going'
-                  ? 'bg-success text-white'
+                  ? 'bg-success text-white hover:bg-success/90'
                   : 'bg-primary text-white hover:bg-primary/90'
               }`}
             >
-              {isOrganizer ? (
+              {(rsvpMutation.isPending || cancelEventMutation.isPending) ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {isOrganizer ? 'Canceling...' : 'Updating...'}
+                </div>
+              ) : isOrganizer ? (
                 <>
                   <Check className="w-4 h-4 mr-2 inline" />
                   Organizing
                 </>
-              ) : rsvpMutation.isPending ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Updating...
-                </div>
               ) : (
                 <>
                   {event.userRsvpStatus === 'going' ? (
