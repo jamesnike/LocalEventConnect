@@ -576,58 +576,15 @@ export default function Home() {
           
           {/* Location and Notifications */}
           <div className="flex items-center space-x-3">
-            {editingLocation ? (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  placeholder="Enter your location"
-                  className="text-xs bg-gray-100 text-gray-700 placeholder-gray-500 px-2 py-1 rounded border-none outline-none w-24"
-                />
-                <button
-                  onClick={handleSaveLocation}
-                  disabled={updateLocationMutation.isPending}
-                  className="text-xs bg-primary/10 hover:bg-primary/20 text-primary px-2 py-1 rounded transition-colors"
-                >
-                  {updateLocationMutation.isPending ? 'Saving...' : 'Save'}
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingLocation(false);
-                    setLocationInput(user?.location || '');
-                  }}
-                  className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1">
-                <MapPin className="w-3 h-3 text-primary" />
-                <span className="text-xs font-medium text-gray-600">
-                  {user?.location || "Location not set"}
-                </span>
-                <button
-                  onClick={handleEditLocation}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <Edit className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={detectLocation}
-                  disabled={isDetectingLocation}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                  title="Detect my location"
-                >
-                  {isDetectingLocation ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-gray-400 border-t-gray-600 border-[1px]"></div>
-                  ) : (
-                    <Navigation className="w-3 h-3" />
-                  )}
-                </button>
-              </div>
-            )}
+            <button 
+              onClick={handleEditLocation}
+              className="flex items-center space-x-1 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+            >
+              <MapPin className="w-3 h-3 text-primary" />
+              <span className="text-xs font-medium text-gray-600">
+                {user?.location || "Set location"}
+              </span>
+            </button>
             <button 
               onClick={() => setLocation('/my-events?tab=messages')}
               className="relative p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -820,6 +777,67 @@ export default function Home() {
             setEventFromMyEvents(null);
           }}
         />
+      )}
+
+      {/* Location Edit Popup */}
+      {editingLocation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Edit Location</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Location
+                </label>
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="Enter your location"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              
+              <button
+                onClick={detectLocation}
+                disabled={isDetectingLocation}
+                className="w-full flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isDetectingLocation ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-gray-400 border-t-gray-600 border-[1px]"></div>
+                    <span>Detecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-4 h-4" />
+                    <span>Detect Current Location</span>
+                  </>
+                )}
+              </button>
+              
+              <div className="flex space-x-3 pt-2">
+                <button
+                  onClick={handleSaveLocation}
+                  disabled={updateLocationMutation.isPending || !locationInput.trim()}
+                  className="flex-1 bg-primary text-white py-2 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateLocationMutation.isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingLocation(false);
+                    setLocationInput(user?.location || '');
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
