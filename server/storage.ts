@@ -2,6 +2,7 @@ import {
   users,
   events,
   eventRsvps,
+  chatMessages,
   type User,
   type UpsertUser,
   type Event,
@@ -9,6 +10,9 @@ import {
   type InsertEvent,
   type EventRsvp,
   type InsertRsvp,
+  type ChatMessage,
+  type ChatMessageWithUser,
+  type InsertChatMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, asc, gte, lte, between } from "drizzle-orm";
@@ -32,6 +36,11 @@ export interface IStorage {
   updateRsvp(eventId: number, userId: string, status: string): Promise<EventRsvp>;
   deleteRsvp(eventId: number, userId: string): Promise<void>;
   getUserRsvp(eventId: number, userId: string): Promise<EventRsvp | undefined>;
+  
+  // Chat operations
+  getChatMessages(eventId: number, limit?: number): Promise<ChatMessageWithUser[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  deleteChatMessage(messageId: number, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -396,6 +405,61 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return rsvp;
+  }
+
+  // Chat operations
+  async getChatMessages(eventId: number, limit = 50): Promise<ChatMessageWithUser[]> {
+    const query = db
+      .select({
+        id: chatMessages.id,
+        eventId: chatMessages.eventId,
+        userId: chatMessages.userId,
+        message: chatMessages.message,
+        createdAt: chatMessages.createdAt,
+        updatedAt: chatMessages.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          animeAvatarSeed: users.animeAvatarSeed,
+          location: users.location,
+          interests: users.interests,
+          personality: users.personality,
+          aiSignature: users.aiSignature,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(chatMessages)
+      .leftJoin(users, eq(chatMessages.userId, users.id))
+      .where(eq(chatMessages.eventId, eventId))
+      .orderBy(asc(chatMessages.createdAt))
+      .limit(limit);
+
+    const results = await query;
+    return results.map(result => ({
+      ...result,
+      user: result.user!,
+    }));
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [newMessage] = await db
+      .insert(chatMessages)
+      .values(message)
+      .returning();
+    return newMessage;
+  }
+
+  async deleteChatMessage(messageId: number, userId: string): Promise<void> {
+    await db.delete(chatMessages).where(
+      and(
+        eq(chatMessages.id, messageId),
+        eq(chatMessages.userId, userId)
+      )
+    );
   }
 }
 

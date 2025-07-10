@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertEventSchema, insertRsvpSchema } from "@shared/schema";
+import { insertEventSchema, insertRsvpSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import OpenAI from "openai";
 
@@ -341,6 +342,216 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Chat routes
+  app.get('/api/events/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      // Check if user has access to this event (is organizer or has RSVP'd)
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const isOrganizer = event.organizerId === userId;
+      
+      if (!isOrganizer && !userRsvp) {
+        return res.status(403).json({ message: "Not authorized to access this chat" });
+      }
+      
+      const messages = await storage.getChatMessages(eventId, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      res.status(500).json({ message: "Failed to fetch chat messages" });
+    }
+  });
+
+  app.post('/api/events/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const { message } = req.body;
+      
+      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+      
+      if (message.length > 1000) {
+        return res.status(400).json({ message: "Message too long. Maximum 1000 characters." });
+      }
+      
+      // Check if user has access to this event (is organizer or has RSVP'd)
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const isOrganizer = event.organizerId === userId;
+      
+      if (!isOrganizer && !userRsvp) {
+        return res.status(403).json({ message: "Not authorized to post to this chat" });
+      }
+      
+      const messageData = insertChatMessageSchema.parse({
+        eventId,
+        userId,
+        message: message.trim(),
+      });
+      
+      const newMessage = await storage.createChatMessage(messageData);
+      
+      // Get the message with user data
+      const messagesWithUser = await storage.getChatMessages(eventId, 1);
+      const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
+      
+      res.status(201).json(messageWithUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid message data", errors: error.errors });
+      }
+      console.error("Error creating chat message:", error);
+      res.status(500).json({ message: "Failed to create chat message" });
+    }
+  });
+
+  app.delete('/api/events/:eventId/messages/:messageId', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.user.claims.sub;
+      
+      // Check if user has access to this event and owns the message
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      await storage.deleteChatMessage(messageId, userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting chat message:", error);
+      res.status(500).json({ message: "Failed to delete chat message" });
+    }
+  });
+
   const httpServer = createServer(app);
+  
+  // WebSocket server for real-time chat
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store WebSocket connections by event ID
+  const eventConnections = new Map<number, Set<WebSocket>>();
+  
+  wss.on('connection', (ws: WebSocket, req) => {
+    console.log('WebSocket connection established');
+    
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        if (message.type === 'join') {
+          const { eventId, userId } = message;
+          
+          // Verify user has access to this event
+          const event = await storage.getEvent(eventId, userId);
+          if (!event) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
+            return;
+          }
+          
+          const userRsvp = await storage.getUserRsvp(eventId, userId);
+          const isOrganizer = event.organizerId === userId;
+          
+          if (!isOrganizer && !userRsvp) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not authorized to access this chat' }));
+            return;
+          }
+          
+          // Add connection to event room
+          if (!eventConnections.has(eventId)) {
+            eventConnections.set(eventId, new Set());
+          }
+          eventConnections.get(eventId)!.add(ws);
+          
+          // Store event ID on WebSocket for cleanup
+          (ws as any).eventId = eventId;
+          (ws as any).userId = userId;
+          
+          ws.send(JSON.stringify({ type: 'joined', eventId }));
+        }
+        
+        if (message.type === 'message') {
+          const { eventId, userId, content } = message;
+          
+          // Verify user has access to this event
+          const event = await storage.getEvent(eventId, userId);
+          if (!event) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
+            return;
+          }
+          
+          const userRsvp = await storage.getUserRsvp(eventId, userId);
+          const isOrganizer = event.organizerId === userId;
+          
+          if (!isOrganizer && !userRsvp) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not authorized to post to this chat' }));
+            return;
+          }
+          
+          // Save message to database
+          const messageData = insertChatMessageSchema.parse({
+            eventId,
+            userId,
+            message: content.trim(),
+          });
+          
+          const newMessage = await storage.createChatMessage(messageData);
+          
+          // Get message with user data
+          const messagesWithUser = await storage.getChatMessages(eventId, 1);
+          const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
+          
+          // Broadcast to all connected clients in this event
+          const connections = eventConnections.get(eventId);
+          if (connections) {
+            const broadcastData = JSON.stringify({
+              type: 'newMessage',
+              message: messageWithUser
+            });
+            
+            connections.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(broadcastData);
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+      }
+    });
+    
+    ws.on('close', () => {
+      // Clean up connection from event rooms
+      const eventId = (ws as any).eventId;
+      if (eventId && eventConnections.has(eventId)) {
+        eventConnections.get(eventId)!.delete(ws);
+        if (eventConnections.get(eventId)!.size === 0) {
+          eventConnections.delete(eventId);
+        }
+      }
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+  });
+  
   return httpServer;
 }

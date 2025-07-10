@@ -86,6 +86,7 @@ export const eventRsvps = pgTable("event_rsvps", {
 export const userRelations = relations(users, ({ many }) => ({
   organizedEvents: many(events),
   rsvps: many(eventRsvps),
+  chatMessages: many(chatMessages),
 }));
 
 export const eventRelations = relations(events, ({ one, many }) => ({
@@ -94,6 +95,7 @@ export const eventRelations = relations(events, ({ one, many }) => ({
     references: [users.id],
   }),
   rsvps: many(eventRsvps),
+  chatMessages: many(chatMessages),
 }));
 
 export const eventRsvpRelations = relations(eventRsvps, ({ one }) => ({
@@ -105,6 +107,21 @@ export const eventRsvpRelations = relations(eventRsvps, ({ one }) => ({
     fields: [eventRsvps.userId],
     references: [users.id],
   }),
+}));
+
+// Chat messages table for event group chats
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const chatMessageRelations = relations(chatMessages, ({ one }) => ({
+  event: one(events, { fields: [chatMessages.eventId], references: [events.id] }),
+  user: one(users, { fields: [chatMessages.userId], references: [users.id] }),
 }));
 
 // Zod schemas
@@ -132,6 +149,12 @@ export const insertRsvpSchema = createInsertSchema(eventRsvps).omit({
   createdAt: true,
 });
 
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -144,3 +167,8 @@ export type EventWithOrganizer = Event & {
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type InsertRsvp = z.infer<typeof insertRsvpSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type ChatMessageWithUser = ChatMessage & {
+  user: User;
+};
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

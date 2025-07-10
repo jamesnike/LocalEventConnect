@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft } from "lucide-react";
-import { EventWithOrganizer } from "@shared/schema";
+import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { apiRequest } from "@/lib/queryClient";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimeAvatar from "./AnimeAvatar";
@@ -30,9 +34,60 @@ export default function EventContentCard({
   showBackButton = false,
   onBackClick
 }: EventContentCardProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
+
+  // WebSocket connection for real-time chat
+  const { isConnected, messages: wsMessages, sendMessage, setMessages } = useWebSocket(
+    activeTab === 'chat' ? event.id : null
+  );
+
+  // Fetch chat messages
+  const { data: chatMessages = [], isLoading: isLoadingMessages } = useQuery({
+    queryKey: ['/api/events', event.id, 'messages'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/messages`);
+      return response.json() as Promise<ChatMessageWithUser[]>;
+    },
+    enabled: activeTab === 'chat' && user !== null,
+  });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      if (isConnected) {
+        // Use WebSocket for real-time
+        sendMessage(message);
+      } else {
+        // Fallback to HTTP API
+        const response = await apiRequest(`/api/events/${event.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+        return response.json() as Promise<ChatMessageWithUser>;
+      }
+    },
+    onSuccess: (data) => {
+      if (data) {
+        // If using HTTP API, add message to cache
+        queryClient.setQueryData<ChatMessageWithUser[]>(
+          ['/api/events', event.id, 'messages'],
+          (old) => [...(old || []), data]
+        );
+      }
+    },
+  });
+
+  // Set initial messages from API when loaded
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      setMessages(chatMessages);
+    }
+  }, [chatMessages, setMessages]);
 
   // Reset tab when event changes
   useEffect(() => {
@@ -44,26 +99,11 @@ export default function EventContentCard({
     setActiveTab(tab);
     onTabChange?.(tab);
   };
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      user: { name: "Sarah", avatarSeed: "sarah_123" },
-      message: "Hey everyone! Really excited for this event 🎉",
-      timestamp: "2 min ago"
-    },
-    {
-      id: 2,
-      user: { name: "Mike", avatarSeed: "mike_456" },
-      message: "Same here! Should we meet at the main entrance?",
-      timestamp: "1 min ago"
-    },
-    {
-      id: 3,
-      user: { name: event.organizer.name, avatarSeed: event.organizer.animeAvatarSeed },
-      message: "Great! I'll be there 15 minutes early to set up. Looking forward to meeting everyone!",
-      timestamp: "30 sec ago"
-    }
-  ]);
+
+  // Combine API messages with WebSocket messages
+  const allMessages = [...chatMessages, ...wsMessages.filter(wsMsg => 
+    !chatMessages.some(apiMsg => apiMsg.id === wsMsg.id)
+  )];
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -80,14 +120,8 @@ export default function EventContentCard({
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const newMsg = {
-        id: messages.length + 1,
-        user: { name: "You", avatarSeed: "user_current" },
-        message: newMessage.trim(),
-        timestamp: "now"
-      };
-      setMessages(prev => [...prev, newMsg]);
+    if (newMessage.trim() && !sendMessageMutation.isPending) {
+      sendMessageMutation.mutate(newMessage);
       setNewMessage('');
     }
   };
@@ -169,18 +203,38 @@ export default function EventContentCard({
               >
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className="flex space-x-3">
-                      <AnimeAvatar seed={msg.user.avatarSeed} size="xs" />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-sm text-gray-800">{msg.user.name}</span>
-                          <span className="text-xs text-gray-500">{msg.timestamp}</span>
-                        </div>
-                        <p className="text-sm text-gray-700 mt-1">{msg.message}</p>
-                      </div>
+                  {isLoadingMessages ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                      <p className="text-gray-500 text-sm mt-2">Loading messages...</p>
                     </div>
-                  ))}
+                  ) : allMessages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">No messages yet. Start the conversation!</p>
+                    </div>
+                  ) : (
+                    allMessages.map((msg) => (
+                      <div key={msg.id} className="flex space-x-3">
+                        <AnimeAvatar seed={msg.user.animeAvatarSeed} size="xs" />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-sm text-gray-800">
+                              {msg.user.firstName} {msg.user.lastName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(msg.createdAt).toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1">{msg.message}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 {/* Message Input */}
@@ -196,10 +250,14 @@ export default function EventContentCard({
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={!newMessage.trim()}
+                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
                       className="px-4 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="w-4 h-4" />
+                      {sendMessageMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
