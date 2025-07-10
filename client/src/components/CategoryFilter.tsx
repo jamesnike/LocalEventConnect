@@ -39,51 +39,53 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
-      <div className="space-y-2">
-        {/* First row */}
-        <div className="flex space-x-2 overflow-x-auto pb-1">
-          {timeOptions.slice(0, Math.ceil(timeOptions.length / 2)).map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedCategory === option.id;
-            
-            return (
-              <button
-                key={option.id}
-                onClick={() => onCategoryChange(option.id)}
-                className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isSelected
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Icon className="w-4 h-4 mr-1" />
-                {option.name}
-              </button>
-            );
-          })}
-        </div>
-        
-        {/* Second row */}
-        <div className="flex space-x-2 overflow-x-auto pb-1">
-          {timeOptions.slice(Math.ceil(timeOptions.length / 2)).map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedCategory === option.id;
-            
-            return (
-              <button
-                key={option.id}
-                onClick={() => onCategoryChange(option.id)}
-                className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isSelected
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Icon className="w-4 h-4 mr-1" />
-                {option.name}
-              </button>
-            );
-          })}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex flex-col space-y-2 min-w-max">
+          {/* First row */}
+          <div className="flex space-x-2">
+            {timeOptions.slice(0, Math.ceil(timeOptions.length / 2)).map((option) => {
+              const Icon = option.icon;
+              const isSelected = selectedCategory === option.id;
+              
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => onCategoryChange(option.id)}
+                  className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    isSelected
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-1" />
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Second row */}
+          <div className="flex space-x-2">
+            {timeOptions.slice(Math.ceil(timeOptions.length / 2)).map((option) => {
+              const Icon = option.icon;
+              const isSelected = selectedCategory === option.id;
+              
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => onCategoryChange(option.id)}
+                  className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    isSelected
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-1" />
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
