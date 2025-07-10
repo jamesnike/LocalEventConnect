@@ -171,13 +171,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.params.userId;
       const type = req.query.type as 'organized' | 'attending' || 'organized';
+      const pastOnly = req.query.pastOnly === 'true';
       
       // Users can only view their own events
       if (userId !== req.user.claims.sub) {
         return res.status(403).json({ message: "Not authorized to view these events" });
       }
       
-      const events = await storage.getUserEvents(userId, type);
+      const events = await storage.getUserEvents(userId, type, pastOnly);
       res.json(events);
     } catch (error) {
       console.error("Error fetching user events:", error);

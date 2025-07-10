@@ -33,7 +33,7 @@ export interface IStorage {
   createExternalEvent(event: { title: string; description: string; category: string; date: string; time: string; location: string; organizerEmail?: string; source?: string; sourceUrl?: string; latitude?: string; longitude?: string; price?: string; isFree?: boolean; eventImageUrl?: string; [key: string]: any }): Promise<Event>;
   updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: number): Promise<void>;
-  getUserEvents(userId: string, type: 'organized' | 'attending'): Promise<EventWithOrganizer[]>;
+  getUserEvents(userId: string, type: 'organized' | 'attending', pastOnly?: boolean): Promise<EventWithOrganizer[]>;
   
   // RSVP operations
   createRsvp(rsvp: InsertRsvp): Promise<EventRsvp>;
@@ -408,12 +408,83 @@ export class DatabaseStorage implements IStorage {
     await db.delete(events).where(eq(events.id, id));
   }
 
-  async getUserEvents(userId: string, type: 'organized' | 'attending'): Promise<EventWithOrganizer[]> {
+  async getUserEvents(userId: string, type: 'organized' | 'attending', pastOnly = false): Promise<EventWithOrganizer[]> {
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS format
+    
     if (type === 'organized') {
-      return this.getEvents(userId).then(events => 
-        events.filter(event => event.organizerId === userId)
-      );
+      // Get organized events with optional past filtering
+      const query = db
+        .select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          category: events.category,
+          date: events.date,
+          time: events.time,
+          location: events.location,
+          latitude: events.latitude,
+          longitude: events.longitude,
+          price: events.price,
+          isFree: events.isFree,
+          eventImageUrl: events.eventImageUrl,
+          organizerId: events.organizerId,
+          maxAttendees: events.maxAttendees,
+          capacity: events.capacity,
+          parkingInfo: events.parkingInfo,
+          meetingPoint: events.meetingPoint,
+          duration: events.duration,
+          whatToBring: events.whatToBring,
+          specialNotes: events.specialNotes,
+          requirements: events.requirements,
+          contactInfo: events.contactInfo,
+          cancellationPolicy: events.cancellationPolicy,
+          isActive: events.isActive,
+          createdAt: events.createdAt,
+          updatedAt: events.updatedAt,
+          organizer: {
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            animeAvatarSeed: users.animeAvatarSeed,
+            location: users.location,
+            interests: users.interests,
+            personality: users.personality,
+            aiSignature: users.aiSignature,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+          },
+          rsvpCount: sql<number>`COUNT(${eventRsvps.id})::int`,
+          userRsvpStatus: sql<string>`NULL`,
+        })
+        .from(events)
+        .leftJoin(users, eq(events.organizerId, users.id))
+        .leftJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+        .where(
+          and(
+            eq(events.isActive, true),
+            eq(events.organizerId, userId),
+            // Filter for past events only if pastOnly is true
+            pastOnly 
+              ? sql`(${events.date} < ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} < ${currentTime}))`
+              : undefined
+          )
+        )
+        .groupBy(events.id, users.id)
+        .orderBy(desc(events.date));
+
+      const results = await query;
+      return results.map(result => ({
+        ...result,
+        organizer: result.organizer!,
+        rsvpCount: result.rsvpCount || 0,
+        userRsvpStatus: result.userRsvpStatus || undefined,
+      }));
     } else {
+      // Get attending events with optional past filtering
       const query = db
         .select({
           id: events.id,
@@ -475,11 +546,15 @@ export class DatabaseStorage implements IStorage {
               eq(eventRsvps.status, 'attending'),
               eq(eventRsvps.status, 'going'),
               eq(eventRsvps.status, 'maybe')
-            )
+            ),
+            // Filter for past events only if pastOnly is true
+            pastOnly 
+              ? sql`(${events.date} < ${currentDate} OR (${events.date} = ${currentDate} AND ${events.time} < ${currentTime}))`
+              : undefined
           )
         )
         .groupBy(events.id, users.id, eventRsvps.status)
-        .orderBy(asc(events.date));
+        .orderBy(desc(events.date));
 
       const results = await query;
       return results.map(result => ({

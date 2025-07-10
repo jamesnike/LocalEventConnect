@@ -159,10 +159,10 @@ export default function Profile() {
   ];
 
   const { data: userEvents } = useQuery({
-    queryKey: ["/api/users", user?.id, "events", "organized"],
+    queryKey: ["/api/users", user?.id, "events", "organized", "past"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/events?type=organized`);
+      const response = await fetch(`/api/users/${user.id}/events?type=organized&pastOnly=true`);
       if (!response.ok) throw new Error('Failed to fetch user events');
       return response.json() as Promise<EventWithOrganizer[]>;
     },
@@ -170,10 +170,10 @@ export default function Profile() {
   });
 
   const { data: attendingEvents } = useQuery({
-    queryKey: ["/api/users", user?.id, "events", "attending"],
+    queryKey: ["/api/users", user?.id, "events", "attending", "past"],
     queryFn: async () => {
       if (!user?.id) return [];
-      const response = await fetch(`/api/users/${user.id}/events?type=attending`);
+      const response = await fetch(`/api/users/${user.id}/events?type=attending&pastOnly=true`);
       if (!response.ok) throw new Error('Failed to fetch attending events');
       return response.json() as Promise<EventWithOrganizer[]>;
     },
@@ -694,40 +694,38 @@ export default function Profile() {
 
       {/* Profile Content */}
       <div className="p-4 space-y-6">
-        {/* My Events */}
+        {/* Event History */}
         <div>
-          <h4 className="font-semibold text-gray-800 mb-3">My Events</h4>
+          <h4 className="font-semibold text-gray-800 mb-3">Event History</h4>
           <div className="space-y-3">
             {userEvents && userEvents.length > 0 ? (
               userEvents.slice(0, 2).map((event) => (
                 <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
                     {getEventIcon(event.category)}
                   </div>
                   <div className="flex-1">
                     <h5 className="font-medium text-gray-800">{event.title}</h5>
-                    <p className="text-sm text-gray-600">Hosting • {event.rsvpCount} attending</p>
+                    <p className="text-sm text-gray-600">Hosted • {event.date}</p>
+                  </div>
+                </div>
+              ))
+            ) : attendingEvents && attendingEvents.length > 0 ? (
+              attendingEvents.slice(0, 2).map((event) => (
+                <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                    {getEventIcon(event.category)}
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-medium text-gray-800">{event.title}</h5>
+                    <p className="text-sm text-gray-600">Attended • {event.date}</p>
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center py-4 text-gray-500">
-                <p>No events created yet</p>
+                <p>No past events yet</p>
               </div>
-            )}
-            
-            {attendingEvents && attendingEvents.length > 0 && (
-              attendingEvents.slice(0, 1).map((event) => (
-                <div key={event.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-success rounded-lg flex items-center justify-center">
-                    {getEventIcon(event.category)}
-                  </div>
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-800">{event.title}</h5>
-                    <p className="text-sm text-gray-600">Attending • {event.date}</p>
-                  </div>
-                </div>
-              ))
             )}
           </div>
         </div>
