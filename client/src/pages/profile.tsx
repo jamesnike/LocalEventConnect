@@ -115,6 +115,44 @@ export default function Profile() {
     { id: 'playful', name: 'Playful', emoji: '🎭' },
     { id: 'determined', name: 'Determined', emoji: '🔥' },
     { id: 'empathetic', name: 'Empathetic', emoji: '🫂' },
+    { id: 'introverted', name: 'Introverted', emoji: '📚' },
+    { id: 'extraverted', name: 'Extraverted', emoji: '🗣️' },
+    { id: 'patient', name: 'Patient', emoji: '🧘' },
+    { id: 'passionate', name: 'Passionate', emoji: '🔥' },
+    { id: 'intellectual', name: 'Intellectual', emoji: '🧠' },
+    { id: 'humorous', name: 'Humorous', emoji: '😂' },
+    { id: 'sensitive', name: 'Sensitive', emoji: '🌸' },
+    { id: 'practical', name: 'Practical', emoji: '🔧' },
+    { id: 'intuitive', name: 'Intuitive', emoji: '💫' },
+    { id: 'reliable', name: 'Reliable', emoji: '🏆' },
+    { id: 'flexible', name: 'Flexible', emoji: '🤸' },
+    { id: 'focused', name: 'Focused', emoji: '🎯' },
+    { id: 'romantic', name: 'Romantic', emoji: '💕' },
+    { id: 'logical', name: 'Logical', emoji: '⚖️' },
+    { id: 'generous', name: 'Generous', emoji: '🤗' },
+    { id: 'wise', name: 'Wise', emoji: '🦉' },
+    { id: 'innovative', name: 'Innovative', emoji: '💡' },
+    { id: 'resilient', name: 'Resilient', emoji: '💪' },
+    { id: 'charismatic', name: 'Charismatic', emoji: '✨' },
+    { id: 'humble', name: 'Humble', emoji: '🙏' },
+    { id: 'bold', name: 'Bold', emoji: '⚡' },
+    { id: 'peaceful', name: 'Peaceful', emoji: '🕊️' },
+    { id: 'witty', name: 'Witty', emoji: '🎪' },
+    { id: 'sincere', name: 'Sincere', emoji: '💝' },
+    { id: 'driven', name: 'Driven', emoji: '🚀' },
+    { id: 'nurturing', name: 'Nurturing', emoji: '🌱' },
+    { id: 'open_minded', name: 'Open-minded', emoji: '🌍' },
+    { id: 'competitive', name: 'Competitive', emoji: '🏅' },
+    { id: 'supportive', name: 'Supportive', emoji: '🤲' },
+    { id: 'mysterious', name: 'Mysterious', emoji: '🎭' },
+    { id: 'balanced', name: 'Balanced', emoji: '⚖️' },
+    { id: 'inspiring', name: 'Inspiring', emoji: '🌟' },
+    { id: 'disciplined', name: 'Disciplined', emoji: '🎖️' },
+    { id: 'free_spirited', name: 'Free-spirited', emoji: '🦋' },
+    { id: 'strategic', name: 'Strategic', emoji: '♟️' },
+    { id: 'caring', name: 'Caring', emoji: '💖' },
+    { id: 'mindful', name: 'Mindful', emoji: '🧘‍♀️' },
+    { id: 'progressive', name: 'Progressive', emoji: '🌈' },
   ];
 
   const { data: userEvents } = useQuery({
@@ -680,28 +718,30 @@ export default function Profile() {
           
           {editingPersonality ? (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">Select up to 5 personality traits that describe you best:</p>
-              <div className="grid grid-cols-2 gap-2">
-                {availablePersonalities.map((personality) => {
-                  const isSelected = selectedPersonality.includes(personality.id);
-                  
-                  return (
-                    <button
-                      key={personality.id}
-                      onClick={() => handlePersonalityToggle(personality.id)}
-                      disabled={!isSelected && selectedPersonality.length >= 5}
-                      className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
-                        isSelected 
-                          ? 'bg-purple-50 border-purple-500 text-purple-700' 
-                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                      } ${!isSelected && selectedPersonality.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <span className="text-lg">{personality.emoji}</span>
-                      <span className="text-sm">{personality.name}</span>
-                      {isSelected && <Check className="w-4 h-4 ml-auto" />}
-                    </button>
-                  );
-                })}
+              <p className="text-sm text-gray-600">Select up to 3 personality traits that describe you best:</p>
+              <div className="max-h-64 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 pr-2">
+                  {availablePersonalities.map((personality) => {
+                    const isSelected = selectedPersonality.includes(personality.id);
+                    
+                    return (
+                      <button
+                        key={personality.id}
+                        onClick={() => handlePersonalityToggle(personality.id)}
+                        disabled={!isSelected && selectedPersonality.length >= 3}
+                        className={`flex items-center space-x-2 p-3 rounded-lg border transition-colors ${
+                          isSelected 
+                            ? 'bg-purple-50 border-purple-500 text-purple-700' 
+                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        } ${!isSelected && selectedPersonality.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <span className="text-lg">{personality.emoji}</span>
+                        <span className="text-sm">{personality.name}</span>
+                        {isSelected && <Check className="w-4 h-4 ml-auto" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="flex space-x-2">
                 <button
@@ -725,7 +765,7 @@ export default function Profile() {
           ) : (
             <div className="flex flex-wrap gap-2">
               {user?.personality && user.personality.length > 0 ? (
-                user.personality.slice(0, 5).map((personalityId) => {
+                user.personality.slice(0, 3).map((personalityId) => {
                   const personalityData = availablePersonalities.find(p => p.id === personalityId);
                   
                   return (
