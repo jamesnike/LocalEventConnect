@@ -535,10 +535,14 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     <span>Group Chat</span>
                   </button>
                   
-                  {/* Exit Group Chat Button */}
+                  {/* Exit Group Chat Button - Show for all users who can access chat */}
                   <button 
                     onClick={() => {
-                      if (confirm('Are you sure you want to leave this group chat? You will no longer receive messages from this event but will continue organizing it.')) {
+                      const confirmMessage = isOrganizer 
+                        ? 'Are you sure you want to leave this group chat? You will no longer receive messages from this event but will continue organizing it.'
+                        : 'Are you sure you want to leave this group chat? You will no longer receive messages from this event but will remain attending.';
+                      
+                      if (confirm(confirmMessage)) {
                         leaveGroupChatMutation.mutate();
                       }
                     }}
