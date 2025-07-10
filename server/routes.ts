@@ -3,9 +3,11 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertEventSchema, insertRsvpSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertEventSchema, insertRsvpSchema, insertChatMessageSchema, chatMessages, users } from "@shared/schema";
 import { z } from "zod";
 import OpenAI from "openai";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -408,9 +410,39 @@ Please respond with just the signature text, nothing else.`;
       
       const newMessage = await storage.createChatMessage(messageData);
       
-      // Get the message with user data - find the specific message we just created
-      const messagesWithUser = await storage.getChatMessages(eventId, 10); // Get more messages to find the right one
-      const messageWithUser = messagesWithUser.find(m => m.id === newMessage.id);
+      // Get the specific message with user data directly
+      const messageWithUserQuery = await db
+        .select({
+          id: chatMessages.id,
+          eventId: chatMessages.eventId,
+          userId: chatMessages.userId,
+          message: chatMessages.message,
+          createdAt: chatMessages.createdAt,
+          updatedAt: chatMessages.updatedAt,
+          user: {
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            animeAvatarSeed: users.animeAvatarSeed,
+            location: users.location,
+            interests: users.interests,
+            personality: users.personality,
+            aiSignature: users.aiSignature,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+          },
+        })
+        .from(chatMessages)
+        .leftJoin(users, eq(chatMessages.userId, users.id))
+        .where(eq(chatMessages.id, newMessage.id))
+        .limit(1);
+      
+      const messageWithUser = messageWithUserQuery[0] ? {
+        ...messageWithUserQuery[0],
+        user: messageWithUserQuery[0].user!,
+      } : null;
       
       console.log('HTTP POST: Created message:', newMessage);
       console.log('HTTP POST: Retrieved message with user:', messageWithUser);
