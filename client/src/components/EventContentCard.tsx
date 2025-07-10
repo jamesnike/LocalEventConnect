@@ -49,8 +49,12 @@ export default function EventContentCard({
   const { data: chatMessages = [], isLoading: isLoadingMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/events', event.id, 'messages'],
     queryFn: async () => {
+      console.log('Fetching messages for event:', event.id);
       const response = await apiRequest(`/api/events/${event.id}/messages`);
-      return response.json() as Promise<ChatMessageWithUser[]>;
+      console.log('Messages fetch response:', response.status);
+      const messages = await response.json() as ChatMessageWithUser[];
+      console.log('Received messages:', messages);
+      return messages;
     },
     enabled: activeTab === 'chat' && user !== null,
     staleTime: 0, // Always refetch when needed
@@ -60,15 +64,18 @@ export default function EventContentCard({
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
+      console.log('Sending message:', message, 'to event:', event.id);
       // Always use HTTP API for reliability
       const response = await apiRequest(`/api/events/${event.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       });
+      console.log('Message sent response:', response.status);
       return response.json() as Promise<ChatMessageWithUser>;
     },
     onSuccess: (data) => {
+      console.log('Message sent successfully:', data);
       if (data) {
         // Add message to cache immediately
         queryClient.setQueryData<ChatMessageWithUser[]>(
@@ -79,6 +86,9 @@ export default function EventContentCard({
         // Refetch to ensure we have the latest messages
         refetchMessages();
       }
+    },
+    onError: (error) => {
+      console.error('Failed to send message:', error);
     },
   });
 
