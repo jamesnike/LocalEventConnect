@@ -77,6 +77,7 @@ export default function Home() {
     return saved?.lastActiveTab || 'chat';
   });
   const [isFromMyEvents, setIsFromMyEvents] = useState(false);
+  const [isFromBrowse, setIsFromBrowse] = useState(false);
   const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
 
   const availableInterests = [
@@ -105,6 +106,7 @@ export default function Home() {
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
     const fromMyEvents = localStorage.getItem('fromMyEvents');
+    const fromBrowse = localStorage.getItem('fromBrowse');
     const preferredTab = localStorage.getItem('preferredTab');
     
     if (eventContentId && events) {
@@ -141,9 +143,15 @@ export default function Home() {
           setEventFromMyEvents(event); // Store the event for back navigation
         }
         
+        // Check if coming from Browse page
+        if (fromBrowse === 'true') {
+          setIsFromBrowse(true);
+        }
+        
         // Clear the localStorage
         localStorage.removeItem('eventContentId');
         localStorage.removeItem('fromMyEvents');
+        localStorage.removeItem('fromBrowse');
         localStorage.removeItem('preferredTab');
       }
     }
@@ -405,11 +413,15 @@ export default function Home() {
                   showBackButton={true}
                   onBackClick={() => {
                     if (isFromMyEvents) {
-                      handleBackToEventDetail();
+                      // Go back to My Events page
+                      setLocation('/my-events');
+                    } else if (isFromBrowse) {
+                      // Go back to Browse page
+                      setLocation('/browse');
                     } else {
-                      // From Browse: show EventDetail for the current event
-                      setSelectedEvent(currentEvent);
+                      // Default: just close the content card and return to main swipe interface
                       setShowContentCard(false);
+                      setShowDetailCard(false);
                     }
                   }}
                 />

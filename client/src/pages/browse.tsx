@@ -144,6 +144,8 @@ export default function Browse() {
             localStorage.setItem('eventContentId', selectedEvent.id.toString());
             // Set preferred tab to chat for group chat access
             localStorage.setItem('preferredTab', 'chat');
+            // Indicate that we came from Browse page
+            localStorage.setItem('fromBrowse', 'true');
             setLocation('/');
           }}
         />
