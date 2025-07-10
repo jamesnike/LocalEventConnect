@@ -492,24 +492,17 @@ export default function Home() {
           }} 
           showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
-            // Find the event in the full events array
-            const allEvents = events || [];
-            const eventIndex = allEvents.findIndex(e => e.id === selectedEvent.id);
-            
-            if (eventIndex !== -1) {
-              // Calculate the new available events after removing this event from swipedEvents
-              const newSwipedEvents = new Set(swipedEvents);
-              newSwipedEvents.delete(selectedEvent.id);
-              const newAvailableEvents = allEvents.filter(event => !newSwipedEvents.has(event.id));
-              
-              // Find the index of the selected event in the new available events
-              const newIndex = newAvailableEvents.findIndex(e => e.id === selectedEvent.id);
-              
-              // Update state
-              setSwipedEvents(newSwipedEvents);
-              setCurrentEventIndex(newIndex >= 0 ? newIndex : 0);
-              setShowContentCard(true);
+            // Store the selected event in localStorage and navigate
+            localStorage.setItem('eventContentId', selectedEvent.id.toString());
+            localStorage.setItem('preferredTab', 'chat');
+            if (isFromMyEvents) {
+              localStorage.setItem('fromMyEvents', 'true');
             }
+            
+            // Close the modal and let the useEffect handle the navigation
+            setSelectedEvent(null);
+            setIsFromMyEvents(false);
+            setEventFromMyEvents(null);
           }}
         />
       )}
