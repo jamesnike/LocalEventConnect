@@ -140,12 +140,25 @@ export default function Home() {
     const fromMessagesTab = localStorage.getItem('fromMessagesTab');
     const preferredTab = localStorage.getItem('preferredTab');
     
+    console.log('Home page localStorage check:', {
+      eventContentId,
+      fromMyEvents,
+      fromBrowse,
+      fromMessagesTab,
+      preferredTab,
+      eventsLoaded: !!events,
+      eventsLength: events?.length
+    });
+    
     if (eventContentId && events) {
       const eventId = parseInt(eventContentId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
+      console.log(`Looking for event ${eventId} in home events, found at index: ${eventIndex}`);
+      
       if (eventIndex !== -1) {
         const event = events[eventIndex];
+        console.log(`Found event in home events: ${event.title}`);
         handleEventNavigation(event, eventId, fromMyEvents, fromBrowse, fromMessagesTab, preferredTab);
       } else {
         // Event not found in home page events, fetch it separately
