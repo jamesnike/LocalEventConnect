@@ -72,20 +72,23 @@ export default function EventContentCard({
         body: JSON.stringify({ message }),
       });
       console.log('Message sent response:', response.status);
-      return response.json() as Promise<ChatMessageWithUser>;
+      
+      // Check if response has content before parsing
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text();
+        if (text) {
+          return JSON.parse(text) as ChatMessageWithUser;
+        }
+      }
+      
+      // If no JSON response, return null and trigger refetch
+      return null;
     },
     onSuccess: (data) => {
       console.log('Message sent successfully:', data);
-      if (data) {
-        // Add message to cache immediately
-        queryClient.setQueryData<ChatMessageWithUser[]>(
-          ['/api/events', event.id, 'messages'],
-          (old) => [...(old || []), data]
-        );
-        
-        // Refetch to ensure we have the latest messages
-        refetchMessages();
-      }
+      // Immediately invalidate and refetch messages to show the new message
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
     },
     onError: (error) => {
       console.error('Failed to send message:', error);
