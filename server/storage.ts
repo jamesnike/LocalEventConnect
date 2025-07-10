@@ -18,7 +18,7 @@ import {
   type InsertMessageRead,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql, desc, asc, gte, lte, between, gt } from "drizzle-orm";
+import { eq, and, or, ne, sql, desc, asc, gte, lte, between, gt } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -350,6 +350,7 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(events.isActive, true),
             eq(eventRsvps.userId, userId),
+            ne(events.organizerId, userId), // Exclude events organized by the user
             or(
               eq(eventRsvps.status, 'attending'),
               eq(eventRsvps.status, 'going'),
