@@ -45,6 +45,14 @@ export default function EventContentCard({
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
+  
+  // Debug logging
+  console.log('EventContentCard Debug:', {
+    user: user?.id,
+    hasChatAccess,
+    eventId: event.id,
+    eventTitle: event.title
+  });
 
   // Fetch chat messages - always fetch when chat is accessed
   const { data: chatMessages = [], isLoading: isLoadingMessages, refetch: refetchMessages } = useQuery({
