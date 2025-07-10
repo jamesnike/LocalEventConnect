@@ -180,6 +180,8 @@ export default function MyEvents() {
             localStorage.setItem('eventContentId', selectedEvent.id.toString());
             // Set preferred tab to chat for group chat access
             localStorage.setItem('preferredTab', 'chat');
+            // Store flag to indicate coming from MyEvents for back button
+            localStorage.setItem('fromMyEvents', 'true');
             setLocation('/');
           }}
         />

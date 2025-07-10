@@ -30,6 +30,7 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>('chat');
   const [isFromMyEvents, setIsFromMyEvents] = useState(false);
+  const [eventFromMyEvents, setEventFromMyEvents] = useState<EventWithOrganizer | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -59,16 +60,25 @@ export default function Home() {
   // Check for event ID from localStorage (when navigating from other pages)
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
+    const fromMyEvents = localStorage.getItem('fromMyEvents');
+    
     if (eventContentId && events) {
       const eventId = parseInt(eventContentId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
       if (eventIndex !== -1) {
+        const event = events[eventIndex];
+        
         // Set up the interface to show EventContent for this event
         setCurrentEventIndex(eventIndex);
         setShowContentCard(true);
         setShowDetailCard(false);
-        setIsFromMyEvents(true); // Set flag to show back button
+        
+        // Check if coming from My Events
+        if (fromMyEvents === 'true') {
+          setIsFromMyEvents(true);
+          setEventFromMyEvents(event); // Store the event for back navigation
+        }
         
         // Remove from swipedEvents to ensure it's available
         setSwipedEvents(prev => {
@@ -79,6 +89,7 @@ export default function Home() {
         
         // Clear the localStorage
         localStorage.removeItem('eventContentId');
+        localStorage.removeItem('fromMyEvents');
       }
     }
   }, [events]);
@@ -119,6 +130,7 @@ export default function Home() {
       setCurrentEventIndex(prev => prev + 1);
       setShowContentCard(false);
       setIsFromMyEvents(false); // Reset flag
+      setEventFromMyEvents(null); // Clear stored event
     } else if (showDetailCard) {
       // From detail card, go back to main card
       setIsTransitioning(true);
@@ -132,10 +144,13 @@ export default function Home() {
     }
   };
 
-  const handleBackToMyEvents = () => {
-    setLocation('/my-events');
-    setShowContentCard(false);
-    setIsFromMyEvents(false);
+  const handleBackToEventDetail = () => {
+    if (eventFromMyEvents) {
+      setSelectedEvent(eventFromMyEvents);
+      setShowContentCard(false);
+      setIsFromMyEvents(false);
+      setEventFromMyEvents(null);
+    }
   };
 
   const handleSkipAnimationComplete = () => {
@@ -312,7 +327,7 @@ export default function Home() {
                   initialTab={lastActiveTab}
                   onTabChange={setLastActiveTab}
                   showBackButton={isFromMyEvents}
-                  onBackClick={handleBackToMyEvents}
+                  onBackClick={handleBackToEventDetail}
                 />
               </div>
             </div>
