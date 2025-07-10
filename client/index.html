@@ -3,27 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>EventConnect</title>
   </head>
   <body>
-    <div id="root">
-      <div style="padding: 20px; color: blue; font-size: 18px;">
-        Loading EventConnect...
-      </div>
-    </div>
-    <script>
-      console.log("HTML loaded, JavaScript is working");
-      window.addEventListener('load', () => {
-        console.log("Page fully loaded");
-        setTimeout(() => {
-          const root = document.getElementById('root');
-          if (root && root.innerHTML.includes('Loading EventConnect')) {
-            console.log("React failed to load within 8 seconds");
-            root.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">React failed to load - check console for errors</div>';
-          }
-        }, 8000);
-      });
-    </script>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>

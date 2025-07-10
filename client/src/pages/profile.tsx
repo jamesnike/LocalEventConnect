@@ -254,13 +254,11 @@ export default function Profile() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async (location: string) => {
-      console.log("Updating location:", { location, interests: user?.interests, personality: user?.personality });
-      const response = await apiRequest('PUT', '/api/users/profile', { 
+      await apiRequest('PUT', '/api/users/profile', { 
         location,
         interests: user?.interests || [],
         personality: user?.personality || []
       });
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -271,7 +269,6 @@ export default function Profile() {
       setEditingLocation(false);
     },
     onError: (error) => {
-      console.error("Location update error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -285,7 +282,7 @@ export default function Profile() {
       }
       toast({
         title: "Error",
-        description: `Failed to update location: ${error.message}`,
+        description: "Failed to update location. Please try again.",
         variant: "destructive",
       });
     },

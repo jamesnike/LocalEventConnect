@@ -38,7 +38,6 @@ export const users = pgTable("users", {
   location: varchar("location"),
   interests: text("interests").array().default([]), // Array of interest categories
   personality: text("personality").array().default([]), // Array of personality traits
-  aiSignature: text("ai_signature"), // AI-generated signature based on interests and personality
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
