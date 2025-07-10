@@ -30,6 +30,7 @@ export interface IStorage {
   getEvents(userId?: string, category?: string, timeFilter?: string, limit?: number): Promise<EventWithOrganizer[]>;
   getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  createExternalEvent(event: { title: string; description: string; category: string; date: string; time: string; location: string; organizerEmail?: string; source?: string; sourceUrl?: string; latitude?: string; longitude?: string; price?: string; isFree?: boolean; eventImageUrl?: string; [key: string]: any }): Promise<Event>;
   updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: number): Promise<void>;
   getUserEvents(userId: string, type: 'organized' | 'attending'): Promise<EventWithOrganizer[]>;
@@ -304,6 +305,89 @@ export class DatabaseStorage implements IStorage {
     const [newEvent] = await db
       .insert(events)
       .values(event)
+      .returning();
+    return newEvent;
+  }
+
+  async createExternalEvent(eventData: { title: string; description: string; category: string; date: string; time: string; location: string; organizerEmail?: string; source?: string; sourceUrl?: string; latitude?: string; longitude?: string; price?: string; isFree?: boolean; eventImageUrl?: string; [key: string]: any }): Promise<Event> {
+    // Find or create an organizer user
+    let organizerId: string;
+    
+    if (eventData.organizerEmail) {
+      // Try to find existing user by email
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, eventData.organizerEmail))
+        .limit(1);
+      
+      if (existingUser) {
+        organizerId = existingUser.id;
+      } else {
+        // Create a new user for the organizer
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            id: `external_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            email: eventData.organizerEmail,
+            firstName: eventData.organizerEmail.split('@')[0],
+            lastName: 'External',
+            animeAvatarSeed: `external_${Date.now()}`,
+            interests: ['Events'],
+            personality: ['Organized'],
+            aiSignature: `Event organizer from ${eventData.source || 'external source'}`,
+          })
+          .returning();
+        organizerId = newUser.id;
+      }
+    } else {
+      // Create a default external organizer
+      const [defaultUser] = await db
+        .insert(users)
+        .values({
+          id: `external_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          email: `external-${Date.now()}@eventconnect.app`,
+          firstName: 'External',
+          lastName: 'Organizer',
+          animeAvatarSeed: `external_${Date.now()}`,
+          interests: ['Events'],
+          personality: ['Organized'],
+          aiSignature: `Event organizer from ${eventData.source || 'external source'}`,
+        })
+        .returning();
+      organizerId = defaultUser.id;
+    }
+
+    // Create the event with the organizer
+    const eventToInsert = {
+      title: eventData.title,
+      description: eventData.description,
+      category: eventData.category,
+      date: eventData.date,
+      time: eventData.time,
+      location: eventData.location,
+      organizerId,
+      latitude: eventData.latitude,
+      longitude: eventData.longitude,
+      price: eventData.price || "0.00",
+      isFree: eventData.isFree ?? (eventData.price === "0.00" || !eventData.price),
+      eventImageUrl: eventData.eventImageUrl,
+      maxAttendees: eventData.maxAttendees,
+      capacity: eventData.capacity,
+      parkingInfo: eventData.parkingInfo,
+      meetingPoint: eventData.meetingPoint,
+      duration: eventData.duration,
+      whatToBring: eventData.whatToBring,
+      specialNotes: eventData.specialNotes ? `${eventData.specialNotes}${eventData.source ? `\n\nSource: ${eventData.source}` : ''}${eventData.sourceUrl ? `\nURL: ${eventData.sourceUrl}` : ''}` : `${eventData.source ? `Source: ${eventData.source}` : ''}${eventData.sourceUrl ? `\nURL: ${eventData.sourceUrl}` : ''}`,
+      requirements: eventData.requirements,
+      contactInfo: eventData.contactInfo,
+      cancellationPolicy: eventData.cancellationPolicy,
+      isActive: true,
+    };
+
+    const [newEvent] = await db
+      .insert(events)
+      .values(eventToInsert)
       .returning();
     return newEvent;
   }

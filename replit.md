@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 10, 2025. ADDED EXTERNAL WEB CRAWL API: Created `/api/external/events` endpoint for partners to post events from web crawl jobs without authentication, automatically handles organizer creation and includes comprehensive API documentation with examples
 - July 10, 2025. ADDED EXIT GROUP CHAT BUTTON: Implemented exit button in EventContentCard header allowing users to leave group chats by removing their RSVP, with confirmation dialog and automatic navigation back to previous view (only visible to non-organizers)
 - July 10, 2025. ENHANCED GROUP CHAT ACCESS: Updated EventDetail component to only show Group Chat button when user has RSVPed to event or is organizing it, improving user experience by preventing unauthorized chat access attempts
 - July 10, 2025. EXPANDED MESSAGE HISTORY: Increased chat message limit from 50 to 1000 messages per event for comprehensive chat history, updated both backend storage and API routes with proper cache invalidation

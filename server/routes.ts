@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertEventSchema, insertRsvpSchema, insertChatMessageSchema, chatMessages, users } from "@shared/schema";
+import { insertEventSchema, externalEventSchema, insertRsvpSchema, insertChatMessageSchema, chatMessages, users } from "@shared/schema";
 import { z } from "zod";
 import OpenAI from "openai";
 import { db } from "./db";
@@ -91,6 +91,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating event:", error);
       res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
+  // External API endpoint for web crawl - NO AUTHENTICATION REQUIRED
+  app.post('/api/external/events', async (req, res) => {
+    try {
+      // Validate required fields using external event schema
+      const eventData = externalEventSchema.omit({ organizerId: true }).parse(req.body);
+      
+      const event = await storage.createExternalEvent(eventData);
+      res.status(201).json({ 
+        success: true, 
+        eventId: event.id,
+        message: "Event created successfully",
+        event: event
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid event data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error creating external event:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create event" 
+      });
     }
   });
 

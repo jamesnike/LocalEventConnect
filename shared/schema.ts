@@ -166,6 +166,19 @@ export const insertEventSchema = createInsertSchema(events).omit({
   updatedAt: true,
 });
 
+// External event schema for web crawl API - allows posting events without authentication
+export const externalEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  // Allow external sources to specify organizer by email or create a default one
+  organizerEmail: z.string().email().optional(),
+  // Add source tracking for crawled events
+  source: z.string().optional(),
+  sourceUrl: z.string().url().optional(),
+});
+
 export const insertRsvpSchema = createInsertSchema(eventRsvps).omit({
   id: true,
   createdAt: true,
@@ -193,6 +206,7 @@ export type EventWithOrganizer = Event & {
   userRsvpStatus?: string;
 };
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type ExternalEvent = z.infer<typeof externalEventSchema>;
 export type EventRsvp = typeof eventRsvps.$inferSelect;
 export type InsertRsvp = z.infer<typeof insertRsvpSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
