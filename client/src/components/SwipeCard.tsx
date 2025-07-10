@@ -158,6 +158,24 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     return null;
   };
 
+  const getSubCategoryColor = (subCategory: string) => {
+    const colors = [
+      'bg-pink-500', 'bg-indigo-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
+      'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-violet-500',
+      'bg-teal-500', 'bg-lime-500', 'bg-fuchsia-500', 'bg-sky-500', 'bg-slate-500',
+      'bg-orange-400', 'bg-purple-400', 'bg-blue-400', 'bg-green-400', 'bg-red-400'
+    ];
+    
+    // Create a simple hash from the subcategory string to ensure consistent colors
+    let hash = 0;
+    for (let i = 0; i < subCategory.length; i++) {
+      hash = ((hash << 5) - hash) + subCategory.charCodeAt(i);
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   return (
     <div 
       className="absolute inset-0 p-4 overflow-hidden"
@@ -230,15 +248,22 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             <div className="flex items-center space-x-2 text-base text-gray-600">
               <span>{event.rsvpCount} attending</span>
             </div>
-            <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-              event.category === 'music' ? 'bg-purple-100 text-purple-800' :
-              event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
-              event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
-              event.category === 'food' ? 'bg-orange-100 text-orange-800' :
-              event.category === 'tech' ? 'bg-green-100 text-green-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {event.category}
+            <div className="flex items-center space-x-2">
+              <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+                event.category === 'music' ? 'bg-purple-100 text-purple-800' :
+                event.category === 'sports' ? 'bg-blue-100 text-blue-800' :
+                event.category === 'arts' ? 'bg-pink-100 text-pink-800' :
+                event.category === 'food' ? 'bg-orange-100 text-orange-800' :
+                event.category === 'tech' ? 'bg-green-100 text-green-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {event.category}
+              </div>
+              {event.subCategory && (
+                <div className={`px-3 py-1.5 rounded-full text-xs font-medium ${getSubCategoryColor(event.subCategory)} text-white`}>
+                  {event.subCategory}
+                </div>
+              )}
             </div>
           </div>
         </div>
