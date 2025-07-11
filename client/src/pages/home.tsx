@@ -556,15 +556,21 @@ export default function Home() {
     
     // Add event to skipped events in database
     if (user && currentEvent) {
+      const eventToSkip = currentEvent; // Store reference to current event
+      
       try {
-        console.log('Skipping event:', currentEvent.id, currentEvent.title);
-        await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
+        console.log('Skipping event:', eventToSkip.id, eventToSkip.title);
+        await apiRequest(`/api/events/${eventToSkip.id}/skip`, { method: 'POST' });
         
-        // Reset currentEventIndex to 0 so we always show the first available event
-        // This prevents the double-skip issue where the index points to wrong event after filtering
-        setCurrentEventIndex(0);
+        // Add to local swiped events immediately to prevent showing it again
+        setSwipedEvents(prev => new Set(prev).add(eventToSkip.id));
+        
+        // Just move to the next event in the current array instead of resetting to 0
+        // This maintains the current flow and prevents index confusion
+        setCurrentEventIndex(prev => prev + 1);
         
         // Invalidate the events query to refetch with updated skipped events
+        // But don't rely on it for immediate UI updates
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error('Error skipping event:', error);
