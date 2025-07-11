@@ -18,7 +18,7 @@ const getTimeOptions = () => {
   for (let i = 0; i < 7; i++) {
     const date = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
     const dayName = days[date.getDay()];
-    const dayPrefix = i === 0 ? 'today' : i === 1 ? 'tomorrow' : `day${i}`;
+    const dayPrefix = i === 0 ? 'today' : `day${i}`;
     
     // Add date for clarity (e.g., "Wed AM (7/13)")
     const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
