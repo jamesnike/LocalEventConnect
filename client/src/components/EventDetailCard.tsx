@@ -175,15 +175,14 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     <div className="relative w-full max-w-sm mx-auto h-full">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg transform transition-all duration-300 ${
+        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
           height: '100%',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
-          display: 'flex',
-          flexDirection: 'column',
+          maxHeight: '100vh',
         }}
 
       >
@@ -211,45 +210,8 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           </div>
         </div>
 
-        {/* SIMPLE SCROLLABLE TEST */}
-        <div style={{ 
-          height: '400px',
-          overflowY: 'auto',
-          border: '3px solid blue',
-          backgroundColor: 'yellow',
-          padding: '10px'
-        }}>
-          <h1 style={{ color: 'red', fontSize: '24px' }}>SCROLL TEST</h1>
-          {Array.from({length: 50}, (_, i) => (
-            <div key={i} style={{ 
-              height: '50px', 
-              backgroundColor: i % 2 === 0 ? '#ff0000' : '#00ff00',
-              margin: '5px 0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold'
-            }}>
-              BLOCK {i + 1}
-            </div>
-          ))}
-        </div>
-
         {/* Event Details Content - Scrollable */}
-        <div 
-          className="p-6 space-y-6 scrollable-content" 
-          style={{ 
-            touchAction: 'pan-y', 
-            overscrollBehavior: 'contain', 
-            WebkitOverflowScrolling: 'touch', 
-            flex: '1 1 0%',
-            minHeight: '0',
-            overflowY: 'auto',
-            scrollbarWidth: 'thin',
-            border: '2px solid red'
-          }}
-        >
+        <div className="overflow-y-auto flex-1 p-6 space-y-6">
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
@@ -399,15 +361,77 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             </div>
           </div>
           
-          {/* MASSIVE TEST AREA - This should definitely scroll */}
-          <div className="bg-red-200 border-4 border-red-500 p-4 text-center">
-            <h1 className="text-3xl font-bold text-red-800 mb-4">SCROLLING TEST</h1>
-            <p className="text-red-700 text-lg mb-4">If you can see this, the component is working!</p>
-            {Array.from({length: 20}, (_, i) => (
-              <div key={i} className="h-20 bg-red-100 mt-2 rounded flex items-center justify-center border-2 border-red-400">
-                <span className="text-red-700 font-bold text-lg">SCROLL BLOCK {i + 1}</span>
+          {/* Event Details */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5 text-gray-500" />
+                <span className="font-medium text-gray-900">
+                  {format(new Date(event.date), 'EEEE, MMMM d, yyyy')}
+                </span>
               </div>
-            ))}
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Clock className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-700">{event.time}</span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-700 break-words">{event.location}</span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-700">{event.rsvpCount} attending</span>
+            </div>
+            
+            {event.price && (
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-5 h-5 text-gray-500" />
+                <span className="text-gray-700">{event.price}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center space-x-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
+                {event.category}
+              </span>
+              {event.subCategory && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSubCategoryColor(event.subCategory)}`}>
+                  {event.subCategory}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-900">About this event</h3>
+            <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap">
+              {event.description}
+            </p>
+          </div>
+
+          {/* Organizer */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-900">Organizer</h3>
+            <div className="flex items-center space-x-3">
+              <AnimeAvatar 
+                seed={event.organizer.id} 
+                size="sm" 
+                customAvatarUrl={event.organizer.customAvatarUrl}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 break-words">
+                  {event.organizer.name}
+                </p>
+                <p className="text-sm text-gray-500 break-words">
+                  {event.organizer.location}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
