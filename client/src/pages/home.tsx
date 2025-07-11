@@ -637,11 +637,9 @@ export default function Home() {
       }
     }
     
-    // Reset the skipping state after everything else
-    setTimeout(() => {
-      setIsSkippingInProgress(false);
-      setEventBeingSkipped(null);
-    }, 100);
+    // Reset the skipping state immediately - no timeout needed
+    setIsSkippingInProgress(false);
+    setEventBeingSkipped(null);
   };
 
   const handleContentSwipeRight = async () => {
