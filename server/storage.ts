@@ -1232,6 +1232,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
+    console.log(`getUserPrivateChats called for user ${userId}`);
     const chats = await db
       .select({
         id: events.id,

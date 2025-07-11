@@ -237,6 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get private chats for this user
       const privateChats = await storage.getUserPrivateChats(userId);
+      console.log(`Private chats for user ${userId}:`, privateChats.length, privateChats.map(c => ({ id: c.id, title: c.title })));
       
       // Combine regular events and private chats
       const allEvents = [

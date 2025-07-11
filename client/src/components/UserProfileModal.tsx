@@ -159,9 +159,21 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
       return response.json();
     },
     onSuccess: (privateChat) => {
-      // Navigate to the private chat using the EventContent interface
-      setLocation(`/event-content/${privateChat.id}?tab=chat&from=profile`);
+      console.log('Private chat created successfully:', privateChat);
+      console.log('Private chat ID:', privateChat.id);
+      
+      // Invalidate the group chats query to refresh the Messages tab
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      
+      // Navigate to Messages tab instead of directly to the chat
+      setLocation(`/my-events?tab=messages`);
       onClose();
+      
+      // Show success message
+      toast({
+        title: "Private chat created!",
+        description: "You can now chat with this user in the Messages tab.",
+      });
     },
     onError: (error) => {
       console.error('Error creating private chat:', error);
