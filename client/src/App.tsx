@@ -15,8 +15,13 @@ import Browse from "@/pages/browse";
 function Router() {
   const { isAuthenticated, isLoading, user, error } = useAuth();
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // Debug authentication state in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Router state:', { isAuthenticated, isLoading, user: !!user, error });
+  }
+
+  // Show loading state while checking authentication or if user state is transitioning
+  if (isLoading || (user === null && !error)) {
     return (
       <div className="max-w-sm mx-auto bg-gradient-to-br from-primary to-accent min-h-screen flex items-center justify-center">
         <div className="text-center text-white">
@@ -31,45 +36,42 @@ function Router() {
     );
   }
 
-  // Debug authentication state in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Auth state:', { isAuthenticated, user: !!user, error });
+  // Render authenticated routes
+  if (isAuthenticated && user) {
+    return (
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/my-events" component={MyEvents} />
+        <Route path="/browse" component={Browse} />
+        <Route path="*" component={NotFound} />
+      </Switch>
+    );
   }
 
+  // Render unauthenticated routes
   return (
     <Switch>
-      {isAuthenticated ? (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/my-events" component={MyEvents} />
-          <Route path="/browse" component={Browse} />
-          <Route path="*" component={NotFound} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/profile">
-            {() => {
-              window.location.href = '/api/login';
-              return null;
-            }}
-          </Route>
-          <Route path="/my-events">
-            {() => {
-              window.location.href = '/api/login';
-              return null;
-            }}
-          </Route>
-          <Route path="/browse">
-            {() => {
-              window.location.href = '/api/login';
-              return null;
-            }}
-          </Route>
-          <Route path="*" component={NotFound} />
-        </>
-      )}
+      <Route path="/" component={Landing} />
+      <Route path="/profile">
+        {() => {
+          window.location.href = '/api/login';
+          return null;
+        }}
+      </Route>
+      <Route path="/my-events">
+        {() => {
+          window.location.href = '/api/login';
+          return null;
+        }}
+      </Route>
+      <Route path="/browse">
+        {() => {
+          window.location.href = '/api/login';
+          return null;
+        }}
+      </Route>
+      <Route path="*" component={NotFound} />
     </Switch>
   );
 }
