@@ -699,8 +699,8 @@ export default function EventContentCard({
                   )}
                 </div>
 
-                {/* Message Input - Fixed above nav bar */}
-                <div className="fixed bottom-20 left-0 right-0 border-t border-gray-200 bg-gray-50 z-40">
+                {/* Message Input - Fixed at bottom */}
+                <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-gray-50 z-40">
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
