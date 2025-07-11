@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2, Bookmark } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -23,6 +24,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [isClosing, setIsClosing] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -818,14 +820,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                       // Close the modal first
                       onClose();
                       
-                      // Use the same navigation pattern as Messages tab
-                      // Store navigation state in localStorage for home page to handle
-                      localStorage.setItem('eventContentId', event.id.toString());
-                      localStorage.setItem('preferredTab', 'chat');
-                      localStorage.setItem('fromMyEvents', 'true');
-                      
-                      // Navigate to home page - the useEffect will handle showing EventContent
-                      window.location.href = '/';
+                      // Navigate directly to EventContent page like Messages tab does
+                      setLocation(`/event/${event.id}?tab=chat`);
                     }}
                     className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
                   >
