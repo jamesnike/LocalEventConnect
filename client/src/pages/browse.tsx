@@ -22,11 +22,11 @@ export default function Browse() {
     localStorage.setItem('browseTimeFilter', timeFilter);
   };
 
-  // Use the regular events endpoint instead of browse to avoid infinite loop
+  // Use the browse endpoint with client-side timezone-aware filtering
   const { data: allEvents, isLoading } = useQuery({
-    queryKey: ["/api/events", { category: undefined, timeFilter: selectedCategory }],
+    queryKey: ["/api/events/browse", { timeFilter: selectedCategory }],
     queryFn: async () => {
-      const response = await fetch(`/api/events?timeFilter=${selectedCategory}&limit=100`);
+      const response = await fetch(`/api/events/browse?limit=100`);
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
@@ -36,33 +36,41 @@ export default function Browse() {
     refetchOnWindowFocus: false,
   });
 
+  // Client-side filtering with proper timezone handling
   const filteredEvents = useMemo(() => {
     if (!allEvents) return [];
     
-    // Apply time filter
+    // Get current date and time in user's local timezone
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    // Format dates in local timezone
+    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     
     return allEvents.filter(event => {
       const eventDate = event.date;
+      const eventTime = event.time;
+      
+      // Create a full datetime for comparison
+      const eventDateTime = new Date(`${eventDate}T${eventTime}`);
       
       switch (selectedCategory) {
         case "today_morning":
-          return eventDate === today && event.time >= "06:00" && event.time <= "12:00";
+          return eventDate === today && eventTime >= "06:00:00" && eventTime <= "11:59:59";
         case "today_afternoon":
-          return eventDate === today && event.time >= "12:00" && event.time <= "18:00";
+          return eventDate === today && eventTime >= "12:00:00" && eventTime <= "17:59:59";
         case "today_evening":
-          return eventDate === today && event.time >= "18:00" && event.time <= "23:59";
+          return eventDate === today && eventTime >= "18:00:00" && eventTime <= "23:59:59";
         case "day1_morning":
-          return eventDate === tomorrow && event.time >= "06:00" && event.time <= "12:00";
+          return eventDate === tomorrow && eventTime >= "06:00:00" && eventTime <= "11:59:59";
         case "day1_afternoon":
-          return eventDate === tomorrow && event.time >= "12:00" && event.time <= "18:00";
+          return eventDate === tomorrow && eventTime >= "12:00:00" && eventTime <= "17:59:59";
         case "day1_evening":
-          return eventDate === tomorrow && event.time >= "18:00" && event.time <= "23:59";
+          return eventDate === tomorrow && eventTime >= "18:00:00" && eventTime <= "23:59:59";
         case "this_week":
-          const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          return new Date(eventDate) >= now && new Date(eventDate) <= nextWeek;
+          return eventDateTime >= now && eventDateTime <= nextWeek;
         case "all":
         default:
           return true;

@@ -26,6 +26,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Event routes
+  // Browse events route - shows ALL events without filtering skipped ones (must be before /api/events/:id)
+  app.get('/api/events/browse', async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const timeFilter = req.query.timeFilter as string | undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      
+      // Don't pass userId to avoid filtering skipped events, and don't exclude past events for Browse
+      const events = await storage.getEvents(undefined, category, timeFilter, limit, false);
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching browse events:", error);
+      res.status(500).json({ message: "Failed to fetch browse events" });
+    }
+  });
+
   app.get('/api/events', async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub;
@@ -41,22 +57,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch events" });
     }
   });
-
-  // Browse events route - TEMPORARILY DISABLED to fix infinite loop
-  // app.get('/api/events/browse', async (req, res) => {
-  //   try {
-  //     const category = req.query.category as string | undefined;
-  //     const timeFilter = req.query.timeFilter as string | undefined;
-  //     const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  //     
-  //     // Don't pass userId to avoid filtering skipped events, and don't exclude past events for Browse
-  //     const events = await storage.getEvents(undefined, category, timeFilter, limit, false);
-  //     res.json(events);
-  //   } catch (error) {
-  //     console.error("Error fetching browse events:", error);
-  //     res.status(500).json({ message: "Failed to fetch browse events" });
-  //   }
-  // });
 
   app.get('/api/events/:id', async (req, res) => {
     try {
