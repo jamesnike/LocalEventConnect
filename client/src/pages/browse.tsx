@@ -140,6 +140,8 @@ export default function Browse() {
         <EventDetail 
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
+          fromPage="browse"
+          onBack={() => setSelectedEvent(null)}
           onNavigateToContent={() => {
             // Navigate to Home page with the event content
             // Store the event ID in localStorage so Home page can pick it up

@@ -15,9 +15,11 @@ interface EventDetailProps {
   onNavigateToContent?: () => void;
   showGroupChatButton?: boolean;
   onSkip?: () => void;
+  onBack?: () => void;
+  fromPage?: 'home' | 'browse' | 'my-events' | 'messages';
 }
 
-export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false, onSkip }: EventDetailProps) {
+export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false, onSkip, onBack, fromPage }: EventDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -219,6 +221,14 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     }, 300);
   };
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      handleClose();
+    }
+  };
+
   const handleRsvp = () => {
     if (!user) {
       toast({
@@ -384,7 +394,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       }`}>
         <div className="relative h-full flex flex-col">
           <button 
-            onClick={handleClose}
+            onClick={handleBack}
             className="absolute top-2 left-2 z-10 bg-white rounded-full p-1.5 shadow-md"
           >
             <ArrowLeft className="w-4 h-4 text-gray-700" />

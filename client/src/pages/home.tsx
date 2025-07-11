@@ -819,6 +819,12 @@ export default function Home() {
             setIsFromMyEvents(false);
             setEventFromMyEvents(null);
           }}
+          fromPage="home"
+          onBack={() => {
+            setSelectedEvent(null);
+            setIsFromMyEvents(false);
+            setEventFromMyEvents(null);
+          }}
           showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
             // Store the selected event in localStorage and navigate

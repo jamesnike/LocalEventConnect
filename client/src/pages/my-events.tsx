@@ -404,6 +404,8 @@ export default function MyEvents() {
           event={selectedEvent} 
           onClose={() => setSelectedEvent(null)} 
           showGroupChatButton={true}
+          fromPage="my-events"
+          onBack={() => setSelectedEvent(null)}
           onNavigateToContent={() => {
             // Navigate to Home page with the event content
             // Store the event ID in localStorage so Home page can pick it up
