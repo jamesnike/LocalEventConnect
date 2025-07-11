@@ -191,8 +191,8 @@ export default function EventContentPage() {
             if (shouldReturnToMessages) {
               setLocation('/my-events?tab=messages');
             } else {
-              // If ?tab=chat in URL, came from EventDetail - go back to My Events
-              setLocation('/my-events?tab=attending');
+              // If ?tab=chat in URL, came from EventDetail - go back to previous page
+              window.history.back();
             }
           }}
           onSimilarEventClick={() => {}}
