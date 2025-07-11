@@ -810,14 +810,12 @@ export default function Home() {
             } ${
               showDetailCard && !showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
-              <div className="flex items-center justify-center h-full">
-                <EventDetailCard
-                  event={currentEvent}
-                  onSwipeLeft={handleSwipeLeft}
-                  onSwipeRight={handleSwipeRight}
-                  isActive={showDetailCard}
-                />
-              </div>
+              <EventDetailCard
+                event={currentEvent}
+                onSwipeLeft={handleSwipeLeft}
+                onSwipeRight={handleSwipeRight}
+                isActive={showDetailCard}
+              />
             </div>
 
             {/* Content Card */}

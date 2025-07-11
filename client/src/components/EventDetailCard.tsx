@@ -22,6 +22,16 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
+    
+    // Check if mouse down started on scrollable content
+    const target = e.target as HTMLElement;
+    const scrollableContent = target.closest('.scrollable-content');
+    
+    // If mouse down started on scrollable content, don't handle swipe
+    if (scrollableContent) {
+      return;
+    }
+    
     setIsDragging(true);
     setStartTime(Date.now());
     setIsHorizontalSwipe(false);
@@ -30,6 +40,16 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isActive) return;
+    
+    // Check if touch started on scrollable content
+    const target = e.target as HTMLElement;
+    const scrollableContent = target.closest('.scrollable-content');
+    
+    // If touch started on scrollable content, don't handle swipe
+    if (scrollableContent) {
+      return;
+    }
+    
     setIsDragging(true);
     setStartTime(Date.now());
     setIsHorizontalSwipe(false);
@@ -70,6 +90,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
       e.preventDefault(); // Prevent scroll only for horizontal swipes
       updatePosition(e.touches[0].clientX, e.touches[0].clientY);
     }
+    // Allow vertical scrolling by not preventing default for vertical movements
   };
 
   const updatePosition = (clientX: number, clientY: number) => {
@@ -182,6 +203,13 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Overlay for swipe indication */}
         <div className={`absolute inset-0 ${getOverlayColor()} flex items-center justify-center transition-all duration-200 z-10`}>
@@ -191,13 +219,6 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         {/* Header with image */}
         <div 
           className="relative h-48 flex-shrink-0"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
           <img 
             src={getEventImageUrl(event)}
@@ -215,7 +236,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-6 scrollable-content">
+        <div className="overflow-y-auto flex-1 p-6 space-y-6 scrollable-content" style={{ touchAction: 'pan-y' }}>
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
