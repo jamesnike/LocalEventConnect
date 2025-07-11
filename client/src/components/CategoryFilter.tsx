@@ -39,93 +39,46 @@ const getTimeOptions = () => {
 export default function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryFilterProps) {
   const timeOptions = getTimeOptions();
   
-  // Reorganize options into 3 rows by day columns:
-  // Row 1: Today AM, Tomorrow AM, Day3 AM, Day4 AM, Day5 AM, Day6 AM, Day7 AM
-  // Row 2: Today PM, Tomorrow PM, Day3 PM, Day4 PM, Day5 PM, Day6 PM, Day7 PM
-  // Row 3: Today Night, Tomorrow Night, Day3 Night, Day4 Night, Day5 Night, Day6 Night, Day7 Night
-  const amOptions = [];
-  const pmOptions = [];
-  const nightOptions = [];
+  // Reorganize options into day-based columns:
+  // Each day has 3 buttons stacked vertically: AM, PM, Night
+  const dayGroups = [];
   
-  // Group options by time of day
+  // Group options by day (every 3 consecutive options belong to the same day)
   for (let i = 0; i < timeOptions.length; i += 3) {
-    amOptions.push(timeOptions[i]);     // AM
-    pmOptions.push(timeOptions[i + 1]); // PM  
-    nightOptions.push(timeOptions[i + 2]); // Night
+    dayGroups.push([
+      timeOptions[i],     // AM
+      timeOptions[i + 1], // PM  
+      timeOptions[i + 2]  // Night
+    ]);
   }
   
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
       <div className="pb-2 scrollbar-always" style={{ overflowX: 'scroll' }}>
-        <div className="flex flex-col space-y-1.5" style={{ minWidth: 'calc(100% + 50px)' }}>
-          {/* Row 1: AM times */}
-          <div className="flex space-x-1.5">
-            {amOptions.map((option) => {
-              const Icon = option.icon;
-              const isSelected = selectedCategory === option.id;
-              
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => onCategoryChange(option.id)}
-                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isSelected
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon className="w-3 h-3 mr-1" />
-                  {option.name}
-                </button>
-              );
-            })}
-          </div>
-          
-          {/* Row 2: PM times */}
-          <div className="flex space-x-1.5">
-            {pmOptions.map((option) => {
-              const Icon = option.icon;
-              const isSelected = selectedCategory === option.id;
-              
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => onCategoryChange(option.id)}
-                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isSelected
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon className="w-3 h-3 mr-1" />
-                  {option.name}
-                </button>
-              );
-            })}
-          </div>
-          
-          {/* Row 3: Night times */}
-          <div className="flex space-x-1.5">
-            {nightOptions.map((option) => {
-              const Icon = option.icon;
-              const isSelected = selectedCategory === option.id;
-              
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => onCategoryChange(option.id)}
-                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    isSelected
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon className="w-3 h-3 mr-1" />
-                  {option.name}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex space-x-1.5" style={{ minWidth: 'calc(100% + 50px)' }}>
+          {dayGroups.map((dayGroup, dayIndex) => (
+            <div key={dayIndex} className="flex flex-col space-y-1.5">
+              {dayGroup.map((option) => {
+                const Icon = option.icon;
+                const isSelected = selectedCategory === option.id;
+                
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => onCategoryChange(option.id)}
+                    className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      isSelected
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Icon className="w-3 h-3 mr-1" />
+                    {option.name}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
