@@ -523,30 +523,15 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    console.log('🔴 Skip button clicked');
-    console.log('Current state:', {
-      currentEvent: currentEvent?.id,
-      isTransitioning,
-      isSkippingInProgress,
-      showContentCard,
-      showDetailCard,
-      currentEventIndex
-    });
-    
-    if (!currentEvent || isTransitioning || isSkippingInProgress) {
-      console.log('🔴 Skip blocked by conditions');
-      return;
-    }
+    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
     
     // Debounce mechanism: prevent rapid consecutive skips
     const currentTime = Date.now();
     if (currentTime - lastSkipTime < 2000) { // 2 second debounce
-      console.log('🔴 Skip debounced - too rapid');
       return;
     }
     
     if (showContentCard) {
-      console.log('🔴 From content card');
       // From content card, go back to main and move to next event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
       setCurrentEventIndex(prev => prev + 1);
@@ -565,7 +550,6 @@ export default function Home() {
       setEventFromMyEvents(null); // Clear stored event
       setGroupChatEvent(null); // Clear group chat event
     } else if (showDetailCard) {
-      console.log('🔴 From detail card - initiating skip for event:', currentEvent.id);
       // From detail card, skip to next event
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
@@ -575,7 +559,6 @@ export default function Home() {
         setLastSkipTime(currentTime);
       }
     } else {
-      console.log('🔴 From main card - initiating skip for event:', currentEvent.id);
       // From main card, skip this event with animation
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
@@ -596,38 +579,23 @@ export default function Home() {
   };
 
   const handleSkipAnimationComplete = () => {
-    console.log('Skip animation completed');
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
     if (eventBeingSkipped) {
       const eventIdToSkip = eventBeingSkipped;
       
-      console.log('Processing skip for event ID:', eventIdToSkip);
-      
       // Add to local swiped events immediately
-      setSwipedEvents(prev => {
-        const newSet = new Set(prev);
-        newSet.add(eventIdToSkip);
-        console.log('Added to swiped events:', eventIdToSkip, 'Total swiped:', newSet.size);
-        return newSet;
-      });
+      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
       
       // Move to the next event in the current array
-      setCurrentEventIndex(prev => {
-        const newIndex = prev + 1;
-        console.log('Moving from index', prev, 'to index', newIndex);
-        return newIndex;
-      });
+      setCurrentEventIndex(prev => prev + 1);
       
       // Do the database skip operation in the background (fire and forget)
       if (user) {
         fetch(`/api/events/${eventIdToSkip}/skip`, { 
           method: 'POST',
           credentials: 'include'
-        })
-        .then(() => {
-          console.log('Event skipped in background:', eventIdToSkip);
         })
         .catch(error => {
           console.error('Error skipping event in background:', error);
@@ -639,7 +607,6 @@ export default function Home() {
     setTimeout(() => {
       setIsSkippingInProgress(false);
       setEventBeingSkipped(null);
-      console.log('Skip state reset');
     }, 100);
   };
 
