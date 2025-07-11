@@ -66,15 +66,24 @@ export default function EventContentCard({
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
       
-      const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=20`);
+      const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=50`);
       const events = await response.json() as EventWithOrganizer[];
       
       // Filter for same sub-category, exclude current event, and only show future events
-      return events.filter(e => 
+      const filtered = events.filter(e => 
         e.subCategory === event.subCategory && 
         e.id !== event.id &&
         e.date >= todayStr
       );
+      
+      console.log('Similar events query:', {
+        currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
+        totalEvents: events.length,
+        filtered: filtered.length,
+        filteredEvents: filtered.map(e => ({ id: e.id, title: e.title, subCategory: e.subCategory }))
+      });
+      
+      return filtered;
     },
     enabled: !!event.category && !!event.subCategory,
     staleTime: 5 * 60 * 1000, // 5 minutes
