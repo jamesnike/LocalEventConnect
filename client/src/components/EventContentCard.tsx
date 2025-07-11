@@ -302,6 +302,8 @@ export default function EventContentCard({
         message: newMessage,
         quotedMessageId: quotedMessage?.id
       };
+      // Clear quote immediately when sending
+      setQuotedMessage(null);
       sendMessageMutation.mutate(messageData);
       setNewMessage('');
       // Scroll to bottom after sending message
@@ -515,11 +517,12 @@ export default function EventContentCard({
                                           ? 'border-purple-200 bg-purple-400' 
                                           : 'border-gray-400 bg-gray-200 text-gray-600'
                                       }`}>
-                                        <div className="font-medium">
-                                          {msg.quotedMessage.user.firstName} {msg.quotedMessage.user.lastName}
-                                        </div>
                                         <div className="truncate">
-                                          {msg.quotedMessage.message}
+                                          <span className="font-medium">
+                                            {msg.quotedMessage.user.firstName} {msg.quotedMessage.user.lastName}:
+                                          </span>
+                                          {' '}
+                                          <span>{msg.quotedMessage.message}</span>
                                         </div>
                                       </div>
                                     )}
