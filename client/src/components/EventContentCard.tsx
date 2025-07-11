@@ -272,7 +272,7 @@ export default function EventContentCard({
               <div>
                 <h3 className="font-semibold text-lg">{event.title}</h3>
                 <div className="flex items-center space-x-2">
-                  <p className="text-sm opacity-90">{event.rsvpCount} members</p>
+                  <p className="text-sm opacity-90">{event.rsvpCount + 1} members</p>
                   {event.subCategory && (
                     <>
                       <span className="text-xs opacity-70">•</span>
@@ -450,7 +450,7 @@ export default function EventContentCard({
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center space-x-2 text-xs text-gray-500">
                                 <Users className="w-3 h-3" />
-                                <span>{similarEvent.rsvpCount} attending</span>
+                                <span>{similarEvent.rsvpCount + 1} attending</span>
                               </div>
                               <div className="flex items-center space-x-2 text-xs text-gray-500">
                                 <DollarSign className="w-3 h-3" />
