@@ -637,6 +637,8 @@ export default function Home() {
     console.log('Resetting isSkippingInProgress to false');
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
+    
+    console.log('Skip animation cleanup complete - currentEventIndex:', currentEventIndex);
   };
 
   const handleContentSwipeRight = async () => {
@@ -801,7 +803,7 @@ export default function Home() {
                 {/* Render current and next event cards */}
                 {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
                   <SwipeCard
-                    key={event.id}
+                    key={`${event.id}-${currentEventIndex}-${index}`}
                     event={event}
                     onSwipeLeft={handleSwipeLeft}
                     onSwipeRight={handleSwipeRight}
