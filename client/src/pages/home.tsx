@@ -81,6 +81,7 @@ export default function Home() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
     const saved = loadHomeState();
     return saved?.lastActiveTab || 'chat';
@@ -509,7 +510,8 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning) return;
+    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    
     if (showContentCard) {
       // From content card, go back to main and move to next event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
@@ -530,10 +532,12 @@ export default function Home() {
       setGroupChatEvent(null); // Clear group chat event
     } else if (showDetailCard) {
       // From detail card, skip to next event
+      setIsSkippingInProgress(true);
       setShowSkipAnimation(true);
       setShowDetailCard(false);
     } else {
       // From main card, skip this event with animation
+      setIsSkippingInProgress(true);
       setShowSkipAnimation(true);
     }
   };
@@ -553,6 +557,7 @@ export default function Home() {
     // Add event to skipped events in database
     if (user && currentEvent) {
       try {
+        console.log('Skipping event:', currentEvent.id, currentEvent.title);
         await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
         
         // Reset currentEventIndex to 0 so we always show the first available event
@@ -567,6 +572,9 @@ export default function Home() {
         setCurrentEventIndex(prev => prev + 1);
       }
     }
+    
+    // Reset the skipping flag
+    setIsSkippingInProgress(false);
   };
 
   const handleContentSwipeRight = async () => {
@@ -811,7 +819,7 @@ export default function Home() {
           <div className="flex justify-center space-x-16">
             <button
               onClick={handleSwipeLeft}
-              disabled={!currentEvent || isTransitioning}
+              disabled={!currentEvent || isTransitioning || isSkippingInProgress}
               className="flex flex-col items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-5 h-5 mb-1" />
