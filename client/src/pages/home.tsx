@@ -580,6 +580,7 @@ export default function Home() {
   };
 
   const handleSkipAnimationComplete = () => {
+    console.log('Skip animation completed');
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
@@ -589,14 +590,19 @@ export default function Home() {
       console.log('Processing skip for event ID:', eventIdToSkip);
       
       // Add to local swiped events immediately
-      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
+      setSwipedEvents(prev => {
+        const newSet = new Set(prev);
+        newSet.add(eventIdToSkip);
+        console.log('Added to swiped events:', eventIdToSkip, 'Total swiped:', newSet.size);
+        return newSet;
+      });
       
       // Move to the next event in the current array
-      setCurrentEventIndex(prev => prev + 1);
-      
-      // Reset the skipping state immediately
-      setIsSkippingInProgress(false);
-      setEventBeingSkipped(null);
+      setCurrentEventIndex(prev => {
+        const newIndex = prev + 1;
+        console.log('Moving from index', prev, 'to index', newIndex);
+        return newIndex;
+      });
       
       // Do the database skip operation in the background (fire and forget)
       if (user) {
@@ -611,11 +617,14 @@ export default function Home() {
           console.error('Error skipping event in background:', error);
         });
       }
-    } else {
-      // Reset the skipping flag even if no event to skip
+    }
+    
+    // Reset the skipping state after everything else
+    setTimeout(() => {
       setIsSkippingInProgress(false);
       setEventBeingSkipped(null);
-    }
+      console.log('Skip state reset');
+    }, 100);
   };
 
   const handleContentSwipeRight = async () => {
