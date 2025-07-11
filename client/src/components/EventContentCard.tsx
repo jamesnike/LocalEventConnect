@@ -78,7 +78,7 @@ export default function EventContentCard({
     enabled: hasChatAccess,
     staleTime: 0, // Always refetch when needed
     refetchOnWindowFocus: false,
-    refetchInterval: activeTab === 'chat' && isActive ? 5000 : false, // Auto-refresh only when chat is active AND component is active
+    refetchInterval: false, // Disable auto-refresh, rely on WebSocket for real-time updates
   });
 
   // WebSocket connection for real-time chat - always connect when component is active
@@ -173,7 +173,7 @@ export default function EventContentCard({
         setWsMessages([]);
       }
     }
-  }, [chatMessages, event.id]); // Remove setWsMessages from dependencies to prevent infinite loop
+  }, [chatMessages, event.id, setWsMessages]); // Keep setWsMessages but ensure it's memoized in useWebSocket
 
   // Merge WebSocket messages with existing messages for real-time updates
   useEffect(() => {
@@ -207,7 +207,7 @@ export default function EventContentCard({
     if (messagesContainer) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-  }, [allMessages, event.id]);
+  }, [messages.length, event.id]); // Use messages.length instead of allMessages to prevent infinite loop
 
   // Reset tab and clear state when event changes
   useEffect(() => {
