@@ -414,7 +414,7 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: 'calc(100% - 80px)',
+          height: 'calc(100% - 40px)',
           zIndex: isActive ? 10 : 1
         }}
       >
@@ -858,7 +858,7 @@ export default function EventContentCard({
 
         {/* Keep Exploring Button - Bottom right with spacing */}
         {showKeepExploring && (
-          <div className="absolute bottom-32 right-4 z-30">
+          <div className="absolute bottom-12 right-4 z-30">
             <button
               onClick={handleKeepExploring}
               className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
