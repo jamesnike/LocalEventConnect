@@ -140,6 +140,7 @@ export default function EventContentPage() {
           initialTab={activeTab}
           onTabChange={setActiveTab}
           showBackButton={false}
+          onBackClick={() => setLocation('/my-events?tab=messages')}
         />
       </div>
     </div>
