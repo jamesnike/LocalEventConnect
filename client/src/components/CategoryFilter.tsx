@@ -22,14 +22,14 @@ const getTimeOptions = () => {
     const dayName = days[date.getDay()];
     const dayPrefix = i === 0 ? 'today' : `day${i}`;
     
-    // Add date for clarity (e.g., "Wed AM (7/13)")
+    // Shorter display names to fit in 2 rows
     const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
-    const displayName = i < 2 ? dayName : `${dayName} (${monthDay})`;
+    const displayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : monthDay;
     
     options.push(
-      { id: `${dayPrefix}_morning`, name: `${displayName} AM`, icon: Sunrise },
-      { id: `${dayPrefix}_afternoon`, name: `${displayName} PM`, icon: Sun },
-      { id: `${dayPrefix}_night`, name: `${displayName} Night`, icon: Moon }
+      { id: `${dayPrefix}_morning`, name: `${displayName}\nAM`, icon: Sunrise },
+      { id: `${dayPrefix}_afternoon`, name: `${displayName}\nPM`, icon: Sun },
+      { id: `${dayPrefix}_night`, name: `${displayName}\nNight`, icon: Moon }
     );
   }
   
@@ -66,14 +66,16 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                   <button
                     key={option.id}
                     onClick={() => onCategoryChange(option.id)}
-                    className={`w-16 flex items-center justify-center px-1 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`w-16 flex flex-col items-center justify-center px-1 py-1 rounded-full text-xs font-medium transition-colors ${
                       isSelected
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    <Icon className="w-2.5 h-2.5 mr-0.5" />
-                    {option.name}
+                    <Icon className="w-2.5 h-2.5 mb-0.5" />
+                    <span className="text-center leading-tight whitespace-pre-line">
+                      {option.name}
+                    </span>
                   </button>
                 );
               })}
