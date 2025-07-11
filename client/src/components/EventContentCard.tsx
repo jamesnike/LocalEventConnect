@@ -62,26 +62,26 @@ export default function EventContentCard({
       const bottomNav = document.querySelector('[data-testid="bottom-nav"]');
       const hasHomeLayout = !!(homeHeader && bottomNav);
       
-      console.log('Home layout detection:', { 
-        homeHeader: !!homeHeader, 
-        bottomNav: !!bottomNav, 
-        hasHomeLayout,
-        currentActive: isHomeLayoutActive
+      setIsHomeLayoutActive(prev => {
+        if (prev !== hasHomeLayout) {
+          console.log('Home layout detection changed:', { 
+            homeHeader: !!homeHeader, 
+            bottomNav: !!bottomNav, 
+            hasHomeLayout,
+            previous: prev
+          });
+          return hasHomeLayout;
+        }
+        return prev;
       });
-      
-      setIsHomeLayoutActive(hasHomeLayout);
     };
 
     // Initial check
     detectHomeLayout();
     
     // Use MutationObserver to detect DOM changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          detectHomeLayout();
-        }
-      });
+    const observer = new MutationObserver(() => {
+      detectHomeLayout();
     });
     
     // Observe the body for changes
