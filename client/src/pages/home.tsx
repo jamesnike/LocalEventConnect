@@ -141,12 +141,38 @@ export default function Home() {
   // Check for event ID from localStorage (when navigating from other pages)
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
+    const selectedEventId = localStorage.getItem('selectedEventId');
+    const showEventDetail = localStorage.getItem('showEventDetail');
     const fromMyEvents = localStorage.getItem('fromMyEvents');
     const fromBrowse = localStorage.getItem('fromBrowse');
     const fromMessagesTab = localStorage.getItem('fromMessagesTab');
+    const fromEventContent = localStorage.getItem('fromEventContent');
     const preferredTab = localStorage.getItem('preferredTab');
     
-    if (eventContentId && events) {
+    // Handle EventDetail navigation from EventContent
+    if (selectedEventId && showEventDetail === 'true' && events) {
+      const eventId = parseInt(selectedEventId);
+      const eventIndex = events.findIndex(e => e.id === eventId);
+      
+      if (eventIndex !== -1) {
+        const event = events[eventIndex];
+        // Show EventDetail for the selected event
+        setSelectedEvent(event);
+        setShowDetailCard(true);
+        setShowContentCard(false);
+        setCurrentEventIndex(eventIndex);
+      } else {
+        // Event not found in home page events, fetch it separately for EventDetail
+        fetchSpecificEventForDetail(eventId);
+      }
+      
+      // Clear localStorage
+      localStorage.removeItem('selectedEventId');
+      localStorage.removeItem('showEventDetail');
+      localStorage.removeItem('fromEventContent');
+    }
+    // Handle EventContent navigation from other pages
+    else if (eventContentId && events) {
       const eventId = parseInt(eventContentId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
@@ -182,6 +208,33 @@ export default function Home() {
       localStorage.removeItem('fromBrowse');
       localStorage.removeItem('fromMessagesTab');
       localStorage.removeItem('preferredTab');
+    }
+  };
+
+  // Helper function to fetch a specific event for EventDetail
+  const fetchSpecificEventForDetail = async (eventId: number) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch event');
+      }
+      const event = await response.json() as EventWithOrganizer;
+      // Show EventDetail for the fetched event
+      setSelectedEvent(event);
+      setShowDetailCard(true);
+      setShowContentCard(false);
+      setCurrentEventIndex(0);
+    } catch (error) {
+      console.error('Error fetching specific event for detail:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load the event. Please try again.",
+        variant: "destructive",
+      });
+      // Clear the localStorage on error
+      localStorage.removeItem('selectedEventId');
+      localStorage.removeItem('showEventDetail');
+      localStorage.removeItem('fromEventContent');
     }
   };
 

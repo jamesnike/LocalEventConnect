@@ -140,8 +140,11 @@ export default function EventContentPage() {
           onBackClick={() => setLocation('/my-events?tab=messages')}
           onSimilarEventClick={(similarEvent) => {
             console.log('Similar event clicked:', similarEvent.title, similarEvent.id);
-            // Navigate to the similar event
-            setLocation(`/event-content/${similarEvent.id}?tab=chat`);
+            // Navigate to home page with the similar event selected for EventDetail
+            localStorage.setItem('selectedEventId', similarEvent.id.toString());
+            localStorage.setItem('showEventDetail', 'true');
+            localStorage.setItem('fromEventContent', 'true');
+            setLocation('/');
           }}
         />
       </div>
