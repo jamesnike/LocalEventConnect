@@ -222,7 +222,7 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
   ];
 
   return (
-    <div className="bg-white shadow-sm cursor-pointer select-none" onClick={onEventClick}>
+    <div className="bg-white shadow-sm cursor-pointer" onClick={onEventClick}>
       <div className="relative">
         <img 
           src={getEventImageUrl(event)}

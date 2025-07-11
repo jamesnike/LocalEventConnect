@@ -23,8 +23,6 @@ interface EventContentCardProps {
   showBackButton?: boolean;
   onBackClick?: () => void;
   showKeepExploring?: boolean;
-  fromEventDetailCard?: boolean;
-  isStandalonePage?: boolean;
 }
 
 export default function EventContentCard({ 
@@ -38,9 +36,7 @@ export default function EventContentCard({
   onTabChange,
   showBackButton = false,
   onBackClick,
-  showKeepExploring = false,
-  fromEventDetailCard = false,
-  isStandalonePage = false
+  showKeepExploring = false
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -447,11 +443,7 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: fromEventDetailCard 
-            ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
-            : isStandalonePage 
-              ? '100%'
-              : '100vh',
+          height: isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)',
           zIndex: isActive ? 10 : 1
         }}
       >
@@ -700,7 +692,7 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input - Fixed above nav bar */}
-                <div className={`fixed ${isStandalonePage ? 'bottom-0' : 'bottom-20'} left-0 right-0 border-t border-gray-200 bg-gray-50 z-40`}>
+                <div className="fixed bottom-20 left-0 right-0 border-t border-gray-200 bg-gray-50 z-40">
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
