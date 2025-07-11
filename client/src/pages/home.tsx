@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft, Edit, Navigation } from "lucide-react";
 import { useLocation } from "wouter";
@@ -516,6 +516,16 @@ export default function Home() {
   // Use group chat event if in group chat mode, otherwise use available events
   const currentEvent = groupChatEvent || availableEvents[currentEventIndex];
 
+  // Memoize button states to prevent unnecessary re-renders during skip animation
+  const buttonStates = useMemo(() => {
+    return {
+      skipDisabled: !currentEvent || isTransitioning || isSkippingInProgress,
+      detailsDisabled: !currentEvent || isTransitioning,
+      detailsClassName: `flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`,
+      detailsIcon: showDetailCard ? 'heart' : 'arrow'
+    };
+  }, [currentEvent, isTransitioning, isSkippingInProgress, showDetailCard]);
+
   // Reset local state when events data changes due to RSVPs/skips from other pages
   // DISABLED: This was causing the double-skip issue by resetting currentEventIndex
   // when events query refreshed after skipping
@@ -592,12 +602,6 @@ export default function Home() {
         setShowDetailCard(false);
         setLastSkipTime(currentTime);
         
-        // Start loading next event immediately during animation
-        startTransition(() => {
-          setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-          setCurrentEventIndex(prev => prev + 1);
-        });
-        
         // Do the database skip operation in the background
         if (user) {
           fetch(`/api/events/${currentEvent.id}/skip`, { 
@@ -616,12 +620,6 @@ export default function Home() {
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setLastSkipTime(currentTime);
-        
-        // Start loading next event immediately during animation
-        startTransition(() => {
-          setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-          setCurrentEventIndex(prev => prev + 1);
-        });
         
         // Do the database skip operation in the background
         if (user) {
@@ -649,7 +647,18 @@ export default function Home() {
   const handleSkipAnimationComplete = () => {
     setShowSkipAnimation(false);
     
-    // Reset the skipping state immediately - state updates already happened during animation
+    // Use the captured event ID instead of current event
+    if (eventBeingSkipped) {
+      const eventIdToSkip = eventBeingSkipped;
+      
+      // Add to local swiped events and move to next event
+      startTransition(() => {
+        setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
+        setCurrentEventIndex(prev => prev + 1);
+      });
+    }
+    
+    // Reset the skipping state immediately
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
   };
@@ -896,7 +905,7 @@ export default function Home() {
           <div className="flex justify-center space-x-16">
             <button
               onClick={handleSwipeLeft}
-              disabled={!currentEvent || isTransitioning || isSkippingInProgress}
+              disabled={buttonStates.skipDisabled}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-8 h-8" />
@@ -904,10 +913,10 @@ export default function Home() {
             
             <button
               onClick={handleSwipeRight}
-              disabled={!currentEvent || isTransitioning}
-              className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              disabled={buttonStates.detailsDisabled}
+              className={buttonStates.detailsClassName}
             >
-              {showDetailCard ? (
+              {buttonStates.detailsIcon === 'heart' ? (
                 <Heart className="w-8 h-8" />
               ) : (
                 <ArrowRight className="w-8 h-8" />
