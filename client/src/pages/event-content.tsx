@@ -19,9 +19,6 @@ export default function EventContentPage() {
   
   // Check if we're in Home page context (has home header and bottom nav)
   const hasHomeLayout = window.location.pathname === '/' || localStorage.getItem('fromHomeEventDetail') === 'true';
-  
-  // Simple navigation context - Messages tab never uses ?tab=chat, EventDetail buttons do
-  const shouldReturnToMessages = !isFromEventDetail; // If no ?tab=chat, came from Messages tab
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -65,17 +62,6 @@ export default function EventContentPage() {
       localStorage.removeItem('fromHomeEventDetail');
     }
   }, [hasHomeLayout]);
-
-  // Debug logging for navigation context
-  useEffect(() => {
-    console.log('EventContentPage navigation context:', {
-      hasHomeLayout,
-      isFromEventDetail,
-      isFromMessages,
-      shouldReturnToMessages,
-      urlParams: window.location.search
-    });
-  }, [hasHomeLayout, isFromEventDetail, isFromMessages, shouldReturnToMessages]);
 
   if (isLoading) {
     return (
@@ -185,16 +171,7 @@ export default function EventContentPage() {
           onTabChange={setActiveTab}
           showBackButton={true}
           showKeepExploring={false}
-          onBackClick={() => {
-            // Simple navigation logic:
-            // If no ?tab=chat in URL, came from Messages tab
-            if (shouldReturnToMessages) {
-              setLocation('/my-events?tab=messages');
-            } else {
-              // If ?tab=chat in URL, came from EventDetail - go back to previous page
-              window.history.back();
-            }
-          }}
+          onBackClick={() => setLocation('/my-events?tab=messages')}
           onSimilarEventClick={() => {}}
           hasHomeLayout={false} // Pass context to EventContentCard
         />
