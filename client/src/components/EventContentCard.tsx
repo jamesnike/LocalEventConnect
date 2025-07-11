@@ -353,13 +353,13 @@ export default function EventContentCard({
               </div>
             </div>
             
-            {/* Exit Group Chat Button - Only for non-private chats */}
-            {hasChatAccess && !event.isPrivateChat && (
+            {/* Exit Chat Button - For all chats (group and private) */}
+            {hasChatAccess && (
               <button
                 onClick={handleExitGroupChat}
                 disabled={exitGroupChatMutation.isPending}
                 className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded-full transition-colors border border-red-300/50 text-white"
-                title="Leave group chat"
+                title={event.isPrivateChat ? "Leave private chat" : "Leave group chat"}
               >
                 <div className="flex items-center space-x-1">
                   {exitGroupChatMutation.isPending ? (
