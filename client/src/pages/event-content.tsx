@@ -40,13 +40,13 @@ export default function EventContentPage() {
     );
   }
 
-  if (!event) {
+  if (!event || !event.organizer || !event.organizer.animeAvatarSeed) {
     return (
       <div className="max-w-sm mx-auto bg-white min-h-screen">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Event Not Found</h2>
-            <p className="text-gray-600 mb-4">The event you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">The event you're looking for doesn't exist or is missing data.</p>
             <button
               onClick={() => setLocation('/my-events')}
               className="bg-primary text-white px-4 py-2 rounded-lg"
