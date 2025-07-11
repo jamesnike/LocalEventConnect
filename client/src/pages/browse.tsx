@@ -26,7 +26,9 @@ export default function Browse() {
   const { data: filteredEvents, isLoading } = useQuery({
     queryKey: ["/api/events/browse", { timeFilter: selectedCategory }],
     queryFn: async () => {
-      const response = await fetch(`/api/events/browse?timeFilter=${selectedCategory}&limit=100`);
+      // Send user's timezone offset to server
+      const timezoneOffset = new Date().getTimezoneOffset();
+      const response = await fetch(`/api/events/browse?timeFilter=${selectedCategory}&limit=100&timezoneOffset=${timezoneOffset}`);
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }

@@ -27,7 +27,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Event operations
-  getEvents(userId?: string, category?: string, timeFilter?: string, limit?: number): Promise<EventWithOrganizer[]>;
+  getEvents(userId?: string, category?: string, timeFilter?: string, limit?: number, excludePastEvents?: boolean, timezoneOffset?: number): Promise<EventWithOrganizer[]>;
   getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   createExternalEvent(event: { title: string; description: string; category: string; date: string; time: string; location: string; organizerEmail?: string; source?: string; sourceUrl?: string; latitude?: string; longitude?: string; price?: string; isFree?: boolean; eventImageUrl?: string; [key: string]: any }): Promise<Event>;
@@ -93,13 +93,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Helper function to parse time filter and get date/time conditions
-  private getTimeFilterConditions(timeFilter: string) {
+  private getTimeFilterConditions(timeFilter: string, timezoneOffset: number = 0) {
     if (!timeFilter) return undefined;
     
     // Parse the time filter format: "today_morning", "day1_afternoon", etc.
     const [dayPart, timePart] = timeFilter.split('_');
     
-    // Calculate the target date in local timezone
+    // Calculate the target date using user's local timezone
     let dayOffset = 0;
     if (dayPart === 'today') dayOffset = 0;
     else if (dayPart === 'tomorrow') dayOffset = 1;
@@ -107,9 +107,14 @@ export class DatabaseStorage implements IStorage {
     else if (dayPart === 'day2') dayOffset = 2;
     else if (dayPart.startsWith('day')) dayOffset = parseInt(dayPart.substring(3));
     
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + dayOffset);
+    // Calculate date in user's timezone
+    // timezoneOffset is in minutes, positive for timezones behind UTC
+    const now = new Date();
+    const userNow = new Date(now.getTime() - (timezoneOffset * 60 * 1000));
+    const targetDate = new Date(userNow.getFullYear(), userNow.getMonth(), userNow.getDate() + dayOffset);
     const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+
     
     // Define time ranges based on time period - matching client expectations
     let startTime: string, endTime: string;
@@ -139,8 +144,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Helper function to get WHERE conditions for time filtering
-  private getTimeFilterWhere(timeFilter: string) {
-    const conditions = this.getTimeFilterConditions(timeFilter);
+  private getTimeFilterWhere(timeFilter: string, timezoneOffset: number = 0) {
+    const conditions = this.getTimeFilterConditions(timeFilter, timezoneOffset);
     if (!conditions) return [];
     
     return [
@@ -151,7 +156,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Event operations
-  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20, excludePastEvents = false): Promise<EventWithOrganizer[]> {
+  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20, excludePastEvents = false, timezoneOffset = 0): Promise<EventWithOrganizer[]> {
     // Get user's skipped events if userId is provided
     let userSkippedEvents: number[] = [];
     if (userId) {
@@ -172,7 +177,7 @@ export class DatabaseStorage implements IStorage {
         sql`${events.isPrivateChat} IS NULL`
       ),
       category ? eq(events.category, category) : undefined,
-      ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : []),
+      ...(timeFilter ? this.getTimeFilterWhere(timeFilter, timezoneOffset) : []),
     ].filter(Boolean);
 
     // Add past events filtering if requested

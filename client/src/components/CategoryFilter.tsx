@@ -14,9 +14,11 @@ const getTimeOptions = () => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const options = [];
   
-  // Generate time options for the next 7 days
+  // Generate time options for the next 7 days using user's local timezone
   for (let i = 0; i < 7; i++) {
-    const date = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
+    // Create date in user's local timezone
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
     const dayName = days[date.getDay()];
     const dayPrefix = i === 0 ? 'today' : `day${i}`;
     
