@@ -147,9 +147,9 @@ export default function EventContentPage() {
             isActive={true}
             initialTab={activeTab}
             onTabChange={setActiveTab}
-            showBackButton={false} // No back button in home context
+            showBackButton={true} // Always show back button
             showKeepExploring={false}
-            onBackClick={() => {}}
+            onBackClick={() => window.history.back()}
             onSimilarEventClick={() => {}}
             hasHomeLayout={true} // Pass context to EventContentCard
           />
@@ -172,15 +172,7 @@ export default function EventContentPage() {
           onTabChange={setActiveTab}
           showBackButton={true}
           showKeepExploring={false}
-          onBackClick={() => {
-            // Navigate back to where we came from
-            if (isFromMessages) {
-              setLocation('/my-events?tab=messages');
-            } else {
-              // Default fallback
-              setLocation('/my-events');
-            }
-          }}
+          onBackClick={() => window.history.back()}
           onSimilarEventClick={() => {}}
           hasHomeLayout={false} // Pass context to EventContentCard
         />
