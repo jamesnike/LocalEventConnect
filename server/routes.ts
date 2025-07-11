@@ -656,6 +656,7 @@ Please respond with just the signature text, nothing else.`;
             firstName: users.firstName,
             lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
+            customAvatarUrl: users.customAvatarUrl,
             animeAvatarSeed: users.animeAvatarSeed,
             location: users.location,
             interests: users.interests,
