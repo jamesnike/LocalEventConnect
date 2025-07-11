@@ -418,8 +418,8 @@ export default function EventContentCard({
           zIndex: isActive ? 10 : 1
         }}
       >
-        {/* Empty space above header */}
-        <div className="h-8"></div>
+        {/* Empty space above header - only show when showKeepExploring is true (EventContent page) */}
+        {showKeepExploring && <div className="h-8"></div>}
         
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
@@ -541,7 +541,7 @@ export default function EventContentCard({
                 {/* Messages */}
                 <div 
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-4"
+                  className="flex-1 overflow-y-auto p-4 space-y-4 pb-32"
                 >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
@@ -664,8 +664,8 @@ export default function EventContentCard({
                   )}
                 </div>
 
-                {/* Message Input */}
-                <div className="border-t border-gray-200 bg-gray-50">
+                {/* Message Input - Fixed position above navigation bar */}
+                <div className="fixed bottom-16 left-0 right-0 z-20 border-t border-gray-200 bg-gray-50">
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
@@ -856,9 +856,9 @@ export default function EventContentCard({
           </AnimatePresence>
         </div>
 
-        {/* Keep Exploring Button - Bottom right with spacing */}
+        {/* Keep Exploring Button - Position above input box */}
         {showKeepExploring && (
-          <div className="absolute bottom-12 right-4 z-30">
+          <div className="fixed bottom-32 right-4 z-30">
             <button
               onClick={handleKeepExploring}
               className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
