@@ -21,6 +21,7 @@ interface EventContentCardProps {
   onTabChange?: (tab: 'chat' | 'similar') => void;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  showKeepExploring?: boolean;
 }
 
 export default function EventContentCard({ 
@@ -33,7 +34,8 @@ export default function EventContentCard({
   initialTab = 'chat',
   onTabChange,
   showBackButton = false,
-  onBackClick
+  onBackClick,
+  showKeepExploring = false
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -476,7 +478,7 @@ export default function EventContentCard({
         </div>
 
         {/* Keep Exploring Button - Bottom right with spacing */}
-        {!showBackButton && (
+        {showKeepExploring && (
           <div className="absolute bottom-32 right-4 z-30">
             <button
               onClick={handleKeepExploring}
