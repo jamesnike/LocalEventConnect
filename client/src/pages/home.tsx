@@ -722,11 +722,9 @@ export default function Home() {
                       setIsFromMessagesTab(false); // Reset flag
                       setLocation('/my-events?tab=messages');
                     } else if (isFromMyEvents) {
-                      // Go back to My Events with correct tab
-                      const returnTab = localStorage.getItem('returnToMyEventsTab') || 'attending';
-                      localStorage.removeItem('returnToMyEventsTab');
-                      localStorage.removeItem('fromMyEvents');
-                      setLocation(`/my-events?tab=${returnTab}`);
+                      // Go back to EventDetail for this event (came from EventDetail in My Events)
+                      setSelectedEvent(currentEvent);
+                      setShowContentCard(false);
                     } else if (isFromBrowse) {
                       // Go back to Browse page
                       setLocation('/browse');
@@ -823,9 +821,20 @@ export default function Home() {
           }}
           fromPage="home"
           onBack={() => {
-            setSelectedEvent(null);
-            setIsFromMyEvents(false);
-            setEventFromMyEvents(null);
+            if (isFromMyEvents) {
+              // Go back to My Events with correct tab
+              const returnTab = localStorage.getItem('returnToMyEventsTab') || 'attending';
+              localStorage.removeItem('returnToMyEventsTab');
+              localStorage.removeItem('fromMyEvents');
+              setSelectedEvent(null);
+              setIsFromMyEvents(false);
+              setEventFromMyEvents(null);
+              setLocation(`/my-events?tab=${returnTab}`);
+            } else {
+              setSelectedEvent(null);
+              setIsFromMyEvents(false);
+              setEventFromMyEvents(null);
+            }
           }}
           showGroupChatButton={isFromMyEvents}
           onNavigateToContent={() => {
