@@ -532,7 +532,7 @@ export default function EventContentCard({
                                   {/* Quote button - show for all messages */}
                                   <button
                                     onClick={() => handleQuoteMessage(msg)}
-                                    className="absolute -right-8 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-full"
+                                    className={`absolute ${isOwnMessage ? '-left-8' : '-right-8'} top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-full`}
                                     title="Quote this message"
                                   >
                                     <Quote className="w-4 h-4 text-gray-500" />
