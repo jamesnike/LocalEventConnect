@@ -19,12 +19,12 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
       // Show text after a delay
       setTimeout(() => {
         setShowText(true);
-      }, 300);
+      }, 200);
       
-      // Complete animation after 1.5 seconds (shorter than celebration)
+      // Complete animation after 0.8 seconds for faster responsiveness
       setTimeout(() => {
         onComplete();
-      }, 1500);
+      }, 800);
     } else {
       setShowEffect(false);
       setShowText(false);
@@ -63,8 +63,8 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
                         rotate: 180
                       }}
                       transition={{
-                        duration: 1.2,
-                        delay: i * 0.1,
+                        duration: 0.8,
+                        delay: i * 0.05,
                         ease: "easeOut"
                       }}
                       className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
