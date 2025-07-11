@@ -356,15 +356,18 @@ export default function MyEvents() {
                           size="xs" 
                           customAvatarUrl={event.organizer.customAvatarUrl} 
                         />
-                        {/* Show attendee avatars (up to 5 more for total of 6) */}
-                        {attendeesMap[event.id] && attendeesMap[event.id].slice(0, 5).map((attendee, index) => (
-                          <AnimeAvatar 
-                            key={`${event.id}-${attendee.id}-${index}`}
-                            seed={attendee.animeAvatarSeed} 
-                            size="xs" 
-                            customAvatarUrl={attendee.customAvatarUrl}
-                          />
-                        ))}
+                        {/* Show attendee avatars (up to 5 more for total of 6), excluding organizer */}
+                        {attendeesMap[event.id] && attendeesMap[event.id]
+                          .filter(attendee => attendee.id !== event.organizerId)
+                          .slice(0, 5)
+                          .map((attendee, index) => (
+                            <AnimeAvatar 
+                              key={`${event.id}-${attendee.id}-${index}`}
+                              seed={attendee.animeAvatarSeed} 
+                              size="xs" 
+                              customAvatarUrl={attendee.customAvatarUrl}
+                            />
+                          ))}
                         {/* Show count indicator if more than 6 members */}
                         {event.rsvpCount > 5 && (
                           <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
