@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft, Edit, Navigation } from "lucide-react";
 import { useLocation } from "wouter";
@@ -120,6 +120,7 @@ export default function Home() {
   // Reset to Event Card view when page is refreshed (unless coming from other pages)
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
+    const fromMessagesTab = localStorage.getItem('fromMessagesTab');
     
     // If no specific event navigation, ensure we start with Event Card view
     if (!eventContentId) {
@@ -129,6 +130,11 @@ export default function Home() {
       setCurrentEventIndex(0);
       setSwipedEvents(new Set());
       clearHomeState();
+    } else if (fromMessagesTab === 'true') {
+      // For Messages tab navigation, ensure we start with correct state
+      setShowDetailCard(false);
+      setShowContentCard(false); // Will be set to true by handleEventNavigation
+      setSelectedEvent(null);
     }
   }, []);  // Only run once on mount
 
@@ -186,7 +192,17 @@ export default function Home() {
                                 event.userRsvpStatus === 'attending' || 
                                 event.organizerId === user?.id;
     
-    if (isGroupChatNavigation) {
+    // For Messages tab navigation, always go directly to EventContent
+    if (fromMessagesTab === 'true') {
+      // Use startTransition to batch all state updates for instant navigation
+      startTransition(() => {
+        setGroupChatEvent(event);
+        setCurrentEventIndex(0);
+        setShowContentCard(true);
+        setShowDetailCard(false);
+        setSelectedEvent(null); // Ensure no modal is shown
+      });
+    } else if (isGroupChatNavigation) {
       // For group chat navigation, we need to temporarily show this event
       // even though it's not in the normal swipe flow
       
@@ -238,6 +254,10 @@ export default function Home() {
     // Check if coming from Messages tab specifically
     if (fromMessagesTab === 'true') {
       setIsFromMessagesTab(true);
+      // Reset the flag after a short delay to prevent interference with future navigation
+      setTimeout(() => {
+        setIsFromMessagesTab(false);
+      }, 100);
     }
     
     // Clear the localStorage
@@ -647,8 +667,10 @@ export default function Home() {
         ) : (
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             {/* Main Event Card */}
-            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              showDetailCard ? 'transform -translate-x-full opacity-0' : 'transform translate-x-0 opacity-100'
+            <div className={`absolute inset-0 ${
+              isFromMessagesTab ? 'transition-none' : 'transition-all duration-300 ease-in-out'
+            } ${
+              showDetailCard || showContentCard ? 'transform -translate-x-full opacity-0' : 'transform translate-x-0 opacity-100'
             }`}>
               <div className="relative w-full h-full">
                 {/* Render current and next event cards */}
@@ -666,8 +688,10 @@ export default function Home() {
             </div>
 
             {/* Detail Card */}
-            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              showDetailCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
+            <div className={`absolute inset-0 ${
+              isFromMessagesTab ? 'transition-none' : 'transition-all duration-300 ease-in-out'
+            } ${
+              showDetailCard && !showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
               <div className="flex items-center justify-center h-full">
                 <EventDetailCard
@@ -680,7 +704,9 @@ export default function Home() {
             </div>
 
             {/* Content Card */}
-            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+            <div className={`absolute inset-0 ${
+              isFromMessagesTab ? 'transition-none' : 'transition-all duration-300 ease-in-out'
+            } ${
               showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
               <div className="w-full h-full">
