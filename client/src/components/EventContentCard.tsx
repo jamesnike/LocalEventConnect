@@ -511,6 +511,22 @@ export default function EventContentCard({
                   <div className="text-sm text-gray-600 mb-2">
                     Debug: {similarEvents.length} similar events found
                   </div>
+                  <div className="text-xs text-gray-500 mb-2">
+                    Current Event: {event.title} (ID: {event.id})
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">
+                    Category: {event.category}, SubCategory: {event.subCategory}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">
+                    Query Status: {isLoadingSimilarEvents ? 'Loading...' : 'Loaded'}
+                  </div>
+                  {console.log('SIMILAR EVENTS RENDER:', { 
+                    similarEvents, 
+                    length: similarEvents.length, 
+                    currentEvent: event,
+                    isLoading: isLoadingSimilarEvents,
+                    activeTab: activeTab 
+                  })}
                   {similarEvents.length > 0 ? (
                     similarEvents.slice(0, 3).map((similarEvent) => (
                       <button
