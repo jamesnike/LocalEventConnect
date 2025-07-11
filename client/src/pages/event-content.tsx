@@ -18,7 +18,8 @@ export default function EventContentPage() {
   const isFromMessages = !isFromEventDetail; // Messages tab navigation doesn't use ?tab=chat
   
   // Check if we're in Home page context (has home header and bottom nav)
-  const hasHomeLayout = window.location.pathname === '/' || localStorage.getItem('fromHomeEventDetail') === 'true';
+  // Home page context: accessed from EventDetail modal (Group Chat/Rejoin Chat buttons)
+  const hasHomeLayout = isFromEventDetail;
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -171,7 +172,15 @@ export default function EventContentPage() {
           onTabChange={setActiveTab}
           showBackButton={true}
           showKeepExploring={false}
-          onBackClick={() => setLocation('/my-events?tab=messages')}
+          onBackClick={() => {
+            // Navigate back to where we came from
+            if (isFromMessages) {
+              setLocation('/my-events?tab=messages');
+            } else {
+              // Default fallback
+              setLocation('/my-events');
+            }
+          }}
           onSimilarEventClick={() => {}}
           hasHomeLayout={false} // Pass context to EventContentCard
         />
