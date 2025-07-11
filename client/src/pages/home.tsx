@@ -554,11 +554,13 @@ export default function Home() {
     if (user && currentEvent) {
       try {
         await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
+        
+        // Reset currentEventIndex to 0 so we always show the first available event
+        // This prevents the double-skip issue where the index points to wrong event after filtering
+        setCurrentEventIndex(0);
+        
         // Invalidate the events query to refetch with updated skipped events
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-        
-        // Don't increment currentEventIndex here - the query refetch will handle showing the next event
-        // This prevents double-skipping since the filtered events array will change
       } catch (error) {
         console.error('Error skipping event:', error);
         // On error, still advance to next event to prevent getting stuck
