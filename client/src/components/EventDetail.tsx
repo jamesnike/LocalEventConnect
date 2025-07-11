@@ -802,7 +802,17 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             {user && (isOrganizer || localRsvpStatus === 'going' || localRsvpStatus === 'attending') && (
               (userRsvp && userRsvp.hasLeftChat) ? (
                 <button 
-                  onClick={() => rejoinChatMutation.mutate()}
+                  onClick={() => {
+                    rejoinChatMutation.mutate(undefined, {
+                      onSuccess: () => {
+                        // Close the modal first
+                        onClose();
+                        
+                        // Navigate directly to EventContent page like Messages tab does
+                        setLocation(`/event/${event.id}?tab=chat`);
+                      }
+                    });
+                  }}
                   disabled={rejoinChatMutation.isPending}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium disabled:opacity-50"
                 >

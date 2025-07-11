@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 11, 2025. UNIFIED CHAT NAVIGATION PATTERN: Fixed Group Chat and Rejoin Chat buttons in EventDetail to use same navigation pattern as Messages tab. Both buttons now use setLocation(`/event/${event.id}?tab=chat`) to route directly to EventContent page without home header/navigation bar. Provides consistent clean interface across all chat entry points.
 - July 11, 2025. OPTIMIZED SKIP ANIMATION UX: Completely eliminated skip animation delays by removing unnecessary state management and button disabling. Skip animation is now purely visual with pointer-events-none, allowing users to continue interacting with the underlying EventCard during the animation. No more button unresponsiveness or ~1 second delays - users can skip rapidly or click on cards seamlessly while animation plays in background.
 - July 11, 2025. ADDED PAST TENSE STATUS LABELS: Updated Messages tab to show "Organized/Attended" for past events vs "Organizing/Attending" for future events, with proper local time comparison to determine event status.
 - July 11, 2025. FIXED BROWSE PAGE CACHE INVALIDATION: Fixed issue where cancelled events continued to appear in Browse page after cancellation. Added Browse page cache invalidation (`/api/events/browse`) to cancel event mutation, ensuring cancelled events disappear immediately from Browse page.
