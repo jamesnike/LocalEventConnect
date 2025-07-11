@@ -447,9 +447,6 @@ export default function EventContentCard({
           zIndex: isActive ? 10 : 1
         }}
       >
-        {/* Empty space above header */}
-        <div className="h-8"></div>
-        
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center justify-between">
