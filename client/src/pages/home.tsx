@@ -474,6 +474,9 @@ export default function Home() {
   const currentEvent = groupChatEvent || availableEvents[currentEventIndex];
 
   // Reset local state when events data changes due to RSVPs/skips from other pages
+  // DISABLED: This was causing the double-skip issue by resetting currentEventIndex
+  // when events query refreshed after skipping
+  /*
   useEffect(() => {
     if (!events) return;
     
@@ -496,6 +499,7 @@ export default function Home() {
       clearHomeState();
     }
   }, [events, user?.id]);
+  */
 
   // Clear state when user has swiped through all events
   useEffect(() => {
@@ -569,9 +573,9 @@ export default function Home() {
         // This maintains the current flow and prevents index confusion
         setCurrentEventIndex(prev => prev + 1);
         
-        // Invalidate the events query to refetch with updated skipped events
-        // But don't rely on it for immediate UI updates
-        queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+        // DON'T invalidate the query immediately - let it refresh naturally
+        // The database skip filtering will handle it on the next page load
+        // queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       } catch (error) {
         console.error('Error skipping event:', error);
         // On error, still advance to next event to prevent getting stuck
