@@ -33,8 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timeFilter = req.query.timeFilter as string | undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
       
+      console.log(`Browse events request: timeFilter=${timeFilter}, category=${category}, limit=${limit}`);
+      
       // Don't pass userId to avoid filtering skipped events, and don't exclude past events for Browse
       const events = await storage.getEvents(undefined, category, timeFilter, limit, false);
+      
+      console.log(`Browse events result: ${events.length} events returned`);
       res.json(events);
     } catch (error) {
       console.error("Error fetching browse events:", error);

@@ -96,8 +96,12 @@ export class DatabaseStorage implements IStorage {
   private getTimeFilterConditions(timeFilter: string) {
     if (!timeFilter) return undefined;
     
+    console.log(`Parsing time filter: ${timeFilter}`);
+    
     // Parse the time filter format: "today_morning", "day1_afternoon", etc.
     const [dayPart, timePart] = timeFilter.split('_');
+    
+    console.log(`Day part: ${dayPart}, Time part: ${timePart}`);
     
     // Calculate the target date in local timezone
     let dayOffset = 0;
@@ -109,6 +113,8 @@ export class DatabaseStorage implements IStorage {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + dayOffset);
     const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    console.log(`Target date: ${dateString}, Day offset: ${dayOffset}`);
     
     // Define time ranges based on time period - matching client expectations
     let startTime: string, endTime: string;
@@ -122,6 +128,7 @@ export class DatabaseStorage implements IStorage {
         endTime = '17:59:59';
         break;
       case 'evening':
+      case 'night':  // Support both 'evening' and 'night' from client
         startTime = '18:00:00';  // 6:00pm to 11:59pm
         endTime = '23:59:59';
         break;
