@@ -498,7 +498,7 @@ export default function EventContentCard({
                               </div>
                               
                               {/* Avatar and message bubble */}
-                              <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2`}>
+                              <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2`}>
                                 <AnimeAvatar 
                                   seed={msg.user.animeAvatarSeed} 
                                   size="sm"
