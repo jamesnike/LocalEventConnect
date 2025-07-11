@@ -467,14 +467,12 @@ export default function EventContentCard({
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              {showBackButton && (
-                <button
-                  onClick={onBackClick}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-white" />
-                </button>
-              )}
+              <button
+                onClick={onBackClick}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
               <div>
                 <h3 className="font-semibold text-lg">
                   {event.isPrivateChat ? 'Private Chat' : event.title}
