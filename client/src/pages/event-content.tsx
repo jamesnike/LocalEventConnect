@@ -32,7 +32,8 @@ export default function EventContentPage() {
     error: error?.message,
     event: !!event,
     pathname: window.location.pathname,
-    search: window.location.search
+    search: window.location.search,
+    isRendering: 'EventContentPage is rendering'
   });
 
   // Set initial tab based on URL params or localStorage

@@ -806,6 +806,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     rejoinChatMutation.mutate(undefined, {
                       onSuccess: () => {
                         // Navigate directly to EventContent page like Messages tab does
+                        console.log('Rejoin chat navigation:', `/event/${event.id}?tab=chat`);
                         setLocation(`/event/${event.id}?tab=chat`);
                       }
                     });
@@ -825,6 +826,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   <button 
                     onClick={() => {
                       // Navigate directly to EventContent page like Messages tab does
+                      console.log('Group chat navigation:', `/event/${event.id}?tab=chat`);
                       setLocation(`/event/${event.id}?tab=chat`);
                     }}
                     className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
