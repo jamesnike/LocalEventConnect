@@ -285,55 +285,69 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     onClose();
   };
 
-  // Fetch fresh event data when opened from Browse page or when we need latest status
-  const { data: freshEvent, isLoading: isFreshEventLoading } = useQuery({
-    queryKey: ['/api/events', event.id, 'fresh'],
+  // Fetch fresh RSVP status when opened from Browse page
+  const { data: freshRsvpStatus } = useQuery({
+    queryKey: ['/api/events', event.id, 'rsvp-status'],
     queryFn: async () => {
-      const response = await apiRequest(`/api/events/${event.id}`);
-      return response.json() as EventWithOrganizer;
+      const response = await apiRequest(`/api/events/${event.id}/rsvp-status`);
+      return response.json();
     },
-    enabled: fromPage === 'browse' || fromPage === 'my-events', // Always fetch fresh data when coming from browse or my-events
+    enabled: fromPage === 'browse', // Only fetch when coming from browse page
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Force refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
-  // Use fresh event data if available, otherwise use prop event
-  const currentEvent = freshEvent || event;
+  // Fetch fresh attendees (members) when opened from Browse page
+  const { data: freshAttendees } = useQuery({
+    queryKey: ['/api/events', event.id, 'attendees'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/attendees`);
+      return response.json();
+    },
+    enabled: fromPage === 'browse', // Only fetch when coming from browse page
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Force refetch when component mounts
+  });
+
+  // Use event data from props (no need to fetch full event data)
+  const currentEvent = event;
 
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === currentEvent.organizerId;
 
-  // Update local state when fresh event data is available with priority on RSVP status
+  // Update local state when fresh RSVP status is available
   useEffect(() => {
-    if (freshEvent) {
-      // Always update RSVP status from fresh data - this is critical
-      setLocalRsvpStatus(freshEvent.userRsvpStatus);
-      setLocalRsvpCount(freshEvent.rsvpCount);
+    if (freshRsvpStatus && fromPage === 'browse') {
+      setLocalRsvpStatus(freshRsvpStatus.status);
       console.log('EventDetail: Updated RSVP status from fresh data:', {
         eventId: event.id,
-        freshRsvpStatus: freshEvent.userRsvpStatus,
-        freshRsvpCount: freshEvent.rsvpCount,
+        freshRsvpStatus: freshRsvpStatus.status,
         fromPage
       });
     }
-  }, [freshEvent, event.id, fromPage]);
+  }, [freshRsvpStatus, event.id, fromPage]);
 
-  // Also sync with prop event changes for immediate updates
+  // Update local member count when fresh attendees are available
   useEffect(() => {
-    if (!freshEvent) { // Only use prop event if we don't have fresh data
+    if (freshAttendees && fromPage === 'browse') {
+      setLocalRsvpCount(freshAttendees.length);
+      console.log('EventDetail: Updated member count from fresh data:', {
+        eventId: event.id,
+        freshMemberCount: freshAttendees.length,
+        fromPage
+      });
+    }
+  }, [freshAttendees, event.id, fromPage]);
+
+  // Sync with prop event changes for immediate updates when not from browse page
+  useEffect(() => {
+    if (fromPage !== 'browse') {
       setLocalRsvpStatus(event.userRsvpStatus);
       setLocalRsvpCount(event.rsvpCount);
-      console.log('EventDetail: Updated RSVP status from prop event:', {
-        eventId: event.id,
-        propRsvpStatus: event.userRsvpStatus,
-        propRsvpCount: event.rsvpCount,
-        fromPage
-      });
     }
-  }, [event.userRsvpStatus, event.rsvpCount, freshEvent, event.id, fromPage]);
+  }, [event.userRsvpStatus, event.rsvpCount, fromPage]);
 
-  // Fetch user's RSVP details to check if they've left the chat - also refresh when needed
+  // Fetch user's RSVP details to check if they've left the chat - only when not from browse page
   const { data: userRsvp } = useQuery({
     queryKey: ['/api/events', event.id, 'rsvp', user?.id],
     queryFn: async () => {
@@ -342,14 +356,14 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       if (response.status === 404) return null;
       return response.json();
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && fromPage !== 'browse', // Don't fetch if we already have fresh data from browse
     staleTime: 0, // Always fetch fresh RSVP data
     refetchOnMount: true,
   });
 
-  // Sync userRsvp data with local state when it changes
+  // Sync userRsvp data with local state when it changes (only when not from browse page)
   useEffect(() => {
-    if (userRsvp && userRsvp.status && userRsvp.status !== localRsvpStatus) {
+    if (userRsvp && userRsvp.status && userRsvp.status !== localRsvpStatus && fromPage !== 'browse') {
       setLocalRsvpStatus(userRsvp.status);
       console.log('EventDetail: Updated RSVP status from userRsvp query:', {
         eventId: event.id,
@@ -360,13 +374,14 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     }
   }, [userRsvp, localRsvpStatus, event.id, fromPage]);
 
-  // Fetch actual attendees for the event - also refresh for accurate counts
+  // Fetch actual attendees for the event - only when not from browse page
   const { data: attendees = [] } = useQuery({
     queryKey: ['/api/events', event.id, 'attendees'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/attendees`);
       return response.json();
     },
+    enabled: fromPage !== 'browse', // Don't fetch if we already have fresh data from browse
     staleTime: 0, // Always fetch fresh attendee data
     refetchOnMount: true,
   });
@@ -446,6 +461,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   
 
 
+  // Use the appropriate attendees data source based on page
+  const currentAttendees = fromPage === 'browse' ? (freshAttendees || []) : attendees;
+
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
     { id: 'sports', name: 'Sports', icon: Activity },
@@ -466,7 +484,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       }`}>
         <div className="relative h-full flex flex-col">
           {/* Loading overlay when fetching fresh data */}
-          {isFreshEventLoading && (
+          {(fromPage === 'browse' && (!freshRsvpStatus || !freshAttendees)) && (
             <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
             </div>
