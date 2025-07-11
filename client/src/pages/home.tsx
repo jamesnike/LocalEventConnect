@@ -555,7 +555,10 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    if (!currentEvent || isTransitioning) return;
+    
+    // Prevent multiple clicks on the same event
+    if (swipedEvents.has(currentEvent.id)) return;
     
     if (showContentCard) {
       // From content card, go back to main and move to next event
@@ -578,6 +581,8 @@ export default function Home() {
     } else if (showDetailCard) {
       // From detail card, skip to next event
       if (currentEvent) {
+        // Immediately add to swiped events to prevent multiple clicks
+        setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
@@ -586,6 +591,8 @@ export default function Home() {
     } else {
       // From main card, skip this event with animation
       if (currentEvent) {
+        // Immediately add to swiped events to prevent multiple clicks
+        setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
@@ -604,16 +611,14 @@ export default function Home() {
 
   const handleSkipAnimationComplete = () => {
     console.log('Skip animation completed - resetting states');
+    console.log('State before reset - showSkipAnimation:', showSkipAnimation, 'isSkippingInProgress:', isSkippingInProgress);
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
     if (eventBeingSkipped) {
       const eventIdToSkip = eventBeingSkipped;
       
-      // Add to local swiped events immediately
-      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
-      
-      // Move to the next event in the current array
+      // Move to the next event in the current array (swipedEvents already updated when button clicked)
       setCurrentEventIndex(prev => prev + 1);
       
       // Do the database skip operation in the background (fire and forget)
@@ -632,6 +637,11 @@ export default function Home() {
     console.log('Resetting isSkippingInProgress to false');
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
+    
+    // Force a re-render to ensure button states are updated
+    setTimeout(() => {
+      console.log('State after reset - showSkipAnimation:', showSkipAnimation, 'isSkippingInProgress:', isSkippingInProgress);
+    }, 0);
   };
 
   const handleContentSwipeRight = async () => {
@@ -876,10 +886,10 @@ export default function Home() {
           <div className="flex justify-center space-x-16">
             <button
               onClick={() => {
-                console.log('Skip button clicked - currentEvent:', !!currentEvent, 'isTransitioning:', isTransitioning, 'isSkippingInProgress:', isSkippingInProgress);
+                console.log('Skip button clicked - currentEvent:', !!currentEvent, 'isTransitioning:', isTransitioning, 'isSkippingInProgress:', isSkippingInProgress, 'showSkipAnimation:', showSkipAnimation);
                 handleSwipeLeft();
               }}
-              disabled={!currentEvent || isTransitioning || isSkippingInProgress}
+              disabled={!currentEvent || isTransitioning}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-8 h-8" />
