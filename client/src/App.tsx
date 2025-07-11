@@ -14,11 +14,18 @@ import Browse from "@/pages/browse";
 import EventContentPage from "@/pages/event-content";
 
 function Router() {
-  const { isAuthenticated, isLoading, user, error } = useAuth();
+  const { isAuthenticated, isLoading, user, error, refetch } = useAuth();
 
   // Debug authentication state in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('Router state:', { isAuthenticated, isLoading, user: !!user, error });
+    console.log('Router state:', { isAuthenticated, isLoading, user: !!user, error, url: window.location.href });
+  }
+
+  // Force authentication check on page load if coming from auth callback
+  if (typeof window !== 'undefined' && window.location.search.includes('code=')) {
+    setTimeout(() => {
+      refetch();
+    }, 500);
   }
 
   // Show loading state while checking authentication or if user state is transitioning

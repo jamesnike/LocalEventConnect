@@ -2,19 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: (failureCount, error) => {
       // Only retry on network errors, not on 401s
       return failureCount < 2 && !error.message.includes('401');
     },
-    staleTime: 5 * 1000, // 5 seconds - very short for development
+    staleTime: 1 * 1000, // 1 second - extremely short for mobile
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true, // Enable refetch on window focus
     refetchOnMount: true, // Enable refetch on mount
     refetchOnReconnect: true, // Enable refetch on reconnect
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds to maintain auth state
+    refetchInterval: 10 * 1000, // Refetch every 10 seconds to maintain auth state
   });
 
   // Debug auth state in development
@@ -22,10 +22,18 @@ export function useAuth() {
     console.log('Auth Hook Debug:', { user: !!user, isLoading, error: error?.message });
   }
 
+  // Force refetch when coming back from auth callback
+  if (typeof window !== 'undefined' && window.location.search.includes('code=')) {
+    setTimeout(() => {
+      refetch();
+    }, 1000);
+  }
+
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
     error,
+    refetch,
   };
 }
