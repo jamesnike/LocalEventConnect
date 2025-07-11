@@ -66,13 +66,12 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                   <button
                     key={option.id}
                     onClick={() => onCategoryChange(option.id)}
-                    className={`w-16 flex flex-col items-center justify-center px-1 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`w-16 flex items-center justify-center px-1 py-1 rounded-full text-xs font-medium transition-colors ${
                       isSelected
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    <Icon className="w-2.5 h-2.5 mb-0.5" />
                     <span className="text-center leading-tight whitespace-pre-line">
                       {option.name}
                     </span>
