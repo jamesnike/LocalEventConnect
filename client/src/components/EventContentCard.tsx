@@ -29,7 +29,7 @@ export default function EventContentCard({
   onSwipeLeft, 
   onSwipeRight, 
   isActive, 
-  similarEvents = [],
+  similarEvents: propSimilarEvents = [],
   onSimilarEventClick,
   initialTab = 'chat',
   onTabChange,
@@ -57,6 +57,27 @@ export default function EventContentCard({
       return response.json();
     },
     enabled: hasChatAccess,
+  });
+
+  // Fetch similar events with same category and sub-category (recent events only)
+  const { data: fetchedSimilarEvents = [] } = useQuery({
+    queryKey: ['/api/events', 'similar', event.category, event.subCategory, event.id],
+    queryFn: async () => {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+      
+      const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=20`);
+      const events = await response.json() as EventWithOrganizer[];
+      
+      // Filter for same sub-category, exclude current event, and only show future events
+      return events.filter(e => 
+        e.subCategory === event.subCategory && 
+        e.id !== event.id &&
+        e.date >= todayStr
+      );
+    },
+    enabled: !!event.category && !!event.subCategory,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const getSubCategoryColor = (subCategory: string) => {
@@ -179,6 +200,9 @@ export default function EventContentCard({
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
   }, [chatMessages, wsMessages]);
+
+  // Use fetched similar events if available, otherwise fall back to prop
+  const similarEvents = fetchedSimilarEvents.length > 0 ? fetchedSimilarEvents : propSimilarEvents;
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
