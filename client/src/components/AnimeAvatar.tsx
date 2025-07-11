@@ -2,19 +2,23 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import AvatarUpdateModal from './AvatarUpdateModal';
+import UserProfileModal from './UserProfileModal';
+import { User } from '@shared/schema';
 
 interface AnimeAvatarProps {
   seed: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   customAvatarUrl?: string | null;
   clickable?: boolean;
-  behavior?: 'navigate' | 'modal';
+  behavior?: 'navigate' | 'modal' | 'profile';
+  user?: User; // The user whose avatar this is (for profile modal)
 }
 
-export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clickable = true, behavior = 'modal' }: AnimeAvatarProps) {
+export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clickable = true, behavior = 'modal', user: avatarUser }: AnimeAvatarProps) {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAvatarUpdateModalOpen, setIsAvatarUpdateModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   
   const sizeClasses = {
@@ -46,10 +50,19 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
     if (behavior === 'navigate') {
       // Navigate to profile page
       setLocation('/profile');
+    } else if (behavior === 'profile' && avatarUser) {
+      // Show profile modal for any user
+      if (user && avatarUser.id === user.id) {
+        // If it's the current user's avatar, show avatar update modal
+        setIsAvatarUpdateModalOpen(true);
+      } else {
+        // Show profile modal for other users
+        setIsProfileModalOpen(true);
+      }
     } else {
-      // Show modal for avatar update (only if it's the user's own avatar)
+      // Default behavior: show modal for avatar update (only if it's the user's own avatar)
       if (user && seed === user.animeAvatarSeed) {
-        setIsModalOpen(true);
+        setIsAvatarUpdateModalOpen(true);
       }
     }
   };
@@ -72,9 +85,17 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
       
       {user && (
         <AvatarUpdateModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isAvatarUpdateModalOpen}
+          onClose={() => setIsAvatarUpdateModalOpen(false)}
           currentAvatarUrl={avatarUrl}
+        />
+      )}
+      
+      {avatarUser && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          user={avatarUser}
         />
       )}
     </>

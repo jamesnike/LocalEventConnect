@@ -470,6 +470,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     seed={attendee.animeAvatarSeed} 
                     size="md"
                     customAvatarUrl={attendee.customAvatarUrl}
+                    behavior="profile"
+                    user={attendee}
                   />
                 ))}
                 {attendees.length === 0 && (
@@ -477,6 +479,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     seed={event.organizer.animeAvatarSeed} 
                     size="md"
                     customAvatarUrl={event.organizer.customAvatarUrl}
+                    behavior="profile"
+                    user={event.organizer}
                   />
                 )}
               </div>
@@ -493,6 +497,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 seed={event.organizer.animeAvatarSeed} 
                 size="md"
                 customAvatarUrl={event.organizer.customAvatarUrl}
+                behavior="profile"
+                user={event.organizer}
               />
               <div>
                 <p className="font-medium text-gray-800">
