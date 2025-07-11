@@ -147,22 +147,14 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   };
 
   const getOverlayColor = () => {
-    if (dragOffset.x > 60) return 'bg-blue-500/20';
+    if (dragOffset.x > 60) return 'bg-green-500/20';
     if (dragOffset.x < -60) return 'bg-red-500/20';
     return 'bg-transparent';
   };
 
   const getOverlayIcon = () => {
-    if (dragOffset.x > 60) return (
-      <div className="text-center">
-        <div className="text-4xl font-bold text-blue-500 mb-2">Details</div>
-      </div>
-    );
-    if (dragOffset.x < -60) return (
-      <div className="text-center">
-        <div className="text-4xl font-bold text-red-500 mb-2">Skip</div>
-      </div>
-    );
+    if (dragOffset.x > 60) return <Heart className="w-16 h-16 text-green-500" />;
+    if (dragOffset.x < -60) return <X className="w-16 h-16 text-red-500" />;
     return null;
   };
 
@@ -191,7 +183,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     >
       <div
         ref={cardRef}
-        className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing select-none"
+        className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing"
         style={{
           height: 'calc(100% - 80px)',
           transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,

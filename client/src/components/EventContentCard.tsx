@@ -50,8 +50,6 @@ export default function EventContentCard({
   const [quotedMessage, setQuotedMessage] = useState<ChatMessageWithUser | null>(null);
   const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // Auto-scroll to bottom function
   const scrollToBottom = useCallback(() => {
@@ -59,33 +57,6 @@ export default function EventContentCard({
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, []);
-
-  // Handle viewport height changes for keyboard detection
-  useEffect(() => {
-    const handleResize = () => {
-      const currentHeight = window.innerHeight;
-      const heightDifference = viewportHeight - currentHeight;
-      
-      // Consider keyboard open if viewport height decreased by more than 150px
-      const keyboardThreshold = 150;
-      const keyboardOpen = heightDifference > keyboardThreshold;
-      
-      setIsKeyboardOpen(keyboardOpen);
-      
-      // Update viewport height for next comparison
-      if (!keyboardOpen) {
-        setViewportHeight(currentHeight);
-      }
-    };
-
-    // Add event listener for window resize
-    window.addEventListener('resize', handleResize);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [viewportHeight]);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
@@ -443,10 +414,13 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)',
+          height: 'calc(100% - 80px)',
           zIndex: isActive ? 10 : 1
         }}
       >
+        {/* Empty space above header */}
+        <div className="h-8"></div>
+        
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center justify-between">
@@ -548,7 +522,7 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden transition-all duration-300" style={{ height: isKeyboardOpen ? 'calc(100vh - 240px)' : 'calc(100vh - 280px)' }}>
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div
@@ -567,8 +541,7 @@ export default function EventContentCard({
                 {/* Messages */}
                 <div 
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-4 pb-32"
-                  style={{ marginBottom: quotedMessage ? '160px' : '120px' }}
+                  className="flex-1 overflow-y-auto p-4 space-y-4"
                 >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
@@ -691,8 +664,8 @@ export default function EventContentCard({
                   )}
                 </div>
 
-                {/* Message Input - Fixed above nav bar */}
-                <div className="fixed bottom-20 left-0 right-0 border-t border-gray-200 bg-gray-50 z-40">
+                {/* Message Input */}
+                <div className="border-t border-gray-200 bg-gray-50">
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
@@ -883,9 +856,9 @@ export default function EventContentCard({
           </AnimatePresence>
         </div>
 
-        {/* Keep Exploring Button - Above input box */}
+        {/* Keep Exploring Button - Bottom right with spacing */}
         {showKeepExploring && (
-          <div className="fixed bottom-44 right-4 z-50">
+          <div className="absolute bottom-32 right-4 z-30">
             <button
               onClick={handleKeepExploring}
               className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${

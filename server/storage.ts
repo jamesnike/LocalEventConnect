@@ -169,81 +169,6 @@ export class DatabaseStorage implements IStorage {
     ];
   }
 
-  // Weighted shuffle algorithm for better event discovery
-  private applyWeightedShuffle(events: any[], userSkippedEvents: number[]): any[] {
-    if (events.length === 0) return events;
-
-    // Create weighted events array
-    const weightedEvents = events.map(event => {
-      let weight = 1.0;
-      
-      // Add stronger base randomness to ensure variety
-      weight += Math.random() * 0.5; // Random 0-0.5 bonus for more variety
-      
-      // Minimal recent events boost to give older events better chances
-      const eventCreatedAt = new Date(event.createdAt);
-      const now = new Date();
-      const daysSinceCreated = (now.getTime() - eventCreatedAt.getTime()) / (1000 * 60 * 60 * 24);
-      
-      if (daysSinceCreated <= 7) {
-        weight *= 1.03; // Only 3% boost for recent events
-      } else if (daysSinceCreated <= 30) {
-        weight *= 1.01; // 1% boost for events created in last 30 days
-      }
-      
-      // Events skipped before get lower weight (0.7x weight - mild reduction)
-      if (userSkippedEvents.includes(event.id)) {
-        weight *= 0.7;
-      }
-      
-      // Very minimal boost for upcoming events
-      const eventDate = new Date(`${event.date}T${event.time}`);
-      const hoursUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      
-      if (hoursUntilEvent <= 24 && hoursUntilEvent > 0) {
-        weight *= 1.05; // Only 5% boost for events happening within 24 hours
-      } else if (hoursUntilEvent <= 72 && hoursUntilEvent > 0) {
-        weight *= 1.02; // Only 2% boost for events happening within 72 hours
-      }
-      
-      return { event, weight };
-    });
-
-    // Log some weight examples for debugging
-    console.log(`Weight examples for user ${userSkippedEvents.length > 0 ? 'with' : 'without'} skipped events:`);
-    weightedEvents.slice(0, 5).forEach(({ event, weight }) => {
-      console.log(`  Event ${event.id}: ${event.title.substring(0, 30)}... - Weight: ${weight.toFixed(2)}`);
-    });
-
-    // Weighted shuffle algorithm
-    const shuffledEvents = [];
-    const workingArray = [...weightedEvents];
-    
-    while (workingArray.length > 0) {
-      // Calculate total weight
-      const totalWeight = workingArray.reduce((sum, item) => sum + item.weight, 0);
-      
-      // Generate random value between 0 and totalWeight
-      let randomValue = Math.random() * totalWeight;
-      
-      // Find the selected event
-      let selectedIndex = 0;
-      for (let i = 0; i < workingArray.length; i++) {
-        randomValue -= workingArray[i].weight;
-        if (randomValue <= 0) {
-          selectedIndex = i;
-          break;
-        }
-      }
-      
-      // Add selected event to result and remove from working array
-      shuffledEvents.push(workingArray[selectedIndex].event);
-      workingArray.splice(selectedIndex, 1);
-    }
-    
-    return shuffledEvents;
-  }
-
   // Event operations
   async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20, excludePastEvents = false, timezoneOffset = 0): Promise<EventWithOrganizer[]> {
     // Get user's skipped events if userId is provided
@@ -346,22 +271,13 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
 
     const results = await query;
-    let mappedResults = results.map(result => ({
+    return results.map(result => ({
       ...result,
       organizer: result.organizer!,
       rsvpCount: result.rsvpCount || 0,
       userRsvpStatus: result.userRsvpStatus || undefined,
       isPrivateChat: result.isPrivateChat ? true : undefined,
     }) as any);
-
-    // Apply weighted shuffling for Home page (when userId is provided and we're not filtering by category/time)
-    if (userId && !category && !timeFilter) {
-      console.log(`Applying weighted shuffle for user ${userId} with ${mappedResults.length} events`);
-      mappedResults = this.applyWeightedShuffle(mappedResults, userSkippedEvents);
-      console.log(`Weighted shuffle complete. First 3 events: ${mappedResults.slice(0, 3).map(e => e.id).join(', ')}`);
-    }
-
-    return mappedResults;
   }
 
   async getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined> {

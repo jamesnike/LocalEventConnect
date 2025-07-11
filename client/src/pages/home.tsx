@@ -5,7 +5,6 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useSkippedEventsSync } from "@/hooks/useSkippedEventsSync";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import SwipeCard from "@/components/SwipeCard";
@@ -50,7 +49,6 @@ export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { totalUnread } = useNotifications();
-  const { addSkippedEvent } = useSkippedEventsSync();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -627,10 +625,15 @@ export default function Home() {
       // Move to the next event in the current array
       setCurrentEventIndex(prev => prev + 1);
       
-      // Add to background sync queue for database persistence
+      // Do the database skip operation in the background (fire and forget)
       if (user) {
-        addSkippedEvent(eventIdToSkip);
-        console.log(`Added event ${eventIdToSkip} to background sync queue`);
+        fetch(`/api/events/${eventIdToSkip}/skip`, { 
+          method: 'POST',
+          credentials: 'include'
+        })
+        .catch(error => {
+          console.error('Error skipping event in background:', error);
+        });
       }
     }
     
@@ -879,25 +882,32 @@ export default function Home() {
 
       {/* Action Buttons - Hidden when EventContent is active */}
       {!showContentCard && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-sm mx-auto pb-12 px-4 flex-shrink-0 z-10">
+        <div className="absolute bottom-16 left-0 right-0 px-4 py-4 flex-shrink-0 z-20">
           <div className="flex justify-center space-x-16">
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning || isSkippingInProgress}
-              className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex flex-col items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <X className="w-10 h-10" />
+              <X className="w-5 h-5 mb-1" />
+              <span className="text-xs font-medium">Skip</span>
             </button>
             
             <button
               onClick={handleSwipeRight}
               disabled={!currentEvent || isTransitioning}
-              className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              className={`flex flex-col items-center justify-center w-16 h-16 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
-                <Heart className="w-10 h-10" />
+                <>
+                  <Heart className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-medium">RSVP</span>
+                </>
               ) : (
-                <ArrowRight className="w-10 h-10" />
+                <>
+                  <ArrowRight className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-medium">Details</span>
+                </>
               )}
             </button>
           </div>
