@@ -381,9 +381,11 @@ export default function MyEvents() {
                           </div>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {event.rsvpCount + 1} members
-                      </span>
+                      {!event.isPrivateChat && (
+                        <span className="text-xs text-gray-500">
+                          {event.rsvpCount + 1} members
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center">
                       {event.isPrivateChat ? (
