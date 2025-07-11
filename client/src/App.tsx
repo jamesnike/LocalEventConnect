@@ -13,7 +13,7 @@ import MyEvents from "@/pages/my-events";
 import Browse from "@/pages/browse";
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, error } = useAuth();
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -29,6 +29,11 @@ function Router() {
         </div>
       </div>
     );
+  }
+
+  // Debug authentication state in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Auth state:', { isAuthenticated, user: !!user, error });
   }
 
   return (
