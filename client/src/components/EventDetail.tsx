@@ -286,7 +286,29 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   };
 
   // Check if current user is the organizer of this event
-  const isOrganizer = user?.id === event.organizerId;
+  const isOrganizer = user?.id === currentEvent.organizerId;
+
+  // Fetch fresh event data when opened from Browse page or when we need latest status
+  const { data: freshEvent, isLoading: isFreshEventLoading } = useQuery({
+    queryKey: ['/api/events', event.id, 'fresh'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}`);
+      return response.json() as EventWithOrganizer;
+    },
+    enabled: fromPage === 'browse' || fromPage === 'my-events', // Always fetch fresh data when coming from browse or my-events
+    staleTime: 0, // Always fetch fresh data
+  });
+
+  // Use fresh event data if available, otherwise use prop event
+  const currentEvent = freshEvent || event;
+
+  // Update local state when fresh event data is available
+  useEffect(() => {
+    if (freshEvent) {
+      setLocalRsvpStatus(freshEvent.userRsvpStatus);
+      setLocalRsvpCount(freshEvent.rsvpCount);
+    }
+  }, [freshEvent]);
 
   // Fetch user's RSVP details to check if they've left the chat
   const { data: userRsvp } = useQuery({
@@ -403,6 +425,13 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
         isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
       }`}>
         <div className="relative h-full flex flex-col">
+          {/* Loading overlay when fetching fresh data */}
+          {isFreshEventLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+            </div>
+          )}
+          
           <button 
             onClick={handleBack}
             className="absolute top-2 left-2 z-10 bg-white rounded-full p-1.5 shadow-md"
@@ -415,8 +444,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="h-48 relative">
           <img 
-            src={event.eventImageUrl || `https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600`}
-            alt={event.title}
+            src={currentEvent.eventImageUrl || `https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600`}
+            alt={currentEvent.title}
             className="w-full h-full object-cover"
           />
         </div>
@@ -424,23 +453,23 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           <div className="px-4 py-4 flex-1 overflow-y-auto">
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">{currentEvent.title}</h2>
               <div className="flex items-center text-gray-600 mb-1">
                 <Clock className="w-4 h-4 mr-2" />
-                <span>{formatDate(event.date)} • {formatTime(event.time)}</span>
+                <span>{formatDate(currentEvent.date)} • {formatTime(currentEvent.time)}</span>
               </div>
               <div className="flex items-center text-gray-600 mb-2">
                 <MapPin className="w-4 h-4 mr-2" />
-                <span>{event.location}</span>
+                <span>{currentEvent.location}</span>
               </div>
               {/* Category and Subcategory */}
               <div className="flex flex-wrap gap-2 mb-2">
                 <span className="inline-block bg-primary text-white text-xs px-2 py-1 rounded-full font-medium">
-                  {event.category}
+                  {currentEvent.category}
                 </span>
-                {event.subCategory && (
-                  <span className={`inline-block ${getSubCategoryColor(event.subCategory)} text-white text-xs px-2 py-1 rounded-full font-medium`}>
-                    {event.subCategory}
+                {currentEvent.subCategory && (
+                  <span className={`inline-block ${getSubCategoryColor(currentEvent.subCategory)} text-white text-xs px-2 py-1 rounded-full font-medium`}>
+                    {currentEvent.subCategory}
                   </span>
                 )}
               </div>
@@ -454,7 +483,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           <div className="mb-4">
             <h3 className="font-semibold text-gray-800 mb-2 text-sm">About this event</h3>
             <p className="text-gray-600 leading-relaxed text-sm">
-              {event.description}
+              {currentEvent.description}
             </p>
           </div>
           
@@ -495,29 +524,29 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             <h3 className="font-semibold text-gray-800 mb-2 text-sm">Organized by</h3>
             <div className="flex items-center space-x-3 mb-3">
               <AnimeAvatar 
-                seed={event.organizer.animeAvatarSeed} 
+                seed={currentEvent.organizer.animeAvatarSeed} 
                 size="md"
-                customAvatarUrl={event.organizer.customAvatarUrl}
+                customAvatarUrl={currentEvent.organizer.customAvatarUrl}
                 behavior="profile"
-                user={event.organizer}
+                user={currentEvent.organizer}
               />
               <div>
                 <p className="font-medium text-gray-800">
-                  {event.organizer.firstName || event.organizer.lastName 
-                    ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
+                  {currentEvent.organizer.firstName || currentEvent.organizer.lastName 
+                    ? `${currentEvent.organizer.firstName || ''} ${currentEvent.organizer.lastName || ''}`.trim()
                     : 'Anonymous Organizer'}
                 </p>
-                <p className="text-sm text-gray-600">{event.organizer.location}</p>
-                {event.organizer.aiSignature && (
+                <p className="text-sm text-gray-600">{currentEvent.organizer.location}</p>
+                {currentEvent.organizer.aiSignature && (
                   <p className="text-[10px] text-gray-500 italic mt-1">
-                    "{event.organizer.aiSignature}"
+                    "{currentEvent.organizer.aiSignature}"
                   </p>
                 )}
               </div>
             </div>
-            {event.organizer.interests && event.organizer.interests.length > 0 && (
+            {currentEvent.organizer.interests && currentEvent.organizer.interests.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {event.organizer.interests.slice(0, 3).map((interest) => {
+                {currentEvent.organizer.interests.slice(0, 3).map((interest) => {
                   const interestData = availableInterests.find(i => i.id === interest);
                   const Icon = interestData?.icon || Activity;
                   
@@ -569,7 +598,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     </>
                   ) : (
                     <>
-                      RSVP - {event.isFree ? 'Free' : `$${event.price}`}
+                      RSVP - {currentEvent.isFree ? 'Free' : `$${currentEvent.price}`}
                     </>
                   )}
                 </>
@@ -587,7 +616,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     </>
                   ) : (
                     <>
-                      RSVP - {event.isFree ? 'Free' : `$${event.price}`}
+                      RSVP - {currentEvent.isFree ? 'Free' : `$${currentEvent.price}`}
                     </>
                   )}
                 </>
