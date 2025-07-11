@@ -53,39 +53,45 @@ export default function EventContentCard({
   const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Detect if Home page header and bottom nav are present
+  // Detect if Home page header and bottom nav are present using MutationObserver for better performance
   const [isHomeLayoutActive, setIsHomeLayoutActive] = useState(false);
   
   useEffect(() => {
     const detectHomeLayout = () => {
-      // Check for Home header elements (user avatar, signature, notification bell)
-      const homeHeader = document.querySelector('[data-testid="home-header"]') || 
-                        document.querySelector('img[alt*="Avatar"]') || 
-                        document.querySelector('button[aria-label="Notifications"]');
-      
-      // Check for bottom navigation bar
-      const bottomNav = document.querySelector('[data-testid="bottom-nav"]') || 
-                       document.querySelector('nav') || 
-                       document.querySelector('a[href*="/home"]');
-      
+      const homeHeader = document.querySelector('[data-testid="home-header"]');
+      const bottomNav = document.querySelector('[data-testid="bottom-nav"]');
       const hasHomeLayout = !!(homeHeader && bottomNav);
+      
       console.log('Home layout detection:', { 
         homeHeader: !!homeHeader, 
         bottomNav: !!bottomNav, 
         hasHomeLayout,
         currentActive: isHomeLayoutActive
       });
+      
       setIsHomeLayoutActive(hasHomeLayout);
     };
 
     // Initial check
     detectHomeLayout();
     
-    // Check periodically in case DOM changes
-    const interval = setInterval(detectHomeLayout, 500);
+    // Use MutationObserver to detect DOM changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          detectHomeLayout();
+        }
+      });
+    });
     
-    return () => clearInterval(interval);
-  }, []);
+    // Observe the body for changes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    return () => observer.disconnect();
+  }, [event.id]);
 
   // Auto-scroll to bottom function
   const scrollToBottom = useCallback(() => {
@@ -450,12 +456,12 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: hasHomeLayout ? 'calc(100% - 20px)' : 'calc(100% - 40px)', // Reduced height for home layout
+          height: isHomeLayoutActive ? 'calc(100% - 20px)' : 'calc(100% - 40px)', // Reduced height for home layout
           zIndex: isActive ? 10 : 1
         }}
       >
         {/* Empty space above header - conditional based on layout */}
-        {!hasHomeLayout && <div className="h-8"></div>}
+        {!isHomeLayoutActive && <div className="h-8"></div>}
         
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
