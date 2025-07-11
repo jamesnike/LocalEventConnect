@@ -572,29 +572,28 @@ export default function Home() {
     if (user && currentEvent) {
       const eventToSkip = currentEvent; // Store reference to current event
       
-      try {
-        console.log('Skipping event:', eventToSkip.id, eventToSkip.title);
-        await apiRequest(`/api/events/${eventToSkip.id}/skip`, { method: 'POST' });
-        
-        // Add to local swiped events immediately to prevent showing it again
-        setSwipedEvents(prev => new Set(prev).add(eventToSkip.id));
-        
-        // Just move to the next event in the current array instead of resetting to 0
-        // This maintains the current flow and prevents index confusion
-        setCurrentEventIndex(prev => prev + 1);
-        
-        // DON'T invalidate the query immediately - let it refresh naturally
-        // The database skip filtering will handle it on the next page load
-        // queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      } catch (error) {
-        console.error('Error skipping event:', error);
-        // On error, still advance to next event to prevent getting stuck
-        setCurrentEventIndex(prev => prev + 1);
-      }
+      // Add to local swiped events FIRST to prevent showing it again
+      setSwipedEvents(prev => new Set(prev).add(eventToSkip.id));
+      
+      // Move to the next event in the current array
+      setCurrentEventIndex(prev => prev + 1);
+      
+      // Reset the skipping flag immediately
+      setIsSkippingInProgress(false);
+      
+      // Do the database skip operation in the background without waiting
+      // This prevents any potential state updates from affecting the UI
+      apiRequest(`/api/events/${eventToSkip.id}/skip`, { method: 'POST' })
+        .then(() => {
+          console.log('Event skipped in background:', eventToSkip.id, eventToSkip.title);
+        })
+        .catch(error => {
+          console.error('Error skipping event in background:', error);
+        });
+    } else {
+      // Reset the skipping flag even if no event to skip
+      setIsSkippingInProgress(false);
     }
-    
-    // Reset the skipping flag
-    setIsSkippingInProgress(false);
   };
 
   const handleContentSwipeRight = async () => {
