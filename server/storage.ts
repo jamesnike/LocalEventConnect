@@ -1263,7 +1263,7 @@ export class DatabaseStorage implements IStorage {
   async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
     console.log(`getUserPrivateChats called for user ${userId}`);
     
-    // First, get all private chat event IDs where the user is involved
+    // First, get all private chat event IDs where the user is involved and hasn't left the chat
     const userEventIds = await db
       .selectDistinct({
         eventId: events.id,
@@ -1274,9 +1274,11 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(events.isPrivateChat, true),
           eq(events.isActive, true),
+          eq(eventRsvps.userId, userId),
+          // Exclude chats where user has left
           or(
-            eq(events.organizerId, userId),
-            eq(eventRsvps.userId, userId)
+            eq(eventRsvps.hasLeftChat, false),
+            sql`${eventRsvps.hasLeftChat} IS NULL`
           )
         )
       );
