@@ -176,6 +176,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events/browse"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "organized"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "group-chats"] });

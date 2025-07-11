@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 11, 2025. FIXED BROWSE PAGE CACHE INVALIDATION: Fixed issue where cancelled events continued to appear in Browse page after cancellation. Added Browse page cache invalidation (`/api/events/browse`) to cancel event mutation, ensuring cancelled events disappear immediately from Browse page.
 - July 11, 2025. ENHANCED MEMBER AVATAR DISPLAY: Updated EventDetail component to show up to 10 member avatars (increased from 5) with normal medium size. Shows "+X more" when there are more than 10 members to indicate the exact additional count.
 - July 11, 2025. REMOVED MEMBER COUNT FROM EVENTDETAIL: Cleaned up EventDetail component by removing the member count number from the "Members" section header. The section now simply displays "Members" without the count in parentheses for a cleaner appearance while maintaining all member avatar functionality.
 - July 11, 2025. IMPLEMENTED REAL-TIME GROUP CHAT REORDERING: Successfully implemented complete real-time group chat list reordering based on message activity. Updated server-side group chats endpoint to sort by most recent message timestamp, modified frontend to use server's activity-based sorting, and added real-time invalidation when messages are sent/received via WebSocket. Group chats in Messages tab now automatically move to top when new messages arrive.
