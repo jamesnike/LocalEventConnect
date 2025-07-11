@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimeAvatar from "./AnimeAvatar";
+import EventDetail from "./EventDetail";
 
 interface EventContentCardProps {
   event: EventWithOrganizer;
@@ -45,6 +46,7 @@ export default function EventContentCard({
   const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [selectedSimilarEvent, setSelectedSimilarEvent] = useState<EventWithOrganizer | null>(null);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
@@ -471,7 +473,7 @@ export default function EventContentCard({
                     similarEvents.slice(0, 3).map((similarEvent) => (
                       <button
                         key={similarEvent.id}
-                        onClick={() => onSimilarEventClick?.(similarEvent)}
+                        onClick={() => setSelectedSimilarEvent(similarEvent)}
                         className="w-full border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
                       >
                         <div className="flex space-x-3">
@@ -594,6 +596,15 @@ export default function EventContentCard({
             </div>
           </div>
         </div>
+      )}
+
+      {/* EventDetail Modal for Similar Events */}
+      {selectedSimilarEvent && (
+        <EventDetail
+          event={selectedSimilarEvent}
+          onClose={() => setSelectedSimilarEvent(null)}
+          fromPage="event-content"
+        />
       )}
     </div>
   );

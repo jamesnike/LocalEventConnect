@@ -138,13 +138,8 @@ export default function EventContentPage() {
           showBackButton={false}
           showKeepExploring={false}
           onBackClick={() => setLocation('/my-events?tab=messages')}
-          onSimilarEventClick={(similarEvent) => {
-            console.log('Similar event clicked:', similarEvent.title, similarEvent.id);
-            // Navigate to home page with the similar event selected for EventDetail
-            localStorage.setItem('selectedEventId', similarEvent.id.toString());
-            localStorage.setItem('showEventDetail', 'true');
-            localStorage.setItem('fromEventContent', 'true');
-            setLocation('/');
+          onSimilarEventClick={() => {
+            // EventDetail is now handled directly within EventContentCard
           }}
         />
       </div>
