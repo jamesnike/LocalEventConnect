@@ -459,7 +459,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="mb-4">
             <h3 className="font-semibold text-gray-800 mb-2 text-sm">
-              Members ({localRsvpCount})
+              Members ({localRsvpCount + 1})
             </h3>
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
@@ -480,8 +480,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   />
                 )}
               </div>
-              {localRsvpCount > 5 && (
-                <span className="text-sm text-gray-600">+{localRsvpCount - 5} more</span>
+              {(localRsvpCount + 1) > 5 && (
+                <span className="text-sm text-gray-600">+{(localRsvpCount + 1) - 5} more</span>
               )}
             </div>
           </div>
