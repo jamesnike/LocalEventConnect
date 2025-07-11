@@ -182,6 +182,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           height: '100%',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
+          maxHeight: '100vh',
         }}
 
       >
@@ -190,16 +191,10 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           {getOverlayIcon()}
         </div>
 
+        {/* Temporarily disabled swipe zones for testing */}
+
         {/* Header with image */}
-        <div className="relative h-48 flex-shrink-0"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="relative h-48 flex-shrink-0">
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -216,7 +211,17 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-scroll flex-1 p-6 space-y-6 scrollable-content" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', minHeight: '600px' }}>
+        <div 
+          className="overflow-y-scroll flex-1 p-6 space-y-6 scrollable-content" 
+          style={{ 
+            touchAction: 'pan-y', 
+            overscrollBehavior: 'contain', 
+            WebkitOverflowScrolling: 'touch', 
+            height: '300px',
+            overflowY: 'scroll',
+            scrollbarWidth: 'thin'
+          }}
+        >
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
