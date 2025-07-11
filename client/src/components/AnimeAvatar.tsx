@@ -14,6 +14,7 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const sizeClasses = {
     xs: 'w-6 h-6',
@@ -31,6 +32,12 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
 
   // Use custom avatar if available, otherwise use DiceBear API for cute anime avatars
   const avatarUrl = customAvatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(seed)}&size=${pixelSizes[size]}&backgroundColor=transparent`;
+  
+  // Fallback avatar URL in case of error
+  const fallbackAvatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&size=${pixelSizes[size]}&backgroundColor=f3f4f6`;
+  
+  // Debug logging
+  console.log('Avatar Debug:', { seed, customAvatarUrl, avatarUrl, imageError });
 
   const handleClick = () => {
     if (!clickable) return;
@@ -52,10 +59,11 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
         className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-white shadow-sm bg-gradient-to-br from-pink-100 to-purple-100 hover:scale-105 transition-transform duration-200 ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
       >
         <img
-          src={avatarUrl}
+          src={imageError ? fallbackAvatarUrl : avatarUrl}
           alt="Anime avatar"
           className="w-full h-full object-cover"
           loading="lazy"
+          onError={() => setImageError(true)}
         />
       </button>
       

@@ -730,7 +730,20 @@ Please respond with just the signature text, nothing else.`;
       const generatedImageUrl = imageResponse.data[0].url;
       console.log("Generated DALL-E image URL:", generatedImageUrl);
       
-      res.json({ url: generatedImageUrl });
+      // Download the image and convert to base64
+      const fetch = (await import('node-fetch')).default;
+      const imageResponse2 = await fetch(generatedImageUrl);
+      
+      if (!imageResponse2.ok) {
+        throw new Error(`Failed to download image: ${imageResponse2.statusText}`);
+      }
+      
+      const imageBuffer = await imageResponse2.buffer();
+      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+      
+      console.log("Converted image to base64, size:", base64Image.length);
+      
+      res.json({ url: base64Image });
     } catch (error) {
       console.error("Error generating avatar:", error);
       res.status(500).json({ message: "Failed to generate avatar" });
@@ -743,14 +756,20 @@ Please respond with just the signature text, nothing else.`;
       const { customAvatarUrl } = req.body;
       
       if (!customAvatarUrl || typeof customAvatarUrl !== 'string') {
-        return res.status(400).json({ message: "Custom avatar URL is required" });
+        return res.status(400).json({ message: "Custom avatar data is required" });
       }
 
-      // Update user's custom avatar URL in database
+      // Validate base64 data format
+      if (!customAvatarUrl.startsWith('data:image/')) {
+        return res.status(400).json({ message: "Invalid avatar data format" });
+      }
+
+      // Update user's custom avatar in database with base64 data
       await db.update(users)
         .set({ customAvatarUrl })
         .where(eq(users.id, userId));
       
+      console.log("Avatar updated successfully for user:", userId);
       res.json({ message: "Avatar updated successfully" });
     } catch (error) {
       console.error("Error updating avatar:", error);
