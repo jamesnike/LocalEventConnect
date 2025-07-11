@@ -231,7 +231,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
               <span className="text-base text-gray-600">{event.location}</span>
             </div>
             <div className="flex items-center space-x-0.5">
-              <DollarSign className="w-3 h-3 text-gray-500" />
+              <DollarSign className="w-4 h-4 text-gray-500" />
               <span className="text-base text-gray-600">
                 {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `${parseFloat(event.price).toFixed(2)}`}
               </span>
