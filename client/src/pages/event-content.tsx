@@ -119,7 +119,7 @@ export default function EventContentPage() {
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
       {/* Event Content - Centered with white padding */}
-      <div className="h-screen p-4 flex items-center justify-center">
+      <div className="h-screen p-2 flex items-center justify-center">
         <div className="w-full h-full max-h-[90vh] bg-white rounded-lg shadow-lg overflow-hidden">
           <EventContentCard
             event={event}
