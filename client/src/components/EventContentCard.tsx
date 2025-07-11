@@ -414,7 +414,7 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: 'calc(100% - 80px)',
+          height: 'calc(100vh - 120px)',
           zIndex: isActive ? 10 : 1
         }}
       >
@@ -522,7 +522,7 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 320px)' }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div
