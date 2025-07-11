@@ -751,7 +751,7 @@ export default function Home() {
   return (
     <div className="max-w-sm mx-auto bg-white h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
+      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0" data-testid="home-header">
         <div className="flex items-center justify-between">
           {/* User Avatar */}
           <div className="flex items-center space-x-3">

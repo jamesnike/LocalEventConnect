@@ -53,6 +53,40 @@ export default function EventContentCard({
   const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  // Detect if Home page header and bottom nav are present
+  const [isHomeLayoutActive, setIsHomeLayoutActive] = useState(false);
+  
+  useEffect(() => {
+    const detectHomeLayout = () => {
+      // Check for Home header elements (user avatar, signature, notification bell)
+      const homeHeader = document.querySelector('[data-testid="home-header"]') || 
+                        document.querySelector('img[alt*="Avatar"]') || 
+                        document.querySelector('button[aria-label="Notifications"]');
+      
+      // Check for bottom navigation bar
+      const bottomNav = document.querySelector('[data-testid="bottom-nav"]') || 
+                       document.querySelector('nav') || 
+                       document.querySelector('a[href*="/home"]');
+      
+      const hasHomeLayout = !!(homeHeader && bottomNav);
+      console.log('Home layout detection:', { 
+        homeHeader: !!homeHeader, 
+        bottomNav: !!bottomNav, 
+        hasHomeLayout,
+        currentActive: isHomeLayoutActive
+      });
+      setIsHomeLayoutActive(hasHomeLayout);
+    };
+
+    // Initial check
+    detectHomeLayout();
+    
+    // Check periodically in case DOM changes
+    const interval = setInterval(detectHomeLayout, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Auto-scroll to bottom function
   const scrollToBottom = useCallback(() => {
     if (messagesContainerRef.current) {
@@ -525,7 +559,7 @@ export default function EventContentCard({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden" style={{ 
-          height: hasHomeLayout ? 'calc(100vh - 300px)' : 'calc(100vh - 220px)' // Further adjusted for home layout
+          height: isHomeLayoutActive ? 'calc(100vh - 300px)' : 'calc(100vh - 220px)' // Further adjusted for home layout
         }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
@@ -546,7 +580,7 @@ export default function EventContentCard({
                 <div 
                   ref={messagesContainerRef}
                   className={`flex-1 overflow-y-auto p-4 space-y-4 ${
-                    hasHomeLayout ? 'pb-20' : ''
+                    isHomeLayoutActive ? 'pb-20' : ''
                   }`}
                 >
                   {isLoadingMessages ? (
@@ -672,7 +706,7 @@ export default function EventContentCard({
 
                 {/* Message Input */}
                 <div className={`border-t border-gray-200 bg-gray-50 ${
-                  hasHomeLayout ? 'fixed bottom-16 left-0 right-0 z-40 max-w-sm mx-auto' : ''
+                  isHomeLayoutActive ? 'fixed bottom-16 left-0 right-0 z-40 max-w-sm mx-auto' : ''
                 }`}>
                   {/* Quote preview */}
                   {quotedMessage && (
@@ -865,7 +899,7 @@ export default function EventContentCard({
         </div>
 
         {/* Keep Exploring Button - Bottom right with spacing */}
-        {showKeepExploring && !hasHomeLayout && (
+        {showKeepExploring && !isHomeLayoutActive && (
           <div className="absolute bottom-12 right-4 z-30">
             <button
               onClick={handleKeepExploring}

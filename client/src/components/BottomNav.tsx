@@ -42,7 +42,7 @@ export default function BottomNav({ currentPage, onCreateEvent }: BottomNavProps
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-sm mx-auto bg-white border-t border-gray-200 z-20">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-sm mx-auto bg-white border-t border-gray-200 z-20" data-testid="bottom-nav">
       <div className="flex items-center">
         {navItems.map((item) => {
           const Icon = item.icon;
