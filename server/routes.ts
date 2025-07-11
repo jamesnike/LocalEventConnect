@@ -718,8 +718,11 @@ Please respond with just the signature text, nothing else.`;
                 - Bright, vibrant color palette
                 - Geometric shapes and simplified features
                 - Professional mobile app avatar look
-                - Clean white or transparent background
+                - PURE WHITE OR SOLID COLOR BACKGROUND (no textures, patterns, or complex backgrounds)
                 - Headshot portrait format suitable for profile pictures
+                - Clean, crisp edges with no background clutter
+                
+                IMPORTANT: Ensure the background is completely clean and simple - either pure white, solid light colors, or minimal gradients. Avoid busy backgrounds, patterns, or complex scenes that increase file size.
                 
                 Match this specific visual style exactly while incorporating the user's description. The result should look like it belongs in the same avatar collection as the reference style.`,
         n: 1,
