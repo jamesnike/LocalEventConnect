@@ -394,11 +394,11 @@ export default function MyEvents() {
                         </span>
                       ) : user?.id === event.organizerId ? (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          Organizing
+                          {new Date(event.date + 'T' + event.time) < new Date() ? 'Organized' : 'Organizing'}
                         </span>
                       ) : (
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          Attending
+                          {new Date(event.date + 'T' + event.time) < new Date() ? 'Attended' : 'Attending'}
                         </span>
                       )}
                     </div>
