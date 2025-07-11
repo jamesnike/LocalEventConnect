@@ -581,8 +581,9 @@ export default function Home() {
     } else if (showDetailCard) {
       // From detail card, skip to next event
       if (currentEvent) {
-        // Immediately add to swiped events to prevent multiple clicks
+        // Immediately add to swiped events and move to next event to prevent multiple clicks
         setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+        setCurrentEventIndex(prev => prev + 1);
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
@@ -591,8 +592,9 @@ export default function Home() {
     } else {
       // From main card, skip this event with animation
       if (currentEvent) {
-        // Immediately add to swiped events to prevent multiple clicks
+        // Immediately add to swiped events and move to next event to prevent multiple clicks
         setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+        setCurrentEventIndex(prev => prev + 1);
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
@@ -618,10 +620,8 @@ export default function Home() {
     if (eventBeingSkipped) {
       const eventIdToSkip = eventBeingSkipped;
       
-      // Move to the next event in the current array (swipedEvents already updated when button clicked)
-      setCurrentEventIndex(prev => prev + 1);
-      
       // Do the database skip operation in the background (fire and forget)
+      // Note: currentEventIndex and swipedEvents already updated when button clicked
       if (user) {
         fetch(`/api/events/${eventIdToSkip}/skip`, { 
           method: 'POST',
@@ -637,11 +637,6 @@ export default function Home() {
     console.log('Resetting isSkippingInProgress to false');
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
-    
-    // Force a re-render to ensure button states are updated
-    setTimeout(() => {
-      console.log('State after reset - showSkipAnimation:', showSkipAnimation, 'isSkippingInProgress:', isSkippingInProgress);
-    }, 0);
   };
 
   const handleContentSwipeRight = async () => {
