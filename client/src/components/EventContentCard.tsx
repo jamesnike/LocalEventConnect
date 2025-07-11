@@ -60,9 +60,10 @@ export default function EventContentCard({
   });
 
   // Fetch similar events with same category and sub-category (recent events only)
-  const { data: fetchedSimilarEvents = [], error: similarEventsError } = useQuery({
+  const { data: fetchedSimilarEvents = [], error: similarEventsError, isLoading: isLoadingSimilarEvents } = useQuery({
     queryKey: ['/api/events', 'similar', event.category, event.subCategory, event.id],
     queryFn: async () => {
+      console.log('=== SIMILAR EVENTS QUERY START ===');
       console.log('Fetching similar events for:', { 
         category: event.category, 
         subCategory: event.subCategory, 
@@ -74,6 +75,8 @@ export default function EventContentCard({
       
       const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=50`);
       const events = await response.json() as EventWithOrganizer[];
+      
+      console.log('API Response received:', { totalEvents: events.length });
       
       // Filter for same sub-category, exclude current event, and only show future events
       const filtered = events.filter(e => {
@@ -98,10 +101,11 @@ export default function EventContentCard({
         filtered: filtered.length,
         filteredEvents: filtered.map(e => ({ id: e.id, title: e.title, subCategory: e.subCategory }))
       });
+      console.log('=== SIMILAR EVENTS QUERY END ===');
       
       return filtered;
     },
-    enabled: !!event.category && !!event.subCategory,
+    enabled: !!event.category && !!event.subCategory && activeTab === 'similar',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -239,6 +243,9 @@ export default function EventContentCard({
     propCount: propSimilarEvents.length,
     totalCount: similarEvents.length,
     currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
+    activeTab: activeTab,
+    queryEnabled: !!event.category && !!event.subCategory && activeTab === 'similar',
+    isLoadingSimilarEvents: isLoadingSimilarEvents,
     eventObject: event
   });
 
@@ -268,6 +275,7 @@ export default function EventContentCard({
 
   // Notify parent when tab changes
   const handleTabChange = (tab: 'chat' | 'similar') => {
+    console.log('Tab changed to:', tab, 'for event:', event.id);
     setActiveTab(tab);
     onTabChange?.(tab);
     
