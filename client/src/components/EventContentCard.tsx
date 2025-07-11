@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
@@ -47,6 +47,14 @@ export default function EventContentCard({
   const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedSimilarEvent, setSelectedSimilarEvent] = useState<EventWithOrganizer | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, []);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
@@ -210,13 +218,15 @@ export default function EventContentCard({
   
 
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive or when entering chat
   useEffect(() => {
-    const messagesContainer = document.getElementById(`messages-${event.id}`);
-    if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    if (activeTab === 'chat' && allMessages.length > 0) {
+      // Use a small delay to ensure messages are rendered first
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
-  }, [messages.length, event.id]); // Use messages.length instead of allMessages to prevent infinite loop
+  }, [allMessages.length, activeTab, scrollToBottom]);
 
   // Reset tab and clear state when event changes
   useEffect(() => {
@@ -245,6 +255,10 @@ export default function EventContentCard({
       refetchMessages();
       // Mark event as read when actively opening chat
       markEventAsRead(event.id);
+      // Scroll to bottom when entering chat
+      setTimeout(() => {
+        scrollToBottom();
+      }, 200);
     }
   };
 
@@ -266,6 +280,10 @@ export default function EventContentCard({
     if (newMessage.trim() && !sendMessageMutation.isPending) {
       sendMessageMutation.mutate(newMessage);
       setNewMessage('');
+      // Scroll to bottom after sending message
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
   };
 
@@ -394,7 +412,7 @@ export default function EventContentCard({
               >
                 {/* Messages */}
                 <div 
-                  id={`messages-${event.id}`}
+                  ref={messagesContainerRef}
                   className="flex-1 overflow-y-auto p-4 space-y-4"
                 >
                   {isLoadingMessages ? (
