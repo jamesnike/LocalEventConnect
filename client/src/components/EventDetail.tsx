@@ -815,9 +815,17 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => {
-                      if (onNavigateToContent) {
-                        onNavigateToContent();
-                      }
+                      // Close the modal first
+                      onClose();
+                      
+                      // Use the same navigation pattern as Messages tab
+                      // Store navigation state in localStorage for home page to handle
+                      localStorage.setItem('eventContentId', event.id.toString());
+                      localStorage.setItem('preferredTab', 'chat');
+                      localStorage.setItem('fromMyEvents', 'true');
+                      
+                      // Navigate to home page - the useEffect will handle showing EventContent
+                      window.location.href = '/';
                     }}
                     className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg flex items-center space-x-2 font-medium"
                   >
