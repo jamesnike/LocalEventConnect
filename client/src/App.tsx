@@ -44,9 +44,24 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/profile" component={Landing} />
-          <Route path="/my-events" component={Landing} />
-          <Route path="/browse" component={Landing} />
+          <Route path="/profile">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
+          <Route path="/my-events">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
+          <Route path="/browse">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
           <Route component={NotFound} />
         </>
       )}
