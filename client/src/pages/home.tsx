@@ -591,6 +591,23 @@ export default function Home() {
         setShowSkipAnimation(true);
         setShowDetailCard(false);
         setLastSkipTime(currentTime);
+        
+        // Start loading next event immediately during animation
+        startTransition(() => {
+          setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+          setCurrentEventIndex(prev => prev + 1);
+        });
+        
+        // Do the database skip operation in the background
+        if (user) {
+          fetch(`/api/events/${currentEvent.id}/skip`, { 
+            method: 'POST',
+            credentials: 'include'
+          })
+          .catch(error => {
+            console.error('Error skipping event in background:', error);
+          });
+        }
       }
     } else {
       // From main card, skip this event with animation
@@ -599,6 +616,23 @@ export default function Home() {
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setLastSkipTime(currentTime);
+        
+        // Start loading next event immediately during animation
+        startTransition(() => {
+          setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
+          setCurrentEventIndex(prev => prev + 1);
+        });
+        
+        // Do the database skip operation in the background
+        if (user) {
+          fetch(`/api/events/${currentEvent.id}/skip`, { 
+            method: 'POST',
+            credentials: 'include'
+          })
+          .catch(error => {
+            console.error('Error skipping event in background:', error);
+          });
+        }
       }
     }
   };
@@ -615,29 +649,7 @@ export default function Home() {
   const handleSkipAnimationComplete = () => {
     setShowSkipAnimation(false);
     
-    // Use the captured event ID instead of current event
-    if (eventBeingSkipped) {
-      const eventIdToSkip = eventBeingSkipped;
-      
-      // Add to local swiped events immediately
-      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
-      
-      // Move to the next event in the current array
-      setCurrentEventIndex(prev => prev + 1);
-      
-      // Do the database skip operation in the background (fire and forget)
-      if (user) {
-        fetch(`/api/events/${eventIdToSkip}/skip`, { 
-          method: 'POST',
-          credentials: 'include'
-        })
-        .catch(error => {
-          console.error('Error skipping event in background:', error);
-        });
-      }
-    }
-    
-    // Reset the skipping state immediately - no timeout needed
+    // Reset the skipping state immediately - state updates already happened during animation
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
   };
