@@ -43,6 +43,10 @@ export default function Browse() {
       <EventDetail
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
+        onNavigateToContent={() => {
+          // Navigate to EventContent page for group chat
+          setLocation(`/event-content?eventId=${selectedEvent.id}&fromBrowse=true`);
+        }}
         fromPage="browse"
       />
     );
