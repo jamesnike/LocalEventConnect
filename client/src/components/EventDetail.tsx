@@ -301,6 +301,15 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     enabled: !!user?.id,
   });
 
+  // Fetch actual attendees for the event
+  const { data: attendees = [] } = useQuery({
+    queryKey: ['/api/events', event.id, 'attendees'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/attendees`);
+      return response.json();
+    },
+  });
+
   // Re-join chat mutation
   const rejoinChatMutation = useMutation({
     mutationFn: async () => {
@@ -454,15 +463,21 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
             </h3>
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
-                <AnimeAvatar 
-                  seed={event.organizer.animeAvatarSeed} 
-                  size="md"
-                  customAvatarUrl={event.organizer.customAvatarUrl}
-                />
-                <AnimeAvatar seed={`attendee_1_${event.id}`} size="md" />
-                <AnimeAvatar seed={`attendee_2_${event.id}`} size="md" />
-                <AnimeAvatar seed={`attendee_3_${event.id}`} size="md" />
-                <AnimeAvatar seed={`attendee_4_${event.id}`} size="md" />
+                {attendees.slice(0, 5).map((attendee, index) => (
+                  <AnimeAvatar 
+                    key={attendee.id}
+                    seed={attendee.animeAvatarSeed} 
+                    size="md"
+                    customAvatarUrl={attendee.customAvatarUrl}
+                  />
+                ))}
+                {attendees.length === 0 && (
+                  <AnimeAvatar 
+                    seed={event.organizer.animeAvatarSeed} 
+                    size="md"
+                    customAvatarUrl={event.organizer.customAvatarUrl}
+                  />
+                )}
               </div>
               {localRsvpCount > 5 && (
                 <span className="text-sm text-gray-600">+{localRsvpCount - 5} more</span>

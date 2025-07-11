@@ -75,6 +75,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/events/:id/attendees', async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      const attendees = await storage.getEventAttendees(eventId);
+      res.json(attendees);
+    } catch (error) {
+      console.error("Error fetching event attendees:", error);
+      res.status(500).json({ message: "Failed to fetch event attendees" });
+    }
+  });
+
   app.post('/api/events', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

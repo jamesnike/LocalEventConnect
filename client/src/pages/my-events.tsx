@@ -323,9 +323,11 @@ export default function MyEvents() {
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center">
                       <div className="flex -space-x-1 mr-2">
-                        <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" />
-                        <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
-                        <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
+                        <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" customAvatarUrl={event.organizer.customAvatarUrl} />
+                        {/* Show actual attendee avatars - simplified display for Messages tab */}
+                        {event.rsvpCount > 1 && (
+                          <AnimeAvatar seed={`placeholder_${event.id}`} size="xs" />
+                        )}
                       </div>
                       <span className="text-xs text-gray-500">
                         {event.rsvpCount} members

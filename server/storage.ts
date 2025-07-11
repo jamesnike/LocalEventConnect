@@ -57,6 +57,9 @@ export interface IStorage {
   addSkippedEvent(userId: string, eventId: number): Promise<void>;
   incrementEventsShown(userId: string): Promise<void>;
   resetSkippedEvents(userId: string): Promise<void>;
+  
+  // Attendee operations
+  getEventAttendees(eventId: number): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -997,6 +1000,84 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(users.id, userId));
+  }
+  
+  // Get actual attendees for an event
+  async getEventAttendees(eventId: number): Promise<User[]> {
+    // Get all users who have RSVPed to this event with 'attending' or 'going' status
+    const attendees = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        customAvatarUrl: users.customAvatarUrl,
+        animeAvatarSeed: users.animeAvatarSeed,
+        location: users.location,
+        interests: users.interests,
+        personality: users.personality,
+        aiSignature: users.aiSignature,
+        skippedEvents: users.skippedEvents,
+        eventsShownSinceSkip: users.eventsShownSinceSkip,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .innerJoin(eventRsvps, eq(users.id, eventRsvps.userId))
+      .where(
+        and(
+          eq(eventRsvps.eventId, eventId),
+          or(
+            eq(eventRsvps.status, 'attending'),
+            eq(eventRsvps.status, 'going')
+          )
+        )
+      )
+      .orderBy(eventRsvps.createdAt);
+    
+    // Get the organizer of the event
+    const event = await db
+      .select({
+        organizerId: events.organizerId
+      })
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+    
+    if (event.length > 0) {
+      const organizer = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          customAvatarUrl: users.customAvatarUrl,
+          animeAvatarSeed: users.animeAvatarSeed,
+          location: users.location,
+          interests: users.interests,
+          personality: users.personality,
+          aiSignature: users.aiSignature,
+          skippedEvents: users.skippedEvents,
+          eventsShownSinceSkip: users.eventsShownSinceSkip,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .where(eq(users.id, event[0].organizerId))
+        .limit(1);
+      
+      if (organizer.length > 0) {
+        // Add organizer at the beginning if not already in attendees
+        const organizerExists = attendees.some(a => a.id === organizer[0].id);
+        if (!organizerExists) {
+          return [organizer[0], ...attendees];
+        }
+      }
+    }
+    
+    return attendees;
   }
 }
 

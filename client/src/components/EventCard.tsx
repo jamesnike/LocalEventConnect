@@ -1,7 +1,9 @@
 import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop, Trash2, X } from "lucide-react";
-import { EventWithOrganizer } from "@shared/schema";
+import { EventWithOrganizer, User } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface EventCardProps {
   event: EventWithOrganizer;
@@ -11,6 +13,15 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, onEventClick, showStatus, onRemoveClick }: EventCardProps) {
+  // Fetch actual attendees for the event
+  const { data: attendees = [] } = useQuery({
+    queryKey: ['/api/events', event.id, 'attendees'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/attendees`);
+      return response.json() as User[];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
     const [year, month, day] = dateString.split('-');
@@ -198,16 +209,20 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
           </div>
           <div className="flex items-center space-x-2 ml-4">
             <div className="flex -space-x-2">
-              <AnimeAvatar 
-                seed={event.organizer.animeAvatarSeed} 
-                size="xs"
-                customAvatarUrl={event.organizer.customAvatarUrl}
-              />
-              {event.rsvpCount > 0 && (
-                <>
-                  <AnimeAvatar seed={`attendee_1_${event.id}`} size="xs" />
-                  <AnimeAvatar seed={`attendee_2_${event.id}`} size="xs" />
-                </>
+              {attendees.slice(0, 3).map((attendee) => (
+                <AnimeAvatar 
+                  key={attendee.id}
+                  seed={attendee.animeAvatarSeed} 
+                  size="xs"
+                  customAvatarUrl={attendee.customAvatarUrl}
+                />
+              ))}
+              {attendees.length === 0 && (
+                <AnimeAvatar 
+                  seed={event.organizer.animeAvatarSeed} 
+                  size="xs"
+                  customAvatarUrl={event.organizer.customAvatarUrl}
+                />
               )}
             </div>
             <span className="text-sm text-gray-600">
