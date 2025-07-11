@@ -28,12 +28,20 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const [isHovering, setIsHovering] = useState(false);
   const [localRsvpStatus, setLocalRsvpStatus] = useState<string | undefined>(event.userRsvpStatus);
   const [localRsvpCount, setLocalRsvpCount] = useState(event.rsvpCount);
+  const [hasJustRejoined, setHasJustRejoined] = useState(false);
 
   // Sync local state with event prop when event changes
   useEffect(() => {
     setLocalRsvpStatus(event.userRsvpStatus);
     setLocalRsvpCount(event.rsvpCount);
   }, [event.userRsvpStatus, event.rsvpCount]);
+
+  // Reset hasJustRejoined when userRsvp data updates
+  useEffect(() => {
+    if (userRsvp && !userRsvp.hasLeftChat && hasJustRejoined) {
+      setHasJustRejoined(false);
+    }
+  }, [userRsvp, hasJustRejoined]);
 
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
@@ -327,6 +335,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'rsvp', user?.id] });
       
+      // Set local state to immediately show the Group Chat button
+      setHasJustRejoined(true);
+      
       toast({
         title: "Rejoined Chat",
         description: "You've successfully rejoined the group chat!",
@@ -593,7 +604,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               )}
             </button>
             {user && (isOrganizer || localRsvpStatus === 'going' || localRsvpStatus === 'attending') && (
-              (userRsvp && userRsvp.hasLeftChat) ? (
+              (userRsvp && userRsvp.hasLeftChat && !hasJustRejoined) ? (
                 <button 
                   onClick={() => rejoinChatMutation.mutate()}
                   disabled={rejoinChatMutation.isPending}
