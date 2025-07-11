@@ -5,6 +5,7 @@ import {
   chatMessages,
   messageReads,
   messageFavorites,
+  savedEvents,
   type User,
   type UpsertUser,
   type Event,
@@ -67,6 +68,12 @@ export interface IStorage {
   addFavoriteMessage(userId: string, messageId: number): Promise<void>;
   removeFavoriteMessage(userId: string, messageId: number): Promise<void>;
   checkMessageFavorite(userId: string, messageId: number): Promise<boolean>;
+  
+  // Saved event operations
+  getSavedEvents(userId: string): Promise<EventWithOrganizer[]>;
+  addSavedEvent(userId: string, eventId: number): Promise<void>;
+  removeSavedEvent(userId: string, eventId: number): Promise<void>;
+  checkEventSaved(userId: string, eventId: number): Promise<boolean>;
   
   // Private chat operations
   createPrivateChat(user1Id: string, user2Id: string): Promise<Event>;
@@ -1604,6 +1611,87 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return favorite.length > 0;
+  }
+
+  async getSavedEvents(userId: string): Promise<EventWithOrganizer[]> {
+    const savedEventsData = await db.select({
+      id: events.id,
+      title: events.title,
+      description: events.description,
+      category: events.category,
+      subCategory: events.subCategory,
+      date: events.date,
+      time: events.time,
+      location: events.location,
+      latitude: events.latitude,
+      longitude: events.longitude,
+      price: events.price,
+      isFree: events.isFree,
+      eventImageUrl: events.eventImageUrl,
+      organizerId: events.organizerId,
+      maxAttendees: events.maxAttendees,
+      capacity: events.capacity,
+      parkingInfo: events.parkingInfo,
+      meetingPoint: events.meetingPoint,
+      duration: events.duration,
+      whatToBring: events.whatToBring,
+      specialNotes: events.specialNotes,
+      requirements: events.requirements,
+      contactInfo: events.contactInfo,
+      cancellationPolicy: events.cancellationPolicy,
+      isActive: events.isActive,
+      isPrivateChat: events.isPrivateChat,
+      createdAt: events.createdAt,
+      updatedAt: events.updatedAt,
+      organizer: users,
+      rsvpCount: sql<number>`COUNT(DISTINCT ${eventRsvps.id})::int`,
+    })
+    .from(savedEvents)
+    .leftJoin(events, eq(savedEvents.eventId, events.id))
+    .leftJoin(users, eq(events.organizerId, users.id))
+    .leftJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+    .where(eq(savedEvents.userId, userId))
+    .groupBy(events.id, users.id, savedEvents.id)
+    .orderBy(desc(savedEvents.createdAt));
+
+    return savedEventsData.filter(event => event.id != null).map(event => ({
+      ...event,
+      id: event.id!,
+      organizer: event.organizer!,
+      rsvpCount: event.rsvpCount || 0,
+      date: event.date || '',
+      time: event.time || '',
+      location: event.location || '',
+      title: event.title || '',
+      description: event.description || '',
+      category: event.category || '',
+      organizerId: event.organizerId || '',
+    })) as EventWithOrganizer[];
+  }
+
+  async addSavedEvent(userId: string, eventId: number): Promise<void> {
+    await db.insert(savedEvents).values({
+      userId,
+      eventId,
+    }).onConflictDoNothing();
+  }
+
+  async removeSavedEvent(userId: string, eventId: number): Promise<void> {
+    await db.delete(savedEvents)
+      .where(and(
+        eq(savedEvents.userId, userId),
+        eq(savedEvents.eventId, eventId)
+      ));
+  }
+
+  async checkEventSaved(userId: string, eventId: number): Promise<boolean> {
+    const saved = await db.select().from(savedEvents)
+      .where(and(
+        eq(savedEvents.userId, userId),
+        eq(savedEvents.eventId, eventId)
+      ))
+      .limit(1);
+    return saved.length > 0;
   }
 }
 

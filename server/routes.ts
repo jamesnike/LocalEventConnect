@@ -810,6 +810,88 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Saved events routes
+  app.get('/api/users/:userId/saved-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const requestedUserId = req.params.userId;
+      
+      // Users can only access their own saved events
+      if (userId !== requestedUserId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const savedEvents = await storage.getSavedEvents(userId);
+      res.json(savedEvents);
+    } catch (error) {
+      console.error("Error fetching saved events:", error);
+      res.status(500).json({ message: "Failed to fetch saved events" });
+    }
+  });
+
+  app.post('/api/events/:eventId/save', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      // Check if already saved
+      const isAlreadySaved = await storage.checkEventSaved(userId, eventId);
+      if (isAlreadySaved) {
+        return res.status(400).json({ message: "Event already saved" });
+      }
+      
+      await storage.addSavedEvent(userId, eventId);
+      res.status(201).json({ message: "Event saved successfully" });
+    } catch (error) {
+      console.error("Error saving event:", error);
+      res.status(500).json({ message: "Failed to save event" });
+    }
+  });
+
+  app.delete('/api/events/:eventId/save', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      await storage.removeSavedEvent(userId, eventId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing saved event:", error);
+      res.status(500).json({ message: "Failed to remove saved event" });
+    }
+  });
+
+  app.get('/api/events/:eventId/saved-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const isSaved = await storage.checkEventSaved(userId, eventId);
+      res.json({ isSaved });
+    } catch (error) {
+      console.error("Error checking saved status:", error);
+      res.status(500).json({ message: "Failed to check saved status" });
+    }
+  });
+
   // Notification endpoints
   app.get('/api/notifications/unread', isAuthenticated, async (req: any, res) => {
     try {

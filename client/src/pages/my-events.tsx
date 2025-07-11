@@ -19,7 +19,7 @@ export default function MyEvents() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const { unreadByEvent, markEventAsRead } = useNotifications();
-  const [activeTab, setActiveTab] = useState<'organized' | 'attending' | 'messages'>('messages');
+  const [activeTab, setActiveTab] = useState<'organized' | 'attending' | 'messages' | 'saved'>('messages');
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [, setLocation] = useLocation();
@@ -29,8 +29,8 @@ export default function MyEvents() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    if (tabParam === 'messages' || tabParam === 'organized' || tabParam === 'attending') {
-      setActiveTab(tabParam as 'organized' | 'attending' | 'messages');
+    if (tabParam === 'messages' || tabParam === 'organized' || tabParam === 'attending' || tabParam === 'saved') {
+      setActiveTab(tabParam as 'organized' | 'attending' | 'messages' | 'saved');
     }
   }, []);
 
@@ -63,6 +63,22 @@ export default function MyEvents() {
       if (!user?.id) return [];
       const response = await fetch(`/api/users/${user.id}/events?type=attending&pastOnly=false`);
       if (!response.ok) throw new Error('Failed to fetch attending events');
+      return response.json() as Promise<EventWithOrganizer[]>;
+    },
+    enabled: !!user?.id,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnMount: true, // Always refetch when mounting
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+  });
+
+  // Saved events query
+  const { data: savedEvents, isLoading: isLoadingSaved } = useQuery({
+    queryKey: ["/api/users", user?.id, "saved-events"],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/saved-events`);
+      if (!response.ok) throw new Error('Failed to fetch saved events');
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     enabled: !!user?.id,
@@ -224,6 +240,7 @@ export default function MyEvents() {
 
   const currentEvents = activeTab === 'organized' ? organizedEvents : 
                        activeTab === 'attending' ? attendingEvents : 
+                       activeTab === 'saved' ? savedEvents :
                        groupChats;
 
   return (
@@ -234,6 +251,7 @@ export default function MyEvents() {
         {/* Subtle loading indicator when refetching (but not initial loading) */}
         {((activeTab === 'organized' && isLoadingOrganized && organizedEvents) || 
           (activeTab === 'attending' && isLoadingAttending && attendingEvents) ||
+          (activeTab === 'saved' && isLoadingSaved && savedEvents) ||
           (activeTab === 'messages' && isLoadingGroupChats && groupChats)) && (
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500 opacity-60"></div>
@@ -284,6 +302,19 @@ export default function MyEvents() {
                 : 'text-gray-600'
             }`}
           >Organizing</button>
+          <button 
+            onClick={() => {
+              setActiveTab('saved');
+              setSelectedEvent(null);
+            }}
+            className={`flex-1 py-3 text-center font-medium ${
+              activeTab === 'saved' 
+                ? 'text-primary border-b-2 border-primary' 
+                : 'text-gray-600'
+            }`}
+          >
+            Saved
+          </button>
         </div>
       </div>
       {/* Events List */}
@@ -413,6 +444,7 @@ export default function MyEvents() {
             // Only show loading if no cached data and currently loading
             (((activeTab === 'organized' && isLoadingOrganized) || 
               (activeTab === 'attending' && isLoadingAttending) ||
+              (activeTab === 'saved' && isLoadingSaved) ||
               (activeTab === 'messages' && isLoadingGroupChats)) && !currentEvents) ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
@@ -422,12 +454,19 @@ export default function MyEvents() {
               <div className="p-8 text-center">
                 <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {activeTab === 'organized' ? 'No Events Created' : 'No Events Attending'}
+                  {activeTab === 'organized' ? 'No Events Created' : 
+                   activeTab === 'attending' ? 'No Events Attending' :
+                   activeTab === 'saved' ? 'No Saved Events' :
+                   'No Events'}
                 </h3>
                 <p className="text-gray-600">
                   {activeTab === 'organized' 
                     ? 'Create your first event to get started!'
-                    : 'Browse events and start attending some!'
+                    : activeTab === 'attending' 
+                    ? 'Browse events and start attending some!'
+                    : activeTab === 'saved'
+                    ? 'Save events you want to attend later!'
+                    : 'Start organizing or attending events!'
                   }
                 </p>
               </div>
@@ -440,7 +479,8 @@ export default function MyEvents() {
                 onEventClick={() => setSelectedEvent(event)}
                 showStatus={activeTab === 'organized' ? 'hosting' : 'attending'}
                 onRemoveClick={activeTab === 'organized' ? () => cancelEventMutation.mutate(event.id) : 
-                              activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : undefined}
+                              activeTab === 'attending' ? () => removeRsvpMutation.mutate(event.id) : 
+                              activeTab === 'saved' ? undefined : undefined}
               />
             ))}
           </div>))

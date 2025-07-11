@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2, Bookmark } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -28,6 +28,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   const [isHovering, setIsHovering] = useState(false);
   const [localRsvpStatus, setLocalRsvpStatus] = useState<string | undefined>(event.userRsvpStatus);
   const [localRsvpCount, setLocalRsvpCount] = useState(event.rsvpCount);
+  const [isSaved, setIsSaved] = useState(false);
   // Sync local state with event prop when event changes
   useEffect(() => {
     setLocalRsvpStatus(event.userRsvpStatus);
@@ -209,6 +210,107 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       });
     },
   });
+
+  // Query to check if event is saved
+  const { data: savedStatus } = useQuery({
+    queryKey: ["/api/events", event.id, "saved-status"],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/saved-status`);
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
+  // Update local saved state when query data changes
+  useEffect(() => {
+    if (savedStatus) {
+      setIsSaved(savedStatus.isSaved);
+    }
+  }, [savedStatus]);
+
+  // Mutation to save event
+  const saveEventMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest(`/api/events/${event.id}/save`, { 
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      setIsSaved(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "saved-events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "saved-status"] });
+      
+      toast({
+        title: "Event Saved",
+        description: "Event has been saved to your collection.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to save event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation to unsave event
+  const unsaveEventMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest(`/api/events/${event.id}/save`, { 
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      setIsSaved(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "saved-events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "saved-status"] });
+      
+      toast({
+        title: "Event Unsaved",
+        description: "Event has been removed from your saved collection.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to unsave event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveToggle = () => {
+    if (isSaved) {
+      unsaveEventMutation.mutate();
+    } else {
+      saveEventMutation.mutate();
+    }
+  };
 
   const handleClose = () => {
     setIsClosing(true);
@@ -530,9 +632,26 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 )}
               </div>
             </div>
-            <button className="bg-white border-2 border-primary text-primary px-3 py-1.5 rounded-full font-medium ml-3 text-sm">
-              <Heart className="w-3 h-3 mr-1 inline" />
-              Save
+            <button 
+              onClick={handleSaveToggle}
+              disabled={saveEventMutation.isPending || unsaveEventMutation.isPending}
+              className={`px-3 py-1.5 rounded-full font-medium ml-3 text-sm border-2 transition-all duration-200 ${
+                isSaved 
+                  ? 'bg-primary text-white border-primary' 
+                  : 'bg-white border-primary text-primary hover:bg-primary hover:text-white'
+              } ${(saveEventMutation.isPending || unsaveEventMutation.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {(saveEventMutation.isPending || unsaveEventMutation.isPending) ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
+                  {isSaved ? 'Unsaving...' : 'Saving...'}
+                </div>
+              ) : (
+                <>
+                  <Bookmark className={`w-3 h-3 mr-1 inline ${isSaved ? 'fill-current' : ''}`} />
+                  {isSaved ? 'Saved' : 'Save'}
+                </>
+              )}
             </button>
           </div>
           
