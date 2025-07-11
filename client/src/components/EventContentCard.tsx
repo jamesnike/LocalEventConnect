@@ -492,7 +492,7 @@ export default function EventContentCard({
                             <div className={`flex flex-col max-w-[80%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                               {/* User name */}
                               <div className={`flex items-center mb-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                                <span className="font-medium text-xs text-gray-800">
+                                <span className="font-normal text-xs text-gray-500">
                                   {msg.user.firstName} {msg.user.lastName}
                                 </span>
                               </div>
@@ -501,7 +501,7 @@ export default function EventContentCard({
                               <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2`}>
                                 <AnimeAvatar 
                                   seed={msg.user.animeAvatarSeed} 
-                                  size="xs"
+                                  size="sm"
                                   customAvatarUrl={msg.user.customAvatarUrl}
                                   clickable={msg.user.id !== user?.id}
                                   behavior="profile"
