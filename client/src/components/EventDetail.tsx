@@ -805,9 +805,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   onClick={() => {
                     rejoinChatMutation.mutate(undefined, {
                       onSuccess: () => {
-                        // Close the modal first
-                        onClose();
-                        
                         // Navigate directly to EventContent page like Messages tab does
                         setLocation(`/event/${event.id}?tab=chat`);
                       }
@@ -827,9 +824,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => {
-                      // Close the modal first
-                      onClose();
-                      
                       // Navigate directly to EventContent page like Messages tab does
                       setLocation(`/event/${event.id}?tab=chat`);
                     }}
