@@ -10,7 +10,7 @@ export function useAuth() {
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnReconnect: true, // Enable refetch on reconnect to maintain auth state
   });
 
   return {

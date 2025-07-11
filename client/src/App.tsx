@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { Calendar } from "lucide-react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,16 +11,9 @@ import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import MyEvents from "@/pages/my-events";
 import Browse from "@/pages/browse";
-import { useEffect } from "react";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [location] = useLocation();
-
-  // Debug logging
-  console.log("Router render - isAuthenticated:", isAuthenticated, "isLoading:", isLoading, "user:", user);
-  console.log("Router render - current location:", location);
-  console.log("Router render - window.location.pathname:", window.location.pathname);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -77,37 +70,6 @@ function Router() {
 }
 
 function App() {
-  // Global scroll event monitoring
-  useEffect(() => {
-    const handleScroll = () => {
-      console.log("Global scroll event detected:", {
-        scrollY: window.scrollY,
-        innerHeight: window.innerHeight,
-        pathname: window.location.pathname,
-        timestamp: new Date().toISOString()
-      });
-    };
-
-    // Monitor scroll events
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Monitor URL changes
-    const handlePopState = (event: PopStateEvent) => {
-      console.log("PopState event detected:", {
-        state: event.state,
-        pathname: window.location.pathname,
-        timestamp: new Date().toISOString()
-      });
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

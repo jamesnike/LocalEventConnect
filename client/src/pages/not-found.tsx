@@ -4,15 +4,6 @@ import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [location] = useLocation();
-  
-  // Debug logging
-  console.log("=== 404 NotFound component rendered ===");
-  console.log("Wouter location:", location);
-  console.log("Current window.location:", window.location);
-  console.log("Current pathname:", window.location.pathname);
-  console.log("Current search:", window.location.search);
-  console.log("Current hash:", window.location.hash);
-  console.log("Stack trace:", new Error().stack);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
