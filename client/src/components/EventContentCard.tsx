@@ -140,13 +140,24 @@ export default function EventContentCard({
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/favorites`);
       const messages = await response.json() as ChatMessageWithUser[];
-      // Update the favorited messages set
-      setFavoritedMessages(new Set(messages.map(msg => msg.id)));
       return messages;
     },
     enabled: hasChatAccess,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Update favorited messages set when favorites data changes
+  useEffect(() => {
+    console.log('Favorites data changed:', favoriteMessages.length, 'messages');
+    if (favoriteMessages.length > 0) {
+      const messageIds = favoriteMessages.map(msg => msg.id);
+      console.log('Setting favorited message IDs:', messageIds);
+      setFavoritedMessages(new Set(messageIds));
+    } else {
+      console.log('No favorite messages, clearing set');
+      setFavoritedMessages(new Set());
+    }
+  }, [favoriteMessages]);
 
   // Add favorite message mutation
   const addFavoriteMutation = useMutation({
@@ -316,7 +327,7 @@ export default function EventContentCard({
     console.log('EventContentCard: Event changed to', event.id);
     setActiveTab(initialTab);
     setNewMessage(''); // Clear any pending message
-    setFavoritedMessages(new Set()); // Clear favorited messages set
+    // Don't reset favorited messages set - let the favorites query handle it
   }, [event.id, initialTab]);
 
   // Mark event as read when entering the component
@@ -623,6 +634,7 @@ export default function EventContentCard({
                                     </button>
                                     <button
                                       onClick={() => {
+                                        console.log('Heart button clicked for message', msg.id, 'is favorited:', favoritedMessages.has(msg.id));
                                         if (favoritedMessages.has(msg.id)) {
                                           removeFavoriteMutation.mutate(msg.id);
                                         } else {
