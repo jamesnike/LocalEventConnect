@@ -82,8 +82,7 @@ export default function Home() {
   const [showContentCard, setShowContentCard] = useState(false); // Always start with Event Card
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
+
 
   const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
@@ -559,7 +558,7 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    if (!currentEvent) return;
     
     if (showContentCard) {
       // From content card, go back to main and move to next event
@@ -583,7 +582,6 @@ export default function Home() {
       // From detail card, skip to next event
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
-        setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setShowDetailCard(false);
       }
@@ -591,7 +589,6 @@ export default function Home() {
       // From main card, skip this event with animation
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
-        setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
       }
     }
@@ -628,7 +625,6 @@ export default function Home() {
     
     // Reset the skipping state after everything else
     setTimeout(() => {
-      setIsSkippingInProgress(false);
       setEventBeingSkipped(null);
     }, 100);
   };
@@ -652,7 +648,7 @@ export default function Home() {
   };
 
   const handleSwipeRight = async () => {
-    if (!currentEvent || isTransitioning) return;
+    if (!currentEvent) return;
     if (showDetailCard) {
       // From detail card, RSVP and show celebration
       if (user) {
@@ -691,14 +687,9 @@ export default function Home() {
   };
 
   const handleUndo = () => {
-    if (isTransitioning) return;
     if (showDetailCard) {
       // If in detail view, go back to main card
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setShowDetailCard(false);
-        setIsTransitioning(false);
-      }, 150);
+      setShowDetailCard(false);
       return;
     }
     if (swipedEvents.size === 0) return;
@@ -875,7 +866,7 @@ export default function Home() {
           <div className="flex justify-center space-x-16">
             <button
               onClick={handleSwipeLeft}
-              disabled={!currentEvent || isTransitioning || isSkippingInProgress}
+              disabled={!currentEvent}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-10 h-10" />
@@ -883,7 +874,7 @@ export default function Home() {
             
             <button
               onClick={handleSwipeRight}
-              disabled={!currentEvent || isTransitioning}
+              disabled={!currentEvent}
               className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
