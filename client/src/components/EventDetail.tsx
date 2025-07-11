@@ -36,12 +36,12 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     setLocalRsvpCount(event.rsvpCount);
   }, [event.userRsvpStatus, event.rsvpCount]);
 
-  // Reset hasJustRejoined when userRsvp data updates
+  // Reset hasJustRejoined when userRsvp data updates (only when hasLeftChat changes from true to false)
   useEffect(() => {
     if (userRsvp && !userRsvp.hasLeftChat && hasJustRejoined) {
       setHasJustRejoined(false);
     }
-  }, [userRsvp, hasJustRejoined]);
+  }, [userRsvp?.hasLeftChat]); // Only depend on hasLeftChat, not hasJustRejoined
 
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
