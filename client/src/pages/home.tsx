@@ -82,8 +82,9 @@ export default function Home() {
   const [showContentCard, setShowContentCard] = useState(false); // Always start with Event Card
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
-
-
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
+  const [lastSkipTime, setLastSkipTime] = useState(0);
   const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
@@ -558,7 +559,13 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent) return;
+    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    
+    // Debounce mechanism: prevent rapid consecutive skips
+    const currentTime = Date.now();
+    if (currentTime - lastSkipTime < 2000) { // 2 second debounce
+      return;
+    }
     
     if (showContentCard) {
       // From content card, go back to main and move to next event
