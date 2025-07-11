@@ -297,20 +297,43 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     },
     enabled: fromPage === 'browse' || fromPage === 'my-events', // Always fetch fresh data when coming from browse or my-events
     staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Force refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
   // Use fresh event data if available, otherwise use prop event
   const currentEvent = freshEvent || event;
 
-  // Update local state when fresh event data is available
+  // Update local state when fresh event data is available with priority on RSVP status
   useEffect(() => {
     if (freshEvent) {
+      // Always update RSVP status from fresh data - this is critical
       setLocalRsvpStatus(freshEvent.userRsvpStatus);
       setLocalRsvpCount(freshEvent.rsvpCount);
+      console.log('EventDetail: Updated RSVP status from fresh data:', {
+        eventId: event.id,
+        freshRsvpStatus: freshEvent.userRsvpStatus,
+        freshRsvpCount: freshEvent.rsvpCount,
+        fromPage
+      });
     }
-  }, [freshEvent]);
+  }, [freshEvent, event.id, fromPage]);
 
-  // Fetch user's RSVP details to check if they've left the chat
+  // Also sync with prop event changes for immediate updates
+  useEffect(() => {
+    if (!freshEvent) { // Only use prop event if we don't have fresh data
+      setLocalRsvpStatus(event.userRsvpStatus);
+      setLocalRsvpCount(event.rsvpCount);
+      console.log('EventDetail: Updated RSVP status from prop event:', {
+        eventId: event.id,
+        propRsvpStatus: event.userRsvpStatus,
+        propRsvpCount: event.rsvpCount,
+        fromPage
+      });
+    }
+  }, [event.userRsvpStatus, event.rsvpCount, freshEvent, event.id, fromPage]);
+
+  // Fetch user's RSVP details to check if they've left the chat - also refresh when needed
   const { data: userRsvp } = useQuery({
     queryKey: ['/api/events', event.id, 'rsvp', user?.id],
     queryFn: async () => {
@@ -320,15 +343,32 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
       return response.json();
     },
     enabled: !!user?.id,
+    staleTime: 0, // Always fetch fresh RSVP data
+    refetchOnMount: true,
   });
 
-  // Fetch actual attendees for the event
+  // Sync userRsvp data with local state when it changes
+  useEffect(() => {
+    if (userRsvp && userRsvp.status && userRsvp.status !== localRsvpStatus) {
+      setLocalRsvpStatus(userRsvp.status);
+      console.log('EventDetail: Updated RSVP status from userRsvp query:', {
+        eventId: event.id,
+        userRsvpStatus: userRsvp.status,
+        previousLocalStatus: localRsvpStatus,
+        fromPage
+      });
+    }
+  }, [userRsvp, localRsvpStatus, event.id, fromPage]);
+
+  // Fetch actual attendees for the event - also refresh for accurate counts
   const { data: attendees = [] } = useQuery({
     queryKey: ['/api/events', event.id, 'attendees'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/attendees`);
       return response.json();
     },
+    staleTime: 0, // Always fetch fresh attendee data
+    refetchOnMount: true,
   });
 
   // Re-join chat mutation
