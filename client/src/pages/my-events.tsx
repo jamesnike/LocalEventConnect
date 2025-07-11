@@ -380,7 +380,11 @@ export default function MyEvents() {
                       </span>
                     </div>
                     <div className="flex items-center">
-                      {user?.id === event.organizerId ? (
+                      {event.isPrivateChat ? (
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                          Private
+                        </span>
+                      ) : user?.id === event.organizerId ? (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                           Organizing
                         </span>

@@ -208,6 +208,7 @@ export type EventWithOrganizer = Event & {
   organizer: User;
   rsvpCount: number;
   userRsvpStatus?: string;
+  isPrivateChat?: boolean; // Include private chat flag
 };
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type ExternalEvent = z.infer<typeof externalEventSchema>;
