@@ -13,7 +13,7 @@ import CelebrationAnimation from "./CelebrationAnimation";
 interface EventDetailProps {
   event: EventWithOrganizer;
   onClose: () => void;
-  onNavigateToContent?: () => void;
+  onNavigateToContent?: (event: EventWithOrganizer) => void;
   showGroupChatButton?: boolean;
   onSkip?: () => void;
   onBack?: () => void;
@@ -385,7 +385,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     setShowCelebration(false);
     // Navigate to EventContent after celebration
     if (onNavigateToContent) {
-      onNavigateToContent();
+      onNavigateToContent(event);
     }
     onClose();
   };

@@ -1011,9 +1011,10 @@ export default function Home() {
             }
           }}
           showGroupChatButton={isFromMyEvents}
-          onNavigateToContent={() => {
-            // Store the selected event in localStorage and navigate
-            localStorage.setItem('eventContentId', selectedEvent.id.toString());
+          onNavigateToContent={(event) => {
+            // Store the specific event (passed from EventDetail) in localStorage and navigate
+            // This ensures we navigate to the correct event that was RSVP'd to
+            localStorage.setItem('eventContentId', event.id.toString());
             localStorage.setItem('preferredTab', 'chat');
             if (isFromMyEvents) {
               localStorage.setItem('fromMyEvents', 'true');
