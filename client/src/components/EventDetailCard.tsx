@@ -1,8 +1,9 @@
-import { MapPin, DollarSign, Clock, Calendar } from "lucide-react";
+import { MapPin, DollarSign, Clock, Calendar, Users } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
 import { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
 
 interface EventDetailCardProps {
   event: EventWithOrganizer;
@@ -10,6 +11,44 @@ interface EventDetailCardProps {
   onSwipeRight: () => void;
   isActive: boolean;
 }
+
+const getCategoryColor = (category: string) => {
+  const colors = {
+    'Music': 'bg-purple-100 text-purple-800',
+    'Sports': 'bg-blue-100 text-blue-800',
+    'Arts': 'bg-pink-100 text-pink-800',
+    'Food': 'bg-orange-100 text-orange-800',
+    'Tech': 'bg-green-100 text-green-800',
+    'Business': 'bg-gray-100 text-gray-800',
+    'Education': 'bg-yellow-100 text-yellow-800',
+    'Health & Wellness': 'bg-emerald-100 text-emerald-800',
+    'Entertainment': 'bg-red-100 text-red-800',
+    'Community': 'bg-indigo-100 text-indigo-800',
+    'Outdoor': 'bg-teal-100 text-teal-800',
+    'Family': 'bg-rose-100 text-rose-800',
+    'Lifestyle': 'bg-violet-100 text-violet-800'
+  };
+  return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+};
+
+const getSubCategoryColor = (subCategory: string) => {
+  const colors = [
+    'bg-pink-100 text-pink-700', 'bg-indigo-100 text-indigo-700', 'bg-green-100 text-green-700',
+    'bg-yellow-100 text-yellow-700', 'bg-red-100 text-red-700', 'bg-cyan-100 text-cyan-700',
+    'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700',
+    'bg-violet-100 text-violet-700', 'bg-teal-100 text-teal-700', 'bg-lime-100 text-lime-700',
+    'bg-fuchsia-100 text-fuchsia-700', 'bg-sky-100 text-sky-700', 'bg-slate-100 text-slate-700',
+    'bg-orange-100 text-orange-700', 'bg-purple-100 text-purple-700', 'bg-blue-100 text-blue-700'
+  ];
+  
+  // Simple hash function to consistently assign colors
+  let hash = 0;
+  for (let i = 0; i < subCategory.length; i++) {
+    hash = subCategory.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
 
 export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isActive }: EventDetailCardProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
