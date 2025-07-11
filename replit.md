@@ -141,7 +141,6 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
-- July 11, 2025. FIXED BUTTON BLOCKING ISSUE: Removed 2-second debounce mechanism that was preventing rapid clicking on Skip/Details/RSVP buttons. Users can now click buttons immediately after animations complete without waiting for debounce window to expire. Cleaned up unused state variables (lastSkipTime, skipQueue) for better performance.
 - July 11, 2025. ADDED PAST TENSE STATUS LABELS: Updated Messages tab to show "Organized/Attended" for past events vs "Organizing/Attending" for future events, with proper local time comparison to determine event status.
 - July 11, 2025. FIXED BROWSE PAGE CACHE INVALIDATION: Fixed issue where cancelled events continued to appear in Browse page after cancellation. Added Browse page cache invalidation (`/api/events/browse`) to cancel event mutation, ensuring cancelled events disappear immediately from Browse page.
 - July 11, 2025. ENHANCED MEMBER AVATAR DISPLAY: Updated EventDetail component to show up to 10 member avatars (increased from 5) with normal medium size. Shows "+X more" when there are more than 10 members to indicate the exact additional count.

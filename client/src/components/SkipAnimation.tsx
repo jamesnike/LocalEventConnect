@@ -17,27 +17,19 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
       setShowEffect(true);
       
       // Show text after a delay
-      const textTimeout = setTimeout(() => {
+      setTimeout(() => {
         setShowText(true);
       }, 300);
       
       // Complete animation after 1.5 seconds (shorter than celebration)
-      const completeTimeout = setTimeout(() => {
-        setShowEffect(false);
-        setShowText(false);
+      setTimeout(() => {
         onComplete();
       }, 1500);
-
-      // Cleanup function to clear timeouts
-      return () => {
-        clearTimeout(textTimeout);
-        clearTimeout(completeTimeout);
-      };
     } else {
       setShowEffect(false);
       setShowText(false);
     }
-  }, [isVisible, onComplete]);
+  }, [isVisible]); // Remove onComplete from dependencies to prevent multiple timeouts
 
   return (
     <AnimatePresence>

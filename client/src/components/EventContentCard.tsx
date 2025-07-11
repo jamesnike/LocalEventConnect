@@ -320,7 +320,7 @@ export default function EventContentCard({
         scrollToBottom();
       }, 100);
     }
-  }, [allMessages.length, activeTab]); // Remove scrollToBottom from dependencies to prevent infinite loop
+  }, [allMessages.length, activeTab, scrollToBottom]);
 
   // Reset tab and clear state when event changes
   useEffect(() => {

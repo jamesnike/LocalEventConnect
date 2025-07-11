@@ -22,11 +22,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   const startPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isActive) {
-      console.log('SwipeCard mouse down blocked - not active:', event.title);
-      return;
-    }
-    console.log('SwipeCard mouse down allowed - is active:', event.title);
+    if (!isActive) return;
     setIsDragging(true);
     setStartTime(Date.now());
     setIsHorizontalSwipe(false);
@@ -34,11 +30,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isActive) {
-      console.log('SwipeCard touch start blocked - not active:', event.title);
-      return;
-    }
-    console.log('SwipeCard touch start allowed - is active:', event.title);
+    if (!isActive) return;
     setIsDragging(true);
     setStartTime(Date.now());
     setIsHorizontalSwipe(false);
@@ -142,10 +134,6 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
       setRotation(0);
     }
   }, [isDragging]);
-
-  useEffect(() => {
-    console.log('SwipeCard isActive changed:', isActive, 'for event:', event.title);
-  }, [isActive, event.title]);
 
   const formatDateTime = (dateStr: string, timeStr: string) => {
     const date = new Date(`${dateStr}T${timeStr}`);

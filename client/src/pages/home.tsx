@@ -82,6 +82,8 @@ export default function Home() {
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
+  const [lastSkipTime, setLastSkipTime] = useState(0);
+  const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
     const saved = loadHomeState();
@@ -555,10 +557,13 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning) return;
+    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
     
-    // Prevent multiple clicks on the same event
-    if (swipedEvents.has(currentEvent.id)) return;
+    // Debounce mechanism: prevent rapid consecutive skips
+    const currentTime = Date.now();
+    if (currentTime - lastSkipTime < 2000) { // 2 second debounce
+      return;
+    }
     
     if (showContentCard) {
       // From content card, go back to main and move to next event
@@ -581,23 +586,19 @@ export default function Home() {
     } else if (showDetailCard) {
       // From detail card, skip to next event
       if (currentEvent) {
-        // Immediately add to swiped events and move to next event to prevent multiple clicks
-        setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-        setCurrentEventIndex(prev => prev + 1);
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setShowDetailCard(false);
+        setLastSkipTime(currentTime);
       }
     } else {
       // From main card, skip this event with animation
       if (currentEvent) {
-        // Immediately add to swiped events and move to next event to prevent multiple clicks
-        setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-        setCurrentEventIndex(prev => prev + 1);
         setEventBeingSkipped(currentEvent.id);
         setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
+        setLastSkipTime(currentTime);
       }
     }
   };
@@ -612,16 +613,19 @@ export default function Home() {
   };
 
   const handleSkipAnimationComplete = () => {
-    console.log('Skip animation completed - resetting states');
-    console.log('State before reset - showSkipAnimation:', showSkipAnimation, 'isSkippingInProgress:', isSkippingInProgress);
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
     if (eventBeingSkipped) {
       const eventIdToSkip = eventBeingSkipped;
       
+      // Add to local swiped events immediately
+      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
+      
+      // Move to the next event in the current array
+      setCurrentEventIndex(prev => prev + 1);
+      
       // Do the database skip operation in the background (fire and forget)
-      // Note: currentEventIndex and swipedEvents already updated when button clicked
       if (user) {
         fetch(`/api/events/${eventIdToSkip}/skip`, { 
           method: 'POST',
@@ -633,12 +637,11 @@ export default function Home() {
       }
     }
     
-    // Reset the skipping state immediately
-    console.log('Resetting isSkippingInProgress to false');
-    setIsSkippingInProgress(false);
-    setEventBeingSkipped(null);
-    
-    console.log('Skip animation cleanup complete - currentEventIndex:', currentEventIndex);
+    // Reset the skipping state after everything else
+    setTimeout(() => {
+      setIsSkippingInProgress(false);
+      setEventBeingSkipped(null);
+    }, 100);
   };
 
   const handleContentSwipeRight = async () => {
@@ -678,7 +681,7 @@ export default function Home() {
       setTimeout(() => {
         setShowDetailCard(true);
         setIsTransitioning(false);
-      }, 50);
+      }, 150);
     }
   };
 
@@ -706,7 +709,7 @@ export default function Home() {
       setTimeout(() => {
         setShowDetailCard(false);
         setIsTransitioning(false);
-      }, 50);
+      }, 150);
       return;
     }
     if (swipedEvents.size === 0) return;
@@ -803,7 +806,7 @@ export default function Home() {
                 {/* Render current and next event cards */}
                 {availableEvents.slice(currentEventIndex, currentEventIndex + 2).map((event, index) => (
                   <SwipeCard
-                    key={`${event.id}-${currentEventIndex}-${index}`}
+                    key={event.id}
                     event={event}
                     onSwipeLeft={handleSwipeLeft}
                     onSwipeRight={handleSwipeRight}
@@ -882,11 +885,8 @@ export default function Home() {
         <div className="absolute bottom-16 left-0 right-0 px-4 flex-shrink-0 z-20">
           <div className="flex justify-center space-x-16">
             <button
-              onClick={() => {
-                console.log('Skip button clicked - currentEvent:', !!currentEvent, 'isTransitioning:', isTransitioning, 'isSkippingInProgress:', isSkippingInProgress, 'showSkipAnimation:', showSkipAnimation);
-                handleSwipeLeft();
-              }}
-              disabled={!currentEvent}
+              onClick={handleSwipeLeft}
+              disabled={!currentEvent || isTransitioning || isSkippingInProgress}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-8 h-8" />
@@ -894,7 +894,7 @@ export default function Home() {
             
             <button
               onClick={handleSwipeRight}
-              disabled={!currentEvent}
+              disabled={!currentEvent || isTransitioning}
               className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
