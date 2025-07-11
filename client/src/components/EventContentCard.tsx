@@ -60,9 +60,15 @@ export default function EventContentCard({
   });
 
   // Fetch similar events with same category and sub-category (recent events only)
-  const { data: fetchedSimilarEvents = [] } = useQuery({
+  const { data: fetchedSimilarEvents = [], error: similarEventsError } = useQuery({
     queryKey: ['/api/events', 'similar', event.category, event.subCategory, event.id],
     queryFn: async () => {
+      console.log('Fetching similar events for:', { 
+        category: event.category, 
+        subCategory: event.subCategory, 
+        currentEventId: event.id 
+      });
+      
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
       
@@ -70,13 +76,23 @@ export default function EventContentCard({
       const events = await response.json() as EventWithOrganizer[];
       
       // Filter for same sub-category, exclude current event, and only show future events
-      const filtered = events.filter(e => 
-        e.subCategory === event.subCategory && 
-        e.id !== event.id &&
-        e.date >= todayStr
-      );
+      const filtered = events.filter(e => {
+        const hasMatchingSubCategory = e.subCategory === event.subCategory;
+        const isNotCurrentEvent = e.id !== event.id;
+        const isFutureEvent = e.date >= todayStr;
+        
+        console.log('Event filter debug:', {
+          event: { id: e.id, title: e.title, subCategory: e.subCategory, date: e.date },
+          hasMatchingSubCategory,
+          isNotCurrentEvent,
+          isFutureEvent,
+          currentEventSubCategory: event.subCategory
+        });
+        
+        return hasMatchingSubCategory && isNotCurrentEvent && isFutureEvent;
+      });
       
-      console.log('Similar events query:', {
+      console.log('Similar events query result:', {
         currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
         totalEvents: events.length,
         filtered: filtered.length,
@@ -88,6 +104,11 @@ export default function EventContentCard({
     enabled: !!event.category && !!event.subCategory,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Log any errors
+  if (similarEventsError) {
+    console.error('Similar events query error:', similarEventsError);
+  }
 
   const getSubCategoryColor = (subCategory: string) => {
     const colors = [
@@ -212,6 +233,14 @@ export default function EventContentCard({
 
   // Use fetched similar events if available, otherwise fall back to prop
   const similarEvents = fetchedSimilarEvents.length > 0 ? fetchedSimilarEvents : propSimilarEvents;
+  
+  console.log('EventContentCard similarEvents:', {
+    fetchedCount: fetchedSimilarEvents.length,
+    propCount: propSimilarEvents.length,
+    totalCount: similarEvents.length,
+    currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
+    eventObject: event
+  });
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -471,6 +500,9 @@ export default function EventContentCard({
                 className="h-full overflow-y-auto p-4"
               >
                 <div className="space-y-4">
+                  <div className="text-sm text-gray-600 mb-2">
+                    Debug: {similarEvents.length} similar events found
+                  </div>
                   {similarEvents.length > 0 ? (
                     similarEvents.slice(0, 3).map((similarEvent) => (
                       <button
