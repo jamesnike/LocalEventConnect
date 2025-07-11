@@ -887,27 +887,20 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning || isSkippingInProgress}
-              className="flex flex-col items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <X className="w-5 h-5 mb-1" />
-              <span className="text-xs font-medium">Skip</span>
+              <X className="w-7 h-7" />
             </button>
             
             <button
               onClick={handleSwipeRight}
               disabled={!currentEvent || isTransitioning}
-              className={`flex flex-col items-center justify-center w-16 h-16 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              className={`flex items-center justify-center w-16 h-16 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
-                <>
-                  <Heart className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-medium">RSVP</span>
-                </>
+                <Heart className="w-7 h-7" />
               ) : (
-                <>
-                  <ArrowRight className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-medium">Details</span>
-                </>
+                <ArrowRight className="w-7 h-7" />
               )}
             </button>
           </div>
