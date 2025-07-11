@@ -138,6 +138,11 @@ export default function EventContentPage() {
           showBackButton={false}
           showKeepExploring={false}
           onBackClick={() => setLocation('/my-events?tab=messages')}
+          onSimilarEventClick={(similarEvent) => {
+            console.log('Similar event clicked:', similarEvent.title, similarEvent.id);
+            // Navigate to the similar event
+            setLocation(`/event-content/${similarEvent.id}?tab=chat`);
+          }}
         />
       </div>
     </div>

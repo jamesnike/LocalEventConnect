@@ -63,59 +63,24 @@ export default function EventContentCard({
   const { data: fetchedSimilarEvents = [], error: similarEventsError, isLoading: isLoadingSimilarEvents } = useQuery({
     queryKey: ['/api/events', 'similar', event.category, event.subCategory, event.id],
     queryFn: async () => {
-      console.log('=== SIMILAR EVENTS QUERY START ===');
-      console.log('Fetching similar events for:', { 
-        category: event.category, 
-        subCategory: event.subCategory, 
-        currentEventId: event.id 
-      });
-      
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
       
       const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=50`);
       const events = await response.json() as EventWithOrganizer[];
       
-      console.log('API Response received:', { totalEvents: events.length });
-      
       // Filter for same sub-category, exclude current event, and only show future events
-      const filtered = events.filter(e => {
-        const hasMatchingSubCategory = e.subCategory === event.subCategory;
-        const isNotCurrentEvent = e.id !== event.id;
-        const isFutureEvent = e.date >= todayStr;
-        
-        console.log('Event filter debug:', {
-          event: { id: e.id, title: e.title, subCategory: e.subCategory, date: e.date },
-          hasMatchingSubCategory,
-          isNotCurrentEvent,
-          isFutureEvent,
-          currentEventSubCategory: event.subCategory
-        });
-        
-        return hasMatchingSubCategory && isNotCurrentEvent && isFutureEvent;
-      });
-      
-      console.log('Similar events query result:', {
-        currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
-        totalEvents: events.length,
-        filtered: filtered.length,
-        filteredEvents: filtered.map(e => ({ id: e.id, title: e.title, subCategory: e.subCategory }))
-      });
-      
-      // Return the filtered events and log what we're returning
-      console.log('Returning filtered events:', filtered);
-      console.log('=== SIMILAR EVENTS QUERY END ===');
+      const filtered = events.filter(e => 
+        e.subCategory === event.subCategory && 
+        e.id !== event.id &&
+        e.date >= todayStr
+      );
       
       return filtered;
     },
     enabled: !!event.category && !!event.subCategory && activeTab === 'similar',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  // Log any errors
-  if (similarEventsError) {
-    console.error('Similar events query error:', similarEventsError);
-  }
 
   const getSubCategoryColor = (subCategory: string) => {
     const colors = [
@@ -241,26 +206,7 @@ export default function EventContentCard({
   // Use fetched similar events if available, otherwise fall back to prop
   const similarEvents = fetchedSimilarEvents.length > 0 ? fetchedSimilarEvents : propSimilarEvents;
   
-  // Debug log the similar events selection
-  console.log('Similar Events Selection:', {
-    fetchedSimilarEvents,
-    propSimilarEvents,
-    finalSimilarEvents: similarEvents,
-    fetchedLength: fetchedSimilarEvents.length,
-    propLength: propSimilarEvents.length,
-    finalLength: similarEvents.length
-  });
-  
-  console.log('EventContentCard similarEvents:', {
-    fetchedCount: fetchedSimilarEvents.length,
-    propCount: propSimilarEvents.length,
-    totalCount: similarEvents.length,
-    currentEvent: { id: event.id, category: event.category, subCategory: event.subCategory },
-    activeTab: activeTab,
-    queryEnabled: !!event.category && !!event.subCategory && activeTab === 'similar',
-    isLoadingSimilarEvents: isLoadingSimilarEvents,
-    eventObject: event
-  });
+
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -521,33 +467,11 @@ export default function EventContentCard({
                 className="h-full overflow-y-auto p-4"
               >
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-600 mb-2">
-                    Debug: {similarEvents.length} similar events found
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    Current Event: {event.title} (ID: {event.id})
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    Category: {event.category}, SubCategory: {event.subCategory}
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    Query Status: {isLoadingSimilarEvents ? 'Loading...' : 'Loaded'}
-                  </div>
-                  {console.log('SIMILAR EVENTS RENDER:', { 
-                    similarEvents, 
-                    length: similarEvents.length, 
-                    currentEvent: event,
-                    isLoading: isLoadingSimilarEvents,
-                    activeTab: activeTab 
-                  })}
                   {similarEvents.length > 0 ? (
                     similarEvents.slice(0, 3).map((similarEvent) => (
                       <button
                         key={similarEvent.id}
-                        onClick={() => {
-                          console.log('Similar event clicked:', similarEvent.title, 'onSimilarEventClick:', !!onSimilarEventClick);
-                          onSimilarEventClick?.(similarEvent);
-                        }}
+                        onClick={() => onSimilarEventClick?.(similarEvent)}
                         className="w-full border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
                       >
                         <div className="flex space-x-3">
