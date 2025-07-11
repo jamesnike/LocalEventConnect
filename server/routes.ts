@@ -829,6 +829,18 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  app.get('/api/saved-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const savedEvents = await storage.getSavedEvents(userId);
+      res.json(savedEvents);
+    } catch (error) {
+      console.error("Error fetching saved events:", error);
+      res.status(500).json({ message: "Failed to fetch saved events" });
+    }
+  });
+
   app.post('/api/events/:eventId/save', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.eventId);
