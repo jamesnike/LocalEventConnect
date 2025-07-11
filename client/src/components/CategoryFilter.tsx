@@ -55,9 +55,9 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
   return (
     <div className="bg-white px-4 py-3 border-b border-gray-100">
       <div className="pb-2 scrollbar-always" style={{ overflowX: 'scroll' }}>
-        <div className="flex space-x-1.5" style={{ minWidth: 'calc(100% + 50px)' }}>
+        <div className="flex space-x-1" style={{ minWidth: 'calc(100% + 50px)' }}>
           {dayGroups.map((dayGroup, dayIndex) => (
-            <div key={dayIndex} className="flex flex-col space-y-1.5">
+            <div key={dayIndex} className="flex flex-col space-y-1">
               {dayGroup.map((option) => {
                 const Icon = option.icon;
                 const isSelected = selectedCategory === option.id;
@@ -66,13 +66,13 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                   <button
                     key={option.id}
                     onClick={() => onCategoryChange(option.id)}
-                    className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    className={`w-16 flex items-center justify-center px-1 py-1 rounded-full text-xs font-medium transition-colors ${
                       isSelected
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    <Icon className="w-3 h-3 mr-1" />
+                    <Icon className="w-2.5 h-2.5 mr-0.5" />
                     {option.name}
                   </button>
                 );
