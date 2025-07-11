@@ -722,9 +722,11 @@ export default function Home() {
                       setIsFromMessagesTab(false); // Reset flag
                       setLocation('/my-events?tab=messages');
                     } else if (isFromMyEvents) {
-                      // Go back to EventDetail for this event (came from EventDetail in My Events)
-                      setSelectedEvent(currentEvent);
-                      setShowContentCard(false);
+                      // Go back to My Events with correct tab
+                      const returnTab = localStorage.getItem('returnToMyEventsTab') || 'attending';
+                      localStorage.removeItem('returnToMyEventsTab');
+                      localStorage.removeItem('fromMyEvents');
+                      setLocation(`/my-events?tab=${returnTab}`);
                     } else if (isFromBrowse) {
                       // Go back to Browse page
                       setLocation('/browse');

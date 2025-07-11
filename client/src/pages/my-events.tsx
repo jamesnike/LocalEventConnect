@@ -414,6 +414,8 @@ export default function MyEvents() {
             localStorage.setItem('preferredTab', 'chat');
             // Store flag to indicate coming from MyEvents for back button
             localStorage.setItem('fromMyEvents', 'true');
+            // Store current tab to return to the correct tab
+            localStorage.setItem('returnToMyEventsTab', activeTab);
             setLocation('/');
           }}
         />
