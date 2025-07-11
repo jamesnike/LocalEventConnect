@@ -450,13 +450,13 @@ export default function EventContentCard({
           height: fromEventDetailCard 
             ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
             : isStandalonePage 
-              ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
+              ? '100%'
               : '100vh',
           zIndex: isActive ? 10 : 1
         }}
       >
         {/* Header */}
-        <div className={`bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white ${isStandalonePage ? 'pt-12' : ''}`}>
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button

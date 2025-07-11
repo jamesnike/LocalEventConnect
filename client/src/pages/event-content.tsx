@@ -118,24 +118,26 @@ export default function EventContentPage() {
 
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
-      {/* Event Content */}
-      <div className="h-screen">
-        <EventContentCard
-          event={event}
-          onSwipeLeft={() => {}}
-          onSwipeRight={() => {}}
-          isActive={true}
-          initialTab={activeTab}
-          onTabChange={setActiveTab}
-          showBackButton={true}
-          showKeepExploring={false}
-          fromEventDetailCard={false}
-          isStandalonePage={true}
-          onBackClick={() => setLocation('/my-events?tab=messages')}
-          onSimilarEventClick={() => {
-            // EventDetail is now handled directly within EventContentCard
-          }}
-        />
+      {/* Event Content - Centered with white padding */}
+      <div className="h-screen p-4 flex items-center justify-center">
+        <div className="w-full h-full max-h-[90vh] bg-white rounded-lg shadow-lg overflow-hidden">
+          <EventContentCard
+            event={event}
+            onSwipeLeft={() => {}}
+            onSwipeRight={() => {}}
+            isActive={true}
+            initialTab={activeTab}
+            onTabChange={setActiveTab}
+            showBackButton={true}
+            showKeepExploring={false}
+            fromEventDetailCard={false}
+            isStandalonePage={true}
+            onBackClick={() => setLocation('/my-events?tab=messages')}
+            onSimilarEventClick={() => {
+              // EventDetail is now handled directly within EventContentCard
+            }}
+          />
+        </div>
       </div>
     </div>
   );
