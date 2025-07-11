@@ -43,10 +43,8 @@ export default function Browse() {
       <div className="max-w-sm mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold text-gray-900">Browse Events in One Week</h1>
-            </div>
+          <div className="flex items-center justify-center p-4">
+            <h1 className="text-xl text-gray-900">Browse Events in One Week</h1>
           </div>
           
           <CategoryFilter 
