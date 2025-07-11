@@ -42,40 +42,59 @@ export default function Browse() {
     
     // Get current date and time in user's local timezone
     const now = new Date();
-    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
     // Format dates in local timezone
     const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
     const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     
-    return allEvents.filter(event => {
+    console.log('Browse filtering:', {
+      selectedCategory,
+      today,
+      tomorrow,
+      totalEvents: allEvents.length,
+      firstEvent: allEvents[0]
+    });
+    
+    const filtered = allEvents.filter(event => {
       const eventDate = event.date;
       const eventTime = event.time;
       
-      // Create a full datetime for comparison
-      const eventDateTime = new Date(`${eventDate}T${eventTime}`);
+      // Normalize time format - ensure it's in HH:MM format
+      const normalizedTime = eventTime.substring(0, 5); // Take first 5 characters (HH:MM)
+      
+      console.log('Checking event:', {
+        title: event.title,
+        date: eventDate,
+        time: eventTime,
+        normalizedTime,
+        category: selectedCategory
+      });
       
       switch (selectedCategory) {
         case "today_morning":
-          return eventDate === today && eventTime >= "06:00:00" && eventTime <= "11:59:59";
+          return eventDate === today && normalizedTime >= "06:00" && normalizedTime <= "11:59";
         case "today_afternoon":
-          return eventDate === today && eventTime >= "12:00:00" && eventTime <= "17:59:59";
+          return eventDate === today && normalizedTime >= "12:00" && normalizedTime <= "17:59";
         case "today_evening":
-          return eventDate === today && eventTime >= "18:00:00" && eventTime <= "23:59:59";
+          return eventDate === today && normalizedTime >= "18:00" && normalizedTime <= "23:59";
         case "day1_morning":
-          return eventDate === tomorrow && eventTime >= "06:00:00" && eventTime <= "11:59:59";
+          return eventDate === tomorrow && normalizedTime >= "06:00" && normalizedTime <= "11:59";
         case "day1_afternoon":
-          return eventDate === tomorrow && eventTime >= "12:00:00" && eventTime <= "17:59:59";
+          return eventDate === tomorrow && normalizedTime >= "12:00" && normalizedTime <= "17:59";
         case "day1_evening":
-          return eventDate === tomorrow && eventTime >= "18:00:00" && eventTime <= "23:59:59";
+          return eventDate === tomorrow && normalizedTime >= "18:00" && normalizedTime <= "23:59";
         case "this_week":
+          const eventDateTime = new Date(`${eventDate}T${eventTime}`);
           return eventDateTime >= now && eventDateTime <= nextWeek;
         case "all":
         default:
           return true;
       }
     });
+    
+    console.log('Filtered events:', filtered.length);
+    return filtered;
   }, [allEvents, selectedCategory]);
 
   if (selectedEvent) {
