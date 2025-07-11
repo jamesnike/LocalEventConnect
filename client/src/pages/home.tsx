@@ -81,7 +81,7 @@ export default function Home() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSkipAnimation, setShowSkipAnimation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
+  // Removed isSkippingInProgress - no need to block interactions during animation
   const [lastSkipTime, setLastSkipTime] = useState(0);
   const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
@@ -516,15 +516,15 @@ export default function Home() {
   // Use group chat event if in group chat mode, otherwise use available events
   const currentEvent = groupChatEvent || availableEvents[currentEventIndex];
 
-  // Memoize button states to prevent unnecessary re-renders during skip animation
+  // Memoize button states to prevent unnecessary re-renders
   const buttonStates = useMemo(() => {
     return {
-      skipDisabled: !currentEvent || isTransitioning || isSkippingInProgress,
+      skipDisabled: !currentEvent || isTransitioning,
       detailsDisabled: !currentEvent || isTransitioning,
       detailsClassName: `flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`,
       detailsIcon: showDetailCard ? 'heart' : 'arrow'
     };
-  }, [currentEvent, isTransitioning, isSkippingInProgress, showDetailCard]);
+  }, [currentEvent, isTransitioning, showDetailCard]);
 
   // Reset local state when events data changes due to RSVPs/skips from other pages
   // DISABLED: This was causing the double-skip issue by resetting currentEventIndex
@@ -567,7 +567,7 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    if (!currentEvent || isTransitioning) return;
     
     // Debounce mechanism: prevent rapid consecutive skips
     const currentTime = Date.now();
@@ -597,7 +597,6 @@ export default function Home() {
       // From detail card, skip to next event
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
-        setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setShowDetailCard(false);
         setLastSkipTime(currentTime);
@@ -617,7 +616,6 @@ export default function Home() {
       // From main card, skip this event with animation
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
-        setIsSkippingInProgress(true);
         setShowSkipAnimation(true);
         setLastSkipTime(currentTime);
         
@@ -658,8 +656,7 @@ export default function Home() {
       });
     }
     
-    // Reset the skipping state immediately
-    setIsSkippingInProgress(false);
+    // Reset the event being skipped
     setEventBeingSkipped(null);
   };
 
