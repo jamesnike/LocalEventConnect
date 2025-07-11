@@ -328,6 +328,7 @@ export default function EventContentCard({
                 seed={event.organizer.animeAvatarSeed} 
                 size="sm"
                 customAvatarUrl={event.organizer.customAvatarUrl}
+                clickable={false}
               />
               <div>
                 <h3 className="font-semibold text-lg">{event.title}</h3>
@@ -432,6 +433,7 @@ export default function EventContentCard({
                           seed={msg.user.animeAvatarSeed} 
                           size="xs"
                           customAvatarUrl={msg.user.customAvatarUrl}
+                          clickable={false}
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
