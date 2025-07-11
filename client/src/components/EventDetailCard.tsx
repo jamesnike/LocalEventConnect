@@ -190,9 +190,8 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           {getOverlayIcon()}
         </div>
 
-        {/* Swipe capture area - only on header, not on scrollable content */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-48 z-20"
+        {/* Header with image */}
+        <div className="relative h-48 flex-shrink-0"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -200,10 +199,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-        />
-
-        {/* Header with image */}
-        <div className="relative h-48 flex-shrink-0">
+        >
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -220,7 +216,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-6 scrollable-content" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
+        <div className="overflow-y-scroll flex-1 p-6 space-y-6 scrollable-content" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', minHeight: '600px' }}>
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
@@ -367,6 +363,24 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-xs">RSVP</span>
               </div>
+            </div>
+          </div>
+          
+          {/* Test scrolling area - tall div for testing */}
+          <div className="bg-blue-50 border border-blue-200 rounded p-4 text-center">
+            <h3 className="font-bold text-blue-800 mb-2">Test Scrolling Area</h3>
+            <p className="text-blue-600">This is a test area to verify scrolling works.</p>
+            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
+              <span className="text-blue-700">Scroll Test Block 1</span>
+            </div>
+            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
+              <span className="text-blue-700">Scroll Test Block 2</span>
+            </div>
+            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
+              <span className="text-blue-700">Scroll Test Block 3</span>
+            </div>
+            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
+              <span className="text-blue-700">Scroll Test Block 4</span>
             </div>
           </div>
         </div>
