@@ -858,7 +858,7 @@ export default function EventContentCard({
 
         {/* Keep Exploring Button - Position above input box */}
         {showKeepExploring && (
-          <div className="fixed bottom-32 right-4 z-30">
+          <div className="fixed bottom-40 right-4 z-30">
             <button
               onClick={handleKeepExploring}
               className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
