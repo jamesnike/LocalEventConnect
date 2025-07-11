@@ -4,6 +4,7 @@ import {
   eventRsvps,
   chatMessages,
   messageReads,
+  messageFavorites,
   type User,
   type UpsertUser,
   type Event,
@@ -60,6 +61,12 @@ export interface IStorage {
   
   // Attendee operations
   getEventAttendees(eventId: number): Promise<User[]>;
+  
+  // Favorite message operations
+  getFavoriteMessages(eventId: number, userId: string): Promise<ChatMessageWithUser[]>;
+  addFavoriteMessage(userId: string, messageId: number): Promise<void>;
+  removeFavoriteMessage(userId: string, messageId: number): Promise<void>;
+  checkMessageFavorite(userId: string, messageId: number): Promise<boolean>;
   
   // Private chat operations
   createPrivateChat(user1Id: string, user2Id: string): Promise<Event>;
@@ -1484,6 +1491,119 @@ export class DatabaseStorage implements IStorage {
       userRsvpStatus: 'going',
       isPrivateChat: true,
     }) as any);
+  }
+  
+  // Favorite message operations
+  async getFavoriteMessages(eventId: number, userId: string): Promise<ChatMessageWithUser[]> {
+    const favoriteMessages = await db
+      .select({
+        id: chatMessages.id,
+        eventId: chatMessages.eventId,
+        userId: chatMessages.userId,
+        message: chatMessages.message,
+        quotedMessageId: chatMessages.quotedMessageId,
+        createdAt: chatMessages.createdAt,
+        updatedAt: chatMessages.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          customAvatarUrl: users.customAvatarUrl,
+          animeAvatarSeed: users.animeAvatarSeed,
+          location: users.location,
+          interests: users.interests,
+          personality: users.personality,
+          aiSignature: users.aiSignature,
+          skippedEvents: users.skippedEvents,
+          eventsShownSinceSkip: users.eventsShownSinceSkip,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(messageFavorites)
+      .innerJoin(chatMessages, eq(messageFavorites.messageId, chatMessages.id))
+      .innerJoin(users, eq(chatMessages.userId, users.id))
+      .where(and(
+        eq(messageFavorites.userId, userId),
+        eq(chatMessages.eventId, eventId)
+      ))
+      .orderBy(desc(messageFavorites.createdAt));
+    
+    // Handle quoted messages
+    const messagesWithQuotes = await Promise.all(
+      favoriteMessages.map(async (message) => {
+        if (message.quotedMessageId) {
+          const quotedMessage = await db
+            .select({
+              id: chatMessages.id,
+              eventId: chatMessages.eventId,
+              userId: chatMessages.userId,
+              message: chatMessages.message,
+              quotedMessageId: chatMessages.quotedMessageId,
+              createdAt: chatMessages.createdAt,
+              updatedAt: chatMessages.updatedAt,
+              user: {
+                id: users.id,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                profileImageUrl: users.profileImageUrl,
+                customAvatarUrl: users.customAvatarUrl,
+                animeAvatarSeed: users.animeAvatarSeed,
+                location: users.location,
+                interests: users.interests,
+                personality: users.personality,
+                aiSignature: users.aiSignature,
+                skippedEvents: users.skippedEvents,
+                eventsShownSinceSkip: users.eventsShownSinceSkip,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+              },
+            })
+            .from(chatMessages)
+            .innerJoin(users, eq(chatMessages.userId, users.id))
+            .where(eq(chatMessages.id, message.quotedMessageId))
+            .limit(1);
+          
+          return {
+            ...message,
+            quotedMessage: quotedMessage[0] || undefined,
+          };
+        }
+        return message;
+      })
+    );
+    
+    return messagesWithQuotes;
+  }
+  
+  async addFavoriteMessage(userId: string, messageId: number): Promise<void> {
+    await db.insert(messageFavorites).values({
+      userId,
+      messageId,
+    });
+  }
+  
+  async removeFavoriteMessage(userId: string, messageId: number): Promise<void> {
+    await db.delete(messageFavorites)
+      .where(and(
+        eq(messageFavorites.userId, userId),
+        eq(messageFavorites.messageId, messageId)
+      ));
+  }
+  
+  async checkMessageFavorite(userId: string, messageId: number): Promise<boolean> {
+    const favorite = await db.select()
+      .from(messageFavorites)
+      .where(and(
+        eq(messageFavorites.userId, userId),
+        eq(messageFavorites.messageId, messageId)
+      ))
+      .limit(1);
+    
+    return favorite.length > 0;
   }
 }
 

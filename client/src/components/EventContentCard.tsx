@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X, Quote } from "lucide-react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X, Quote, Star, Heart } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -18,8 +18,8 @@ interface EventContentCardProps {
   isActive: boolean;
   similarEvents?: EventWithOrganizer[];
   onSimilarEventClick?: (event: EventWithOrganizer) => void;
-  initialTab?: 'chat' | 'similar';
-  onTabChange?: (tab: 'chat' | 'similar') => void;
+  initialTab?: 'chat' | 'similar' | 'favorites';
+  onTabChange?: (tab: 'chat' | 'similar' | 'favorites') => void;
   showBackButton?: boolean;
   onBackClick?: () => void;
   showKeepExploring?: boolean;
@@ -41,7 +41,7 @@ export default function EventContentCard({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { markEventAsRead } = useNotifications();
-  const [activeTab, setActiveTab] = useState<'chat' | 'similar'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'chat' | 'similar' | 'favorites'>(initialTab);
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
@@ -132,6 +132,56 @@ export default function EventContentCard({
   const { isConnected, messages: wsMessages, sendMessage, setMessages: setWsMessages } = useWebSocket(
     hasChatAccess && isActive ? event.id : null
   );
+
+  // Fetch favorite messages
+  const { data: favoriteMessages = [], isLoading: isLoadingFavorites, refetch: refetchFavorites } = useQuery({
+    queryKey: ['/api/events', event.id, 'favorites'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/favorites`);
+      return response.json() as ChatMessageWithUser[];
+    },
+    enabled: hasChatAccess && activeTab === 'favorites',
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Add favorite message mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest(`/api/events/${event.id}/messages/${messageId}/favorite`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to favorite message');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchFavorites();
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
+    },
+    onError: (error) => {
+      console.error('Failed to favorite message:', error);
+    },
+  });
+
+  // Remove favorite message mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest(`/api/events/${event.id}/messages/${messageId}/favorite`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to remove favorite message');
+      }
+    },
+    onSuccess: () => {
+      refetchFavorites();
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
+    },
+    onError: (error) => {
+      console.error('Failed to remove favorite message:', error);
+    },
+  });
 
   // Exit group chat mutation (leave chat but keep RSVP)
   const exitGroupChatMutation = useMutation({
@@ -266,7 +316,7 @@ export default function EventContentCard({
 
 
   // Notify parent when tab changes
-  const handleTabChange = (tab: 'chat' | 'similar') => {
+  const handleTabChange = (tab: 'chat' | 'similar' | 'favorites') => {
     console.log('Tab changed to:', tab, 'for event:', event.id);
     setActiveTab(tab);
     onTabChange?.(tab);
@@ -280,6 +330,11 @@ export default function EventContentCard({
       setTimeout(() => {
         scrollToBottom();
       }, 400);
+    }
+    
+    // Refetch favorites when switching to favorites tab
+    if (tab === 'favorites' && hasChatAccess) {
+      refetchFavorites();
     }
   };
 
@@ -407,7 +462,7 @@ export default function EventContentCard({
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => handleTabChange('chat')}
-            className={`${event.isPrivateChat ? 'w-full' : 'flex-1'} py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
+            className={`${event.isPrivateChat ? 'w-1/2' : 'flex-1'} py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
               activeTab === 'chat' 
                 ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
                 : 'text-gray-500 hover:text-gray-700'
@@ -415,6 +470,17 @@ export default function EventContentCard({
           >
             <MessageCircle className="w-4 h-4" />
             <span>{event.isPrivateChat ? 'Private Chat' : 'Group Chat'}</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('favorites')}
+            className={`${event.isPrivateChat ? 'w-1/2' : 'flex-1'} py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
+              activeTab === 'favorites' 
+                ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Heart className="w-4 h-4" />
+            <span>Favorites</span>
           </button>
           {!event.isPrivateChat && (
             <button
@@ -533,14 +599,24 @@ export default function EventContentCard({
                                     {msg.message}
                                   </div>
                                   
-                                  {/* Quote button - show for all messages */}
-                                  <button
-                                    onClick={() => handleQuoteMessage(msg)}
-                                    className={`absolute ${isOwnMessage ? '-left-8' : '-right-8'} top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-full`}
-                                    title="Quote this message"
-                                  >
-                                    <Quote className="w-4 h-4 text-gray-500" />
-                                  </button>
+                                  {/* Action buttons - show for all messages */}
+                                  <div className={`absolute ${isOwnMessage ? '-left-16' : '-right-16'} top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-1`}>
+                                    <button
+                                      onClick={() => handleQuoteMessage(msg)}
+                                      className="p-1 hover:bg-gray-100 rounded-full"
+                                      title="Quote this message"
+                                    >
+                                      <Quote className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                    <button
+                                      onClick={() => addFavoriteMutation.mutate(msg.id)}
+                                      disabled={addFavoriteMutation.isPending}
+                                      className="p-1 hover:bg-gray-100 rounded-full"
+                                      title="Add to favorites"
+                                    >
+                                      <Heart className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -600,7 +676,7 @@ export default function EventContentCard({
                   </div>
                 </div>
               </motion.div>
-            ) : (
+            ) : activeTab === 'similar' ? (
               <motion.div
                 key="similar"
                 initial={{ opacity: 0, x: 20 }}
@@ -658,6 +734,87 @@ export default function EventContentCard({
                   )}
                 </div>
               </motion.div>
+            ) : activeTab === 'favorites' ? (
+              <motion.div
+                key="favorites"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="h-full flex flex-col"
+              >
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {isLoadingFavorites ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                      <p className="text-gray-500 text-sm mt-2">Loading favorites...</p>
+                    </div>
+                  ) : favoriteMessages.length > 0 ? (
+                    favoriteMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <AnimeAvatar 
+                          seed={message.user.animeAvatarSeed} 
+                          size="sm"
+                          customAvatarUrl={message.user.customAvatarUrl}
+                          behavior="profile"
+                          user={message.user}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <p className="font-medium text-gray-900 text-sm">
+                              {message.user.firstName} {message.user.lastName}
+                            </p>
+                            <span className="text-xs text-gray-500">
+                              {new Date(message.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          
+                          {/* Quoted message if exists */}
+                          {message.quotedMessage && (
+                            <div className="mt-2 p-2 bg-gray-200 rounded-lg text-sm">
+                              <p className="text-gray-600">
+                                <span className="font-medium">{message.quotedMessage.user.firstName}:</span> {message.quotedMessage.message}
+                              </p>
+                            </div>
+                          )}
+                          
+                          <p className="text-gray-800 text-sm mt-1 break-words whitespace-pre-wrap">
+                            {message.message}
+                          </p>
+                          
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center space-x-2">
+                              <Heart className="w-4 h-4 text-red-500 fill-current" />
+                              <span className="text-xs text-gray-500">Favorited</span>
+                            </div>
+                            <button
+                              onClick={() => removeFavoriteMutation.mutate(message.id)}
+                              disabled={removeFavoriteMutation.isPending}
+                              className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              {removeFavoriteMutation.isPending ? 'Removing...' : 'Remove'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">No favorite messages yet</p>
+                      <p className="text-gray-400 text-xs mt-2">
+                        Hover over any message in the chat to add it to your favorites
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">Select a tab to view content</p>
+              </div>
             )}
           </AnimatePresence>
         </div>

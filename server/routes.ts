@@ -737,6 +737,79 @@ Please respond with just the signature text, nothing else.`;
     }
   });
 
+  // Favorite message routes
+  app.get('/api/events/:id/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists and user has access
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      const favoriteMessages = await storage.getFavoriteMessages(eventId, userId);
+      res.json(favoriteMessages);
+    } catch (error) {
+      console.error("Error fetching favorite messages:", error);
+      res.status(500).json({ message: "Failed to fetch favorite messages" });
+    }
+  });
+
+  app.post('/api/events/:eventId/messages/:messageId/favorite', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists and user has access
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      // Check if message exists
+      const messages = await storage.getChatMessages(eventId, 1000);
+      const messageExists = messages.some(msg => msg.id === messageId);
+      if (!messageExists) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      
+      // Check if already favorited
+      const isAlreadyFavorited = await storage.checkMessageFavorite(userId, messageId);
+      if (isAlreadyFavorited) {
+        return res.status(400).json({ message: "Message already favorited" });
+      }
+      
+      await storage.addFavoriteMessage(userId, messageId);
+      res.status(201).json({ message: "Message favorited successfully" });
+    } catch (error) {
+      console.error("Error favoriting message:", error);
+      res.status(500).json({ message: "Failed to favorite message" });
+    }
+  });
+
+  app.delete('/api/events/:eventId/messages/:messageId/favorite', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.user.claims.sub;
+      
+      // Check if event exists and user has access
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      await storage.removeFavoriteMessage(userId, messageId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing favorite message:", error);
+      res.status(500).json({ message: "Failed to remove favorite message" });
+    }
+  });
+
   // Notification endpoints
   app.get('/api/notifications/unread', isAuthenticated, async (req: any, res) => {
     try {

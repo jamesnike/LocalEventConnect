@@ -152,6 +152,21 @@ export const messageReadRelations = relations(messageReads, ({ one }) => ({
   event: one(events, { fields: [messageReads.eventId], references: [events.id] }),
 }));
 
+// Message favorites table to track which messages users have favorited
+export const messageFavorites = pgTable("message_favorites", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  messageId: integer("message_id").notNull().references(() => chatMessages.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userMessageUnique: unique().on(table.userId, table.messageId),
+}));
+
+export const messageFavoriteRelations = relations(messageFavorites, ({ one }) => ({
+  user: one(users, { fields: [messageFavorites.userId], references: [users.id] }),
+  message: one(chatMessages, { fields: [messageFavorites.messageId], references: [chatMessages.id] }),
+}));
+
 // Zod schemas
 export const upsertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -202,6 +217,11 @@ export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
   updatedAt: true,
 });
 
+export const insertMessageFavoriteSchema = createInsertSchema(messageFavorites).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -224,3 +244,5 @@ export type ChatMessageWithUser = ChatMessage & {
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type MessageRead = typeof messageReads.$inferSelect;
 export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;
+export type MessageFavorite = typeof messageFavorites.$inferSelect;
+export type InsertMessageFavorite = z.infer<typeof insertMessageFavoriteSchema>;
