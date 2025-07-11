@@ -888,21 +888,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserEventIds(userId: string): Promise<number[]> {
-    // Get events where user has RSVPed but hasn't left the chat
+    // Get events where user has RSVPed but hasn't left the chat (EXCLUDE private chats)
     const rsvpEvents = await db
       .select({ eventId: eventRsvps.eventId })
       .from(eventRsvps)
+      .innerJoin(events, eq(eventRsvps.eventId, events.id))
       .where(
         and(
           eq(eventRsvps.userId, userId),
           or(
             eq(eventRsvps.hasLeftChat, false),
             sql`${eventRsvps.hasLeftChat} IS NULL`
+          ),
+          // Exclude private chats
+          or(
+            eq(events.isPrivateChat, false),
+            sql`${events.isPrivateChat} IS NULL`
           )
         )
       );
     
-    // Get events where user is organizer AND has not left the chat
+    // Get events where user is organizer AND has not left the chat (EXCLUDE private chats)
     // Check if organizer has an RSVP entry and hasn't left chat
     const organizerEvents = await db
       .select({ id: events.id })
@@ -914,6 +920,11 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(events.organizerId, userId),
+          // Exclude private chats
+          or(
+            eq(events.isPrivateChat, false),
+            sql`${events.isPrivateChat} IS NULL`
+          ),
           // Include organizer events only if:
           // 1. No RSVP entry exists (hasn't left chat yet), OR
           // 2. RSVP exists and hasLeftChat is false/null
