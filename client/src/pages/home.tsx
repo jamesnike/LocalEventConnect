@@ -841,6 +841,7 @@ export default function Home() {
                   onTabChange={setLastActiveTab}
                   showBackButton={isFromMyEvents || isFromBrowse || isFromMessagesTab}
                   showKeepExploring={!isFromMyEvents && !isFromBrowse && !isFromMessagesTab}
+                  fromEventDetailCard={showDetailCard}
                   onBackClick={() => {
                     if (isFromMessagesTab) {
                       // Go back to My Events page with Messages tab active

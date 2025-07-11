@@ -23,6 +23,7 @@ interface EventContentCardProps {
   showBackButton?: boolean;
   onBackClick?: () => void;
   showKeepExploring?: boolean;
+  fromEventDetailCard?: boolean;
 }
 
 export default function EventContentCard({ 
@@ -36,7 +37,8 @@ export default function EventContentCard({
   onTabChange,
   showBackButton = false,
   onBackClick,
-  showKeepExploring = false
+  showKeepExploring = false,
+  fromEventDetailCard = false
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -443,7 +445,9 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)',
+          height: fromEventDetailCard 
+            ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
+            : '100vh',
           zIndex: isActive ? 10 : 1
         }}
       >
