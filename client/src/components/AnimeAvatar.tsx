@@ -61,15 +61,19 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
       avatarUser: avatarUser?.id, 
       currentUser: user?.id,
       seed,
-      userSeed: user?.animeAvatarSeed
+      userSeed: user?.animeAvatarSeed,
+      idsMatch: avatarUser && user ? String(avatarUser.id) === String(user.id) : false
     });
     
     if (behavior === 'navigate') {
       // Navigate to profile page
       setLocation('/profile');
-    } else if (behavior === 'profile' && avatarUser) {
+    } else if (behavior === 'profile' && avatarUser && user) {
       // Show profile modal for any user
-      if (user && String(avatarUser.id) === String(user.id)) {
+      const isCurrentUser = String(avatarUser.id) === String(user.id);
+      console.log('Profile behavior - isCurrentUser:', isCurrentUser);
+      
+      if (isCurrentUser) {
         // If it's the current user's avatar, show avatar update modal
         console.log('Opening avatar update modal for current user');
         setIsAvatarUpdateModalOpen(true);
@@ -83,6 +87,8 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
       if (user && seed === user.animeAvatarSeed) {
         console.log('Opening avatar update modal (default behavior)');
         setIsAvatarUpdateModalOpen(true);
+      } else {
+        console.log('Default behavior - no match:', { seed, userSeed: user?.animeAvatarSeed });
       }
     }
   };
@@ -102,6 +108,17 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
           onError={() => setImageError(true)}
         />
       </button>
+      
+      {/* Debug button - only show for current user's avatar */}
+      {user && avatarUser && String(avatarUser.id) === String(user.id) && (
+        <button 
+          onClick={() => setIsAvatarUpdateModalOpen(true)}
+          className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 py-0.5 rounded"
+          style={{ fontSize: '8px' }}
+        >
+          TEST
+        </button>
+      )}
       
       {user && (
         <AvatarUpdateModal
