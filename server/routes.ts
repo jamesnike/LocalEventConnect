@@ -711,20 +711,18 @@ Please respond with just the signature text, nothing else.`;
         model: "dall-e-3",
         prompt: `Create an anime-style avatar portrait based on this description: "${prompt}". 
 
-                STYLE REFERENCE: Use the exact same art style as DiceBear's "adventurer" avatar style (${referenceAvatarUrl}) which features:
-                - Clean, minimalist cartoon anime aesthetic
-                - Simple flat colors with minimal gradients
-                - Bold, clean line art without heavy shading
-                - Bright, vibrant color palette
-                - Geometric shapes and simplified features
-                - Professional mobile app avatar look
-                - PURE WHITE OR SOLID COLOR BACKGROUND (no textures, patterns, or complex backgrounds)
-                - Headshot portrait format suitable for profile pictures
-                - Clean, crisp edges with no background clutter
+                CRITICAL REQUIREMENTS:
+                - BACKGROUND MUST BE COMPLETELY SOLID WHITE (#FFFFFF) with no patterns, textures, gradients, or decorative elements
+                - Simple, clean cartoon anime style with flat colors
+                - Minimalist design with no complex shading or lighting effects
+                - Bold, clean line art without heavy details
+                - Headshot portrait format (shoulders up)
+                - Professional mobile app avatar appearance
+                - No background objects, scenery, or decorative elements whatsoever
                 
-                IMPORTANT: Ensure the background is completely clean and simple - either pure white, solid light colors, or minimal gradients. Avoid busy backgrounds, patterns, or complex scenes that increase file size.
+                STYLE: Clean, geometric, simplified anime features similar to mobile app avatars. The character should have clean edges against a pure white background.
                 
-                Match this specific visual style exactly while incorporating the user's description. The result should look like it belongs in the same avatar collection as the reference style.`,
+                FORBIDDEN: Any background elements, patterns, textures, gradients, scenery, objects, or decorative elements. Keep it extremely simple and clean.`,
         n: 1,
         size: "256x256",
         quality: "standard",
@@ -733,8 +731,9 @@ Please respond with just the signature text, nothing else.`;
       const generatedImageUrl = imageResponse.data[0].url;
       console.log("Generated DALL-E image URL:", generatedImageUrl);
       
-      // Download the image and convert to base64
+      // Download the image and compress it
       const fetch = (await import('node-fetch')).default;
+      const sharp = (await import('sharp')).default;
       const imageResponse2 = await fetch(generatedImageUrl);
       
       if (!imageResponse2.ok) {
@@ -742,9 +741,18 @@ Please respond with just the signature text, nothing else.`;
       }
       
       const imageBuffer = await imageResponse2.buffer();
-      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
       
-      console.log("Converted image to base64, size:", base64Image.length);
+      // Compress the image to reduce file size
+      const compressedBuffer = await sharp(imageBuffer)
+        .resize(256, 256, { fit: 'cover' })
+        .png({ quality: 80, compressionLevel: 9 })
+        .toBuffer();
+      
+      const base64Image = `data:image/png;base64,${compressedBuffer.toString('base64')}`;
+      
+      console.log("Original image size:", imageBuffer.length);
+      console.log("Compressed image size:", compressedBuffer.length);
+      console.log("Base64 size:", base64Image.length);
       
       res.json({ url: base64Image });
     } catch (error) {
