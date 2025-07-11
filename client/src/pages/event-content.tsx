@@ -25,11 +25,14 @@ export default function EventContentPage() {
   // Debug logging
   console.log('EventContentPage debug:', {
     eventId,
+    eventIdType: typeof eventId,
     user: !!user,
     authLoading,
     eventLoading,
     error: error?.message,
-    event: !!event
+    event: !!event,
+    pathname: window.location.pathname,
+    search: window.location.search
   });
 
   // Set initial tab based on URL params or localStorage

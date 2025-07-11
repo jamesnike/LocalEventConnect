@@ -151,11 +151,12 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
 
   const createPrivateChatMutation = useMutation({
     mutationFn: async (otherUserId: string) => {
-      return apiRequest('/api/private-chats', {
+      const response = await apiRequest('/api/private-chats', {
         method: 'POST',
         body: JSON.stringify({ otherUserId }),
         headers: { 'Content-Type': 'application/json' },
       });
+      return response.json();
     },
     onSuccess: (privateChat) => {
       // Navigate to the private chat using the EventContent interface
