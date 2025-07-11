@@ -108,6 +108,33 @@ export default function MyEvents() {
     }
   }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats]);
 
+  // Fetch attendees for each group chat event (for avatar display)
+  const { data: attendeesMap = {} } = useQuery({
+    queryKey: ['/api/events', 'attendees', groupChats?.map(e => e.id)],
+    queryFn: async () => {
+      if (!groupChats || groupChats.length === 0) return {};
+      
+      const attendeesMap: Record<number, any[]> = {};
+      
+      // Fetch attendees for each event
+      await Promise.all(
+        groupChats.map(async (event) => {
+          try {
+            const response = await apiRequest(`/api/events/${event.id}/attendees`);
+            attendeesMap[event.id] = await response.json();
+          } catch (error) {
+            console.error(`Failed to fetch attendees for event ${event.id}:`, error);
+            attendeesMap[event.id] = [];
+          }
+        })
+      );
+      
+      return attendeesMap;
+    },
+    enabled: !!groupChats && groupChats.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  });
+
   const removeRsvpMutation = useMutation({
     mutationFn: async (eventId: number) => {
       await apiRequest(`/api/events/${eventId}/rsvp`, { 
@@ -323,10 +350,26 @@ export default function MyEvents() {
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center">
                       <div className="flex -space-x-1 mr-2">
-                        <AnimeAvatar seed={event.organizer.animeAvatarSeed} size="xs" customAvatarUrl={event.organizer.customAvatarUrl} />
-                        {/* Show actual attendee avatars - simplified display for Messages tab */}
-                        {event.rsvpCount > 1 && (
-                          <AnimeAvatar seed={`placeholder_${event.id}`} size="xs" />
+                        {/* Show organizer first */}
+                        <AnimeAvatar 
+                          seed={event.organizer.animeAvatarSeed} 
+                          size="xs" 
+                          customAvatarUrl={event.organizer.customAvatarUrl} 
+                        />
+                        {/* Show attendee avatars (up to 5 more for total of 6) */}
+                        {attendeesMap[event.id] && attendeesMap[event.id].slice(0, 5).map((attendee, index) => (
+                          <AnimeAvatar 
+                            key={`${event.id}-${attendee.id}-${index}`}
+                            seed={attendee.animeAvatarSeed} 
+                            size="xs" 
+                            customAvatarUrl={attendee.customAvatarUrl}
+                          />
+                        ))}
+                        {/* Show count indicator if more than 6 members */}
+                        {event.rsvpCount > 5 && (
+                          <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                            +{event.rsvpCount - 5}
+                          </div>
                         )}
                       </div>
                       <span className="text-xs text-gray-500">
