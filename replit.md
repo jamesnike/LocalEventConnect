@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 11, 2025. FIXED BROWSE PAGE 404 ERRORS: Resolved issue where Browse page showed "No events found" message when scrolling down by changing default time filter from "today_morning" to "day1_morning". Browse page now shows events for tomorrow morning by default, eliminating empty state that appeared as 404 errors when current date didn't match event dates.
 - July 11, 2025. FIXED GROUP CHAT NAVIGATION: Resolved critical issue where clicking group chats in Messages tab showed "Event Card not found" errors. Added missing GET /api/events/:id endpoint with proper authentication and user context. Enhanced fallback system to fetch specific events when not found in home page swipe interface. Group chat navigation now works seamlessly from Messages tab to EventContent with proper chat loading.
 - July 11, 2025. OPTIMIZED AVATAR GENERATION: Enhanced AI avatar generation with direct base64 response from OpenAI (eliminates HTTP download step), faster compression settings (quality 70, level 6), and streamlined processing pipeline. Avatar generation now 1-2 seconds faster with maintained quality.
 - July 10, 2025. FIXED AUTHENTICATION ROUTING: Resolved 404 error when refreshing on protected routes like /my-events. Updated router to automatically redirect unauthenticated users to login page when accessing protected routes, eliminating 404 errors and providing seamless authentication flow.

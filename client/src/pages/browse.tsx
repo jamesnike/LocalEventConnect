@@ -11,8 +11,8 @@ import { EventWithOrganizer } from "@shared/schema";
 
 export default function Browse() {
   const [selectedCategory, setSelectedCategory] = useState(() => {
-    // Load saved time filter from localStorage or default to "today_morning"
-    return localStorage.getItem('browseTimeFilter') || "today_morning";
+    // Load saved time filter from localStorage or default to "day1_morning" (tomorrow morning)
+    return localStorage.getItem('browseTimeFilter') || "day1_morning";
   });
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);

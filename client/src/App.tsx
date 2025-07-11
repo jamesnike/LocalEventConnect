@@ -39,7 +39,7 @@ function Router() {
           <Route path="/profile" component={Profile} />
           <Route path="/my-events" component={MyEvents} />
           <Route path="/browse" component={Browse} />
-          <Route component={NotFound} />
+          <Route path="*" component={NotFound} />
         </>
       ) : (
         <>
@@ -62,7 +62,7 @@ function Router() {
               return null;
             }}
           </Route>
-          <Route component={NotFound} />
+          <Route path="*" component={NotFound} />
         </>
       )}
     </Switch>
