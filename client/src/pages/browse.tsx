@@ -45,7 +45,7 @@ export default function Browse() {
         onClose={() => setSelectedEvent(null)}
         onNavigateToContent={() => {
           // Navigate to EventContent page for group chat
-          setLocation(`/event-content?eventId=${selectedEvent.id}&fromBrowse=true`);
+          setLocation(`/event-content/${selectedEvent.id}?fromBrowse=true`);
         }}
         fromPage="browse"
       />
