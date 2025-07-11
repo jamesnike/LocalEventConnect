@@ -16,6 +16,9 @@ export default function EventContentPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const isFromEventDetail = urlParams.get('tab') === 'chat'; // Group Chat/Rejoin Chat buttons use ?tab=chat
   const isFromMessages = !isFromEventDetail; // Messages tab navigation doesn't use ?tab=chat
+  
+  // Check if we're in Home page context (has home header and bottom nav)
+  const hasHomeLayout = window.location.pathname === '/' || localStorage.getItem('fromHomeEventDetail') === 'true';
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -53,7 +56,12 @@ export default function EventContentPage() {
     
     // Clear localStorage after reading
     localStorage.removeItem('preferredTab');
-  }, []);
+    
+    // Clean up home layout flag if not from home layout
+    if (!hasHomeLayout) {
+      localStorage.removeItem('fromHomeEventDetail');
+    }
+  }, [hasHomeLayout]);
 
   if (isLoading) {
     return (
@@ -124,9 +132,35 @@ export default function EventContentPage() {
     );
   }
 
+  // Different layouts based on access context
+  if (hasHomeLayout) {
+    // Home page context: shorter height, no top padding, input above nav
+    return (
+      <div className="max-w-sm mx-auto bg-white">
+        {/* Event Content - shorter for home page with header and bottom nav */}
+        <div className="h-[calc(100vh-140px)]"> {/* Reduced height for header + bottom nav */}
+          <EventContentCard
+            event={event}
+            onSwipeLeft={() => {}}
+            onSwipeRight={() => {}}
+            isActive={true}
+            initialTab={activeTab}
+            onTabChange={setActiveTab}
+            showBackButton={false} // No back button in home context
+            showKeepExploring={false}
+            onBackClick={() => {}}
+            onSimilarEventClick={() => {}}
+            hasHomeLayout={true} // Pass context to EventContentCard
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Messages tab context: full screen standalone
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
-      {/* Event Content */}
+      {/* Event Content - full screen */}
       <div className="h-screen">
         <EventContentCard
           event={event}
@@ -138,9 +172,8 @@ export default function EventContentPage() {
           showBackButton={true}
           showKeepExploring={false}
           onBackClick={() => setLocation('/my-events?tab=messages')}
-          onSimilarEventClick={() => {
-            // EventDetail is now handled directly within EventContentCard
-          }}
+          onSimilarEventClick={() => {}}
+          hasHomeLayout={false} // Pass context to EventContentCard
         />
       </div>
     </div>

@@ -805,6 +805,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   onClick={() => {
                     rejoinChatMutation.mutate(undefined, {
                       onSuccess: () => {
+                        // Set flag for home layout context
+                        localStorage.setItem('fromHomeEventDetail', 'true');
                         // Navigate directly to EventContent page like Messages tab does
                         console.log('Rejoin chat navigation:', `/event/${event.id}?tab=chat`);
                         setLocation(`/event/${event.id}?tab=chat`);
@@ -825,6 +827,8 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => {
+                      // Set flag for home layout context
+                      localStorage.setItem('fromHomeEventDetail', 'true');
                       // Navigate directly to EventContent page like Messages tab does
                       console.log('Group chat navigation:', `/event/${event.id}?tab=chat`);
                       setLocation(`/event/${event.id}?tab=chat`);

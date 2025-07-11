@@ -23,6 +23,7 @@ interface EventContentCardProps {
   showBackButton?: boolean;
   onBackClick?: () => void;
   showKeepExploring?: boolean;
+  hasHomeLayout?: boolean;
 }
 
 export default function EventContentCard({ 
@@ -36,7 +37,8 @@ export default function EventContentCard({
   onTabChange,
   showBackButton = false,
   onBackClick,
-  showKeepExploring = false
+  showKeepExploring = false,
+  hasHomeLayout = false
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -414,12 +416,12 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: 'calc(100% - 40px)',
+          height: hasHomeLayout ? 'calc(100% - 20px)' : 'calc(100% - 40px)', // Reduced height for home layout
           zIndex: isActive ? 10 : 1
         }}
       >
-        {/* Empty space above header */}
-        <div className="h-8"></div>
+        {/* Empty space above header - conditional based on layout */}
+        {!hasHomeLayout && <div className="h-8"></div>}
         
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
@@ -522,7 +524,9 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="flex-1 overflow-hidden" style={{ 
+          height: hasHomeLayout ? 'calc(100vh - 280px)' : 'calc(100vh - 220px)' // Adjusted for home layout
+        }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div
