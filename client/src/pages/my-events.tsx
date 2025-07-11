@@ -289,12 +289,8 @@ export default function MyEvents() {
                   // Mark event as read when user clicks on group chat
                   markEventAsRead(event.id);
                   
-                  // Navigate to group chat
-                  localStorage.setItem('eventContentId', event.id.toString());
-                  localStorage.setItem('preferredTab', 'chat');
-                  localStorage.setItem('fromMyEvents', 'true');
-                  localStorage.setItem('fromMessagesTab', 'true');
-                  setLocation('/');
+                  // Navigate directly to EventContent page with chat tab active
+                  setLocation(`/event/${event.id}?tab=chat`);
                 }}
                 className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
               >
