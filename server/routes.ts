@@ -123,6 +123,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual event by ID
+  app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const event = await storage.getEvent(eventId, userId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ message: "Failed to fetch event" });
+    }
+  });
+
   app.put('/api/events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
