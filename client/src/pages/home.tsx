@@ -523,16 +523,30 @@ export default function Home() {
   }, [events, availableEvents.length, swipedEvents.size]);
 
   const handleSwipeLeft = async () => {
-    if (!currentEvent || isTransitioning || isSkippingInProgress) return;
+    console.log('🔴 Skip button clicked');
+    console.log('Current state:', {
+      currentEvent: currentEvent?.id,
+      isTransitioning,
+      isSkippingInProgress,
+      showContentCard,
+      showDetailCard,
+      currentEventIndex
+    });
+    
+    if (!currentEvent || isTransitioning || isSkippingInProgress) {
+      console.log('🔴 Skip blocked by conditions');
+      return;
+    }
     
     // Debounce mechanism: prevent rapid consecutive skips
     const currentTime = Date.now();
     if (currentTime - lastSkipTime < 2000) { // 2 second debounce
-      console.log('Skip debounced - too rapid');
+      console.log('🔴 Skip debounced - too rapid');
       return;
     }
     
     if (showContentCard) {
+      console.log('🔴 From content card');
       // From content card, go back to main and move to next event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
       setCurrentEventIndex(prev => prev + 1);
@@ -551,6 +565,7 @@ export default function Home() {
       setEventFromMyEvents(null); // Clear stored event
       setGroupChatEvent(null); // Clear group chat event
     } else if (showDetailCard) {
+      console.log('🔴 From detail card - initiating skip for event:', currentEvent.id);
       // From detail card, skip to next event
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
@@ -560,6 +575,7 @@ export default function Home() {
         setLastSkipTime(currentTime);
       }
     } else {
+      console.log('🔴 From main card - initiating skip for event:', currentEvent.id);
       // From main card, skip this event with animation
       if (currentEvent) {
         setEventBeingSkipped(currentEvent.id);
