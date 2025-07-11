@@ -500,7 +500,7 @@ export default function EventContentCard({
                               />
                               <div className={`flex-1 ${isOwnMessage ? 'mr-3' : 'ml-3'}`}>
                                 <div className={`flex items-center space-x-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                                  <span className="font-medium text-sm text-gray-800">
+                                  <span className="font-medium text-xs text-gray-800">
                                     {msg.user.firstName} {msg.user.lastName}
                                   </span>
                                 </div>
