@@ -163,6 +163,11 @@ export class DatabaseStorage implements IStorage {
     // Build WHERE conditions
     const whereConditions = [
       eq(events.isActive, true),
+      // Always exclude private chats from public event listings
+      or(
+        eq(events.isPrivateChat, false),
+        sql`${events.isPrivateChat} IS NULL`
+      ),
       category ? eq(events.category, category) : undefined,
       ...(timeFilter ? this.getTimeFilterWhere(timeFilter) : []),
     ].filter(Boolean);
