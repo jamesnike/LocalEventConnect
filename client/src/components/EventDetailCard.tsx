@@ -203,7 +203,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             </div>
             <div className="text-right">
               <div className="flex items-center text-gray-600 mb-2">
-                <DollarSign className="w-4 h-4 mr-1" />
+                <DollarSign className="w-3 h-3 mr-0.5" />
                 <span className="text-base">
                   {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `${parseFloat(event.price).toFixed(2)}`}
                 </span>
