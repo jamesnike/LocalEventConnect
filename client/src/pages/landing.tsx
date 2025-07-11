@@ -5,8 +5,16 @@ export default function Landing() {
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
+    // Debug logging for mobile troubleshooting
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Landing page loaded, showing login in 2 seconds');
+    }
+    
     const timer = setTimeout(() => {
       setShowLogin(true);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Login button now visible');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -68,7 +76,12 @@ export default function Landing() {
       </div>
       
       <button 
-        onClick={() => window.location.href = '/api/login'}
+        onClick={() => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Get Started button clicked, navigating to /api/login');
+          }
+          window.location.href = '/api/login';
+        }}
         className="w-full bg-primary text-white rounded-lg p-4 font-medium mb-4 hover:bg-primary/90 transition-colors"
       >
         Get Started

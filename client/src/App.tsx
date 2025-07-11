@@ -22,7 +22,7 @@ function Router() {
   }
 
   // Show loading state while checking authentication or if user state is transitioning
-  if (isLoading || (user === null && !error)) {
+  if (isLoading) {
     return (
       <div className="max-w-sm mx-auto bg-gradient-to-br from-primary to-accent min-h-screen flex items-center justify-center">
         <div className="text-center text-white">
