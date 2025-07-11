@@ -130,6 +130,7 @@ export default function EventContentPage() {
           showBackButton={true}
           showKeepExploring={false}
           fromEventDetailCard={false}
+          isStandalonePage={true}
           onBackClick={() => setLocation('/my-events?tab=messages')}
           onSimilarEventClick={() => {
             // EventDetail is now handled directly within EventContentCard

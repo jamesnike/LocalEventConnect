@@ -24,6 +24,7 @@ interface EventContentCardProps {
   onBackClick?: () => void;
   showKeepExploring?: boolean;
   fromEventDetailCard?: boolean;
+  isStandalonePage?: boolean;
 }
 
 export default function EventContentCard({ 
@@ -38,7 +39,8 @@ export default function EventContentCard({
   showBackButton = false,
   onBackClick,
   showKeepExploring = false,
-  fromEventDetailCard = false
+  fromEventDetailCard = false,
+  isStandalonePage = false
 }: EventContentCardProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -447,7 +449,9 @@ export default function EventContentCard({
         style={{
           height: fromEventDetailCard 
             ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
-            : '100vh',
+            : isStandalonePage 
+              ? (isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)')
+              : '100vh',
           zIndex: isActive ? 10 : 1
         }}
       >
