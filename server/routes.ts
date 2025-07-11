@@ -723,7 +723,7 @@ Please respond with just the signature text, nothing else.`;
                 
                 Match this specific visual style exactly while incorporating the user's description. The result should look like it belongs in the same avatar collection as the reference style.`,
         n: 1,
-        size: "1024x1024",
+        size: "512x512",
         quality: "standard",
       });
 
