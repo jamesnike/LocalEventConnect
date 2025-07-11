@@ -726,26 +726,25 @@ Please respond with just the signature text, nothing else.`;
         n: 1,
         size: "1024x1024",
         quality: "standard",
+        response_format: "b64_json",
       });
 
-      const generatedImageUrl = imageResponse.data[0].url;
-      console.log("Generated DALL-E image URL:", generatedImageUrl);
-      
-      // Download the image and compress it
-      const fetch = (await import('node-fetch')).default;
-      const sharp = (await import('sharp')).default;
-      const imageResponse2 = await fetch(generatedImageUrl);
-      
-      if (!imageResponse2.ok) {
-        throw new Error(`Failed to download image: ${imageResponse2.statusText}`);
+      // Get base64 data directly from OpenAI (faster than downloading)
+      const base64Data = imageResponse.data[0].b64_json;
+      if (!base64Data) {
+        throw new Error("No base64 data received from OpenAI");
       }
       
-      const imageBuffer = await imageResponse2.buffer();
+      console.log("Received base64 data from OpenAI, size:", base64Data.length);
       
-      // Compress the image to reduce file size significantly
+      // Convert base64 to buffer for compression
+      const sharp = (await import('sharp')).default;
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+      
+      // Fast compression with optimized settings
       const compressedBuffer = await sharp(imageBuffer)
         .resize(256, 256, { fit: 'cover' })
-        .png({ quality: 60, compressionLevel: 9, palette: true })
+        .png({ quality: 70, compressionLevel: 6, palette: true })
         .toBuffer();
       
       const base64Image = `data:image/png;base64,${compressedBuffer.toString('base64')}`;
