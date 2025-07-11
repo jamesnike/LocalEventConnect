@@ -19,6 +19,11 @@ export default function EventContentPage() {
   
   // Check if we're in Home page context (has home header and bottom nav)
   const hasHomeLayout = window.location.pathname === '/' || localStorage.getItem('fromHomeEventDetail') === 'true';
+  
+  // Determine back navigation context based on localStorage flags
+  const fromMyEvents = localStorage.getItem('fromMyEvents') === 'true';
+  const fromBrowse = localStorage.getItem('fromBrowse') === 'true';
+  const fromMessagesTab = localStorage.getItem('fromMessagesTab') === 'true';
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -62,6 +67,17 @@ export default function EventContentPage() {
       localStorage.removeItem('fromHomeEventDetail');
     }
   }, [hasHomeLayout]);
+
+  // Clean up localStorage flags on component unmount
+  useEffect(() => {
+    return () => {
+      // Clean up all navigation flags when component unmounts
+      localStorage.removeItem('fromMyEvents');
+      localStorage.removeItem('fromBrowse');
+      localStorage.removeItem('fromMessagesTab');
+      localStorage.removeItem('fromHomeEventDetail');
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -171,7 +187,18 @@ export default function EventContentPage() {
           onTabChange={setActiveTab}
           showBackButton={true}
           showKeepExploring={false}
-          onBackClick={() => setLocation('/my-events?tab=messages')}
+          onBackClick={() => {
+            // Navigate back based on context
+            if (fromMyEvents) {
+              setLocation('/my-events?tab=attending');
+            } else if (fromBrowse) {
+              setLocation('/browse');
+            } else if (fromMessagesTab) {
+              setLocation('/my-events?tab=messages');
+            } else {
+              setLocation('/my-events?tab=messages'); // Default fallback
+            }
+          }}
           onSimilarEventClick={() => {}}
           hasHomeLayout={false} // Pass context to EventContentCard
         />
