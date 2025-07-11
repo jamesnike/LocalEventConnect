@@ -124,6 +124,7 @@ export const chatMessages = pgTable("chat_messages", {
   eventId: integer("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   message: text("message").notNull(),
+  quotedMessageId: integer("quoted_message_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -131,6 +132,7 @@ export const chatMessages = pgTable("chat_messages", {
 export const chatMessageRelations = relations(chatMessages, ({ one }) => ({
   event: one(events, { fields: [chatMessages.eventId], references: [events.id] }),
   user: one(users, { fields: [chatMessages.userId], references: [users.id] }),
+  quotedMessage: one(chatMessages, { fields: [chatMessages.quotedMessageId], references: [chatMessages.id] }),
 }));
 
 // Message reads table to track which messages users have read
@@ -217,6 +219,7 @@ export type InsertRsvp = z.infer<typeof insertRsvpSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type ChatMessageWithUser = ChatMessage & {
   user: User;
+  quotedMessage?: ChatMessage & { user: User };
 };
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type MessageRead = typeof messageReads.$inferSelect;

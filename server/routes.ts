@@ -617,7 +617,7 @@ Please respond with just the signature text, nothing else.`;
     try {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
-      const { message } = req.body;
+      const { message, quotedMessageId } = req.body;
       
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
         return res.status(400).json({ message: "Message content is required" });
@@ -637,44 +637,14 @@ Please respond with just the signature text, nothing else.`;
         eventId,
         userId,
         message: message.trim(),
+        quotedMessageId: quotedMessageId || null,
       });
       
       const newMessage = await storage.createChatMessage(messageData);
       
-      // Get the specific message with user data directly
-      const messageWithUserQuery = await db
-        .select({
-          id: chatMessages.id,
-          eventId: chatMessages.eventId,
-          userId: chatMessages.userId,
-          message: chatMessages.message,
-          createdAt: chatMessages.createdAt,
-          updatedAt: chatMessages.updatedAt,
-          user: {
-            id: users.id,
-            email: users.email,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            customAvatarUrl: users.customAvatarUrl,
-            animeAvatarSeed: users.animeAvatarSeed,
-            location: users.location,
-            interests: users.interests,
-            personality: users.personality,
-            aiSignature: users.aiSignature,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt,
-          },
-        })
-        .from(chatMessages)
-        .leftJoin(users, eq(chatMessages.userId, users.id))
-        .where(eq(chatMessages.id, newMessage.id))
-        .limit(1);
-      
-      const messageWithUser = messageWithUserQuery[0] ? {
-        ...messageWithUserQuery[0],
-        user: messageWithUserQuery[0].user!,
-      } : null;
+      // Get message with user data - get the most recent message
+      const messagesWithUser = await storage.getChatMessages(eventId, 1);
+      const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
       
       // Debugging removed - system working correctly
       

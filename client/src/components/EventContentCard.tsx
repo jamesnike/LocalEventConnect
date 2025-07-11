@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X } from "lucide-react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X, Quote } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -47,6 +47,7 @@ export default function EventContentCard({
   const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedSimilarEvent, setSelectedSimilarEvent] = useState<EventWithOrganizer | null>(null);
+  const [quotedMessage, setQuotedMessage] = useState<ChatMessageWithUser | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom function
@@ -158,15 +159,32 @@ export default function EventContentCard({
     },
   });
 
+  // Quote message handler
+  const handleQuoteMessage = (message: ChatMessageWithUser) => {
+    setQuotedMessage(message);
+    // Focus on the input field after setting quote
+    setTimeout(() => {
+      const input = document.querySelector('input[placeholder="Type a message..."]') as HTMLInputElement;
+      if (input) {
+        input.focus();
+      }
+    }, 100);
+  };
+
+  // Clear quote handler
+  const clearQuote = () => {
+    setQuotedMessage(null);
+  };
+
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (message: string) => {
-      console.log('Sending message:', message, 'to event:', event.id);
+    mutationFn: async (messageData: { message: string; quotedMessageId?: number }) => {
+      console.log('Sending message:', messageData, 'to event:', event.id);
       // Always use HTTP API for reliability
       const response = await apiRequest(`/api/events/${event.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(messageData),
       });
       console.log('Message sent response:', response.status);
       
@@ -188,6 +206,8 @@ export default function EventContentCard({
     },
     onSuccess: (data) => {
       console.log('Message sent successfully:', data);
+      // Clear quote after sending
+      setQuotedMessage(null);
       // Only invalidate notifications to update unread counts
       // WebSocket will handle real-time message updates
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
@@ -278,7 +298,11 @@ export default function EventContentCard({
 
   const handleSendMessage = () => {
     if (newMessage.trim() && !sendMessageMutation.isPending) {
-      sendMessageMutation.mutate(newMessage);
+      const messageData = {
+        message: newMessage,
+        quotedMessageId: quotedMessage?.id
+      };
+      sendMessageMutation.mutate(messageData);
       setNewMessage('');
       // Scroll to bottom after sending message
       setTimeout(() => {
@@ -478,14 +502,40 @@ export default function EventContentCard({
                                     {msg.user.firstName} {msg.user.lastName}
                                   </span>
                                 </div>
-                                <div className={`${isOwnMessage ? 'text-right' : 'text-left'}`}>
-                                  <p className={`text-sm px-3 py-2 rounded-lg inline-block text-left ${
+                                <div className={`${isOwnMessage ? 'text-right' : 'text-left'} group relative`}>
+                                  <div className={`text-sm px-3 py-2 rounded-lg inline-block text-left ${
                                     isOwnMessage 
                                       ? 'bg-purple-500 text-white rounded-br-none' 
                                       : 'bg-gray-100 text-gray-700 rounded-bl-none'
                                   }`}>
+                                    {/* Quoted message display */}
+                                    {msg.quotedMessage && (
+                                      <div className={`mb-2 p-2 border-l-2 rounded text-xs opacity-80 ${
+                                        isOwnMessage 
+                                          ? 'border-purple-200 bg-purple-400' 
+                                          : 'border-gray-400 bg-gray-200 text-gray-600'
+                                      }`}>
+                                        <div className="font-medium">
+                                          {msg.quotedMessage.user.firstName} {msg.quotedMessage.user.lastName}
+                                        </div>
+                                        <div className="truncate">
+                                          {msg.quotedMessage.message}
+                                        </div>
+                                      </div>
+                                    )}
                                     {msg.message}
-                                  </p>
+                                  </div>
+                                  
+                                  {/* Quote button - only show for other users' messages */}
+                                  {msg.user.id !== user?.id && (
+                                    <button
+                                      onClick={() => handleQuoteMessage(msg)}
+                                      className="absolute -right-8 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-full"
+                                      title="Quote this message"
+                                    >
+                                      <Quote className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -497,27 +547,51 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-gray-200 bg-gray-50">
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                      className="px-4 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {sendMessageMutation.isPending ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                    </button>
+                <div className="border-t border-gray-200 bg-gray-50">
+                  {/* Quote preview */}
+                  {quotedMessage && (
+                    <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-xs text-blue-600 font-medium mb-1">
+                            Replying to {quotedMessage.user.firstName} {quotedMessage.user.lastName}
+                          </div>
+                          <div className="text-sm text-gray-700 bg-white px-3 py-2 rounded border-l-2 border-blue-400">
+                            {quotedMessage.message}
+                          </div>
+                        </div>
+                        <button
+                          onClick={clearQuote}
+                          className="ml-2 p-1 hover:bg-blue-100 rounded-full transition-colors"
+                        >
+                          <X className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="p-4">
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder={quotedMessage ? "Reply to message..." : "Type a message..."}
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                        className="px-4 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {sendMessageMutation.isPending ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

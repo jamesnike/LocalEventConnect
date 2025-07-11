@@ -751,6 +751,7 @@ export class DatabaseStorage implements IStorage {
         eventId: chatMessages.eventId,
         userId: chatMessages.userId,
         message: chatMessages.message,
+        quotedMessageId: chatMessages.quotedMessageId,
         createdAt: chatMessages.createdAt,
         updatedAt: chatMessages.updatedAt,
         user: {
@@ -778,11 +779,63 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
 
     const results = await query;
+    
+    // For messages with quotedMessageId, fetch the quoted message details
+    const messagesWithQuotes = await Promise.all(
+      results.map(async (result) => {
+        let quotedMessage = null;
+        
+        if (result.quotedMessageId) {
+          // Fetch the quoted message with user details
+          const [quotedResult] = await db
+            .select({
+              id: chatMessages.id,
+              eventId: chatMessages.eventId,
+              userId: chatMessages.userId,
+              message: chatMessages.message,
+              quotedMessageId: chatMessages.quotedMessageId,
+              createdAt: chatMessages.createdAt,
+              updatedAt: chatMessages.updatedAt,
+              user: {
+                id: users.id,
+                customAvatarUrl: users.customAvatarUrl,
+                animeAvatarSeed: users.animeAvatarSeed,
+                location: users.location,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                profileImageUrl: users.profileImageUrl,
+                interests: users.interests,
+                personality: users.personality,
+                aiSignature: users.aiSignature,
+                skippedEvents: users.skippedEvents,
+                eventsShownSinceSkip: users.eventsShownSinceSkip,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+              },
+            })
+            .from(chatMessages)
+            .leftJoin(users, eq(chatMessages.userId, users.id))
+            .where(eq(chatMessages.id, result.quotedMessageId));
+          
+          if (quotedResult) {
+            quotedMessage = {
+              ...quotedResult,
+              user: quotedResult.user!,
+            };
+          }
+        }
+        
+        return {
+          ...result,
+          user: result.user!,
+          quotedMessage: quotedMessage || undefined,
+        };
+      })
+    );
+    
     // Return in ascending order for proper chat display (oldest first)
-    return results.map(result => ({
-      ...result,
-      user: result.user!,
-    })).reverse();
+    return messagesWithQuotes.reverse();
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
