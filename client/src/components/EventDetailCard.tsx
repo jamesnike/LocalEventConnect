@@ -211,10 +211,10 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto h-full">
+    <div className="relative w-full max-w-sm mx-auto h-full" style={{ userSelect: 'text', WebkitUserSelect: 'text', msUserSelect: 'text' }}>
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${
+        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col event-detail-card ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
@@ -261,7 +261,16 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-6 text-selectable">
+        <div 
+          className="overflow-y-auto flex-1 p-6 space-y-6 text-selectable"
+          style={{
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
+            msUserSelect: 'text',
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch'
+          }}
+        >
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
