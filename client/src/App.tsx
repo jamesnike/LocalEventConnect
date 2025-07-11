@@ -33,17 +33,20 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route component={NotFound} />
-        </>
-      ) : (
+      {isAuthenticated ? (
         <>
           <Route path="/" component={Home} />
           <Route path="/profile" component={Profile} />
           <Route path="/my-events" component={MyEvents} />
           <Route path="/browse" component={Browse} />
+          <Route component={NotFound} />
+        </>
+      ) : (
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/profile" component={Landing} />
+          <Route path="/my-events" component={Landing} />
+          <Route path="/browse" component={Landing} />
           <Route component={NotFound} />
         </>
       )}
