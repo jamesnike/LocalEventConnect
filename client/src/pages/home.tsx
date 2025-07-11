@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSkippedEventsSync } from "@/hooks/useSkippedEventsSync";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import SwipeCard from "@/components/SwipeCard";
@@ -49,6 +50,7 @@ export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { totalUnread } = useNotifications();
+  const { addSkippedEvent } = useSkippedEventsSync();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -625,15 +627,10 @@ export default function Home() {
       // Move to the next event in the current array
       setCurrentEventIndex(prev => prev + 1);
       
-      // Do the database skip operation in the background (fire and forget)
+      // Add to background sync queue for database persistence
       if (user) {
-        fetch(`/api/events/${eventIdToSkip}/skip`, { 
-          method: 'POST',
-          credentials: 'include'
-        })
-        .catch(error => {
-          console.error('Error skipping event in background:', error);
-        });
+        addSkippedEvent(eventIdToSkip);
+        console.log(`Added event ${eventIdToSkip} to background sync queue`);
       }
     }
     
