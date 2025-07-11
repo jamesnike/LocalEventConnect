@@ -665,7 +665,7 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input */}
-                <div className="border-t border-gray-200 bg-gray-50 mb-16">
+                <div className="border-t border-gray-200 bg-gray-50">
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
@@ -856,9 +856,9 @@ export default function EventContentCard({
           </AnimatePresence>
         </div>
 
-        {/* Keep Exploring Button - Above input box */}
+        {/* Keep Exploring Button - Bottom right with spacing */}
         {showKeepExploring && (
-          <div className="absolute bottom-32 right-4 z-30">
+          <div className="absolute bottom-12 right-4 z-30">
             <button
               onClick={handleKeepExploring}
               className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
