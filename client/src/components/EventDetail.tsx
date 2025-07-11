@@ -459,11 +459,18 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
           
           <div className="mb-4">
             <h3 className="font-semibold text-gray-800 mb-2 text-sm">
-              Attendees ({localRsvpCount})
+              Members ({localRsvpCount + 1})
             </h3>
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
-                {attendees.slice(0, 5).map((attendee, index) => (
+                {/* Always show organizer first */}
+                <AnimeAvatar 
+                  seed={event.organizer.animeAvatarSeed} 
+                  size="md"
+                  customAvatarUrl={event.organizer.customAvatarUrl}
+                />
+                {/* Then show attendees */}
+                {attendees.slice(0, 4).map((attendee, index) => (
                   <AnimeAvatar 
                     key={attendee.id}
                     seed={attendee.animeAvatarSeed} 
@@ -471,16 +478,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                     customAvatarUrl={attendee.customAvatarUrl}
                   />
                 ))}
-                {attendees.length === 0 && (
-                  <AnimeAvatar 
-                    seed={event.organizer.animeAvatarSeed} 
-                    size="md"
-                    customAvatarUrl={event.organizer.customAvatarUrl}
-                  />
-                )}
               </div>
-              {localRsvpCount > 5 && (
-                <span className="text-sm text-gray-600">+{localRsvpCount - 5} more</span>
+              {(localRsvpCount + 1) > 5 && (
+                <span className="text-sm text-gray-600">+{(localRsvpCount + 1) - 5} more</span>
               )}
             </div>
           </div>
