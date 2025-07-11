@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut } from "lucide-react";
+import { MessageCircle, Users, Calendar, MapPin, Clock, DollarSign, Send, ArrowLeft, LogOut, X } from "lucide-react";
 import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -44,9 +44,20 @@ export default function EventContentCard({
   const [newMessage, setNewMessage] = useState('');
   const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [messages, setMessagesState] = useState<ChatMessageWithUser[]>([]);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
+
+  // Fetch event attendees for members modal
+  const { data: attendees = [] } = useQuery({
+    queryKey: ['/api/events', event.id, 'attendees'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/attendees`);
+      return response.json();
+    },
+    enabled: hasChatAccess,
+  });
 
   const getSubCategoryColor = (subCategory: string) => {
     const colors = [
@@ -272,7 +283,12 @@ export default function EventContentCard({
               <div>
                 <h3 className="font-semibold text-lg">{event.title}</h3>
                 <div className="flex items-center space-x-2">
-                  <p className="text-sm opacity-90">{event.rsvpCount + 1} members</p>
+                  <button 
+                    onClick={() => setShowMembersModal(true)}
+                    className="text-sm opacity-90 hover:opacity-100 hover:underline cursor-pointer transition-opacity"
+                  >
+                    {event.rsvpCount + 1} members
+                  </button>
                   {event.subCategory && (
                     <>
                       <span className="text-xs opacity-70">•</span>
@@ -491,6 +507,67 @@ export default function EventContentCard({
           </div>
         )}
       </div>
+
+      {/* Members Modal */}
+      {showMembersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Event Members</h3>
+              <button
+                onClick={() => setShowMembersModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Show organizer first */}
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                <AnimeAvatar 
+                  seed={event.organizer.animeAvatarSeed} 
+                  size="sm"
+                  customAvatarUrl={event.organizer.customAvatarUrl}
+                  behavior="profile"
+                  user={event.organizer}
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">
+                    {event.organizer.firstName} {event.organizer.lastName}
+                  </p>
+                  <p className="text-sm text-blue-600">Organizer</p>
+                </div>
+              </div>
+
+              {/* Show attendees */}
+              {attendees.filter(attendee => attendee.id !== event.organizerId).map((attendee) => (
+                <div key={attendee.id} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
+                  <AnimeAvatar 
+                    seed={attendee.animeAvatarSeed} 
+                    size="sm"
+                    customAvatarUrl={attendee.customAvatarUrl}
+                    behavior="profile"
+                    user={attendee}
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {attendee.firstName} {attendee.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500">Member</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500 text-center">
+                {event.rsvpCount + 1} total members
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
