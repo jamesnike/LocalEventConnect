@@ -85,6 +85,7 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
   const [lastSkipTime, setLastSkipTime] = useState(0);
+  const [lastRightClickTime, setLastRightClickTime] = useState(0);
   const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
