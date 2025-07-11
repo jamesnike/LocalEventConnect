@@ -118,19 +118,8 @@ export default function EventContentPage() {
 
   return (
     <div className="max-w-sm mx-auto bg-white min-h-screen">
-      {/* Back Button */}
-      <div className="px-4 py-2">
-        <button
-          onClick={() => setLocation('/my-events')}
-          className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-          <span className="text-sm text-gray-600">Back to Messages</span>
-        </button>
-      </div>
-
       {/* Event Content */}
-      <div className="h-[calc(100vh-60px)]">
+      <div className="h-screen">
         <EventContentCard
           event={event}
           onSwipeLeft={() => {}}
@@ -138,7 +127,7 @@ export default function EventContentPage() {
           isActive={true}
           initialTab={activeTab}
           onTabChange={setActiveTab}
-          showBackButton={false}
+          showBackButton={true}
           showKeepExploring={false}
           onBackClick={() => setLocation('/my-events?tab=messages')}
           onSimilarEventClick={() => {
