@@ -42,26 +42,46 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
   const fallbackAvatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&size=${pixelSizes[size]}&backgroundColor=f3f4f6`;
   
   // Debug logging
-  console.log('Avatar Debug:', { seed, customAvatarUrl, avatarUrl, imageError });
+  console.log('Avatar Debug:', { 
+    seed, 
+    customAvatarUrl, 
+    avatarUrl, 
+    imageError,
+    behavior,
+    avatarUser: avatarUser ? { id: avatarUser.id, firstName: avatarUser.firstName } : null,
+    currentUser: user ? { id: user.id, firstName: user.firstName } : null
+  });
 
   const handleClick = () => {
     if (!clickable) return;
+    
+    console.log('Avatar clicked:', { 
+      behavior, 
+      clickable, 
+      avatarUser: avatarUser?.id, 
+      currentUser: user?.id,
+      seed,
+      userSeed: user?.animeAvatarSeed
+    });
     
     if (behavior === 'navigate') {
       // Navigate to profile page
       setLocation('/profile');
     } else if (behavior === 'profile' && avatarUser) {
       // Show profile modal for any user
-      if (user && avatarUser.id === user.id) {
+      if (user && String(avatarUser.id) === String(user.id)) {
         // If it's the current user's avatar, show avatar update modal
+        console.log('Opening avatar update modal for current user');
         setIsAvatarUpdateModalOpen(true);
       } else {
         // Show profile modal for other users
+        console.log('Opening profile modal for other user');
         setIsProfileModalOpen(true);
       }
     } else {
       // Default behavior: show modal for avatar update (only if it's the user's own avatar)
       if (user && seed === user.animeAvatarSeed) {
+        console.log('Opening avatar update modal (default behavior)');
         setIsAvatarUpdateModalOpen(true);
       }
     }
