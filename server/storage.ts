@@ -18,7 +18,7 @@ import {
   type InsertMessageRead,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, ne, sql, desc, asc, gte, lte, between, gt } from "drizzle-orm";
+import { eq, and, or, ne, sql, desc, asc, gte, lte, between, gt, inArray } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -1238,6 +1238,30 @@ export class DatabaseStorage implements IStorage {
 
   async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
     console.log(`getUserPrivateChats called for user ${userId}`);
+    
+    // First, get all private chat event IDs where the user is involved
+    const userEventIds = await db
+      .selectDistinct({
+        eventId: events.id,
+      })
+      .from(events)
+      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+      .where(
+        and(
+          eq(events.isPrivateChat, true),
+          eq(events.isActive, true),
+          or(
+            eq(events.organizerId, userId),
+            eq(eventRsvps.userId, userId)
+          )
+        )
+      );
+
+    if (userEventIds.length === 0) {
+      return [];
+    }
+
+    // Now get the full event details for those IDs
     const chats = await db
       .select({
         id: events.id,
@@ -1290,19 +1314,12 @@ export class DatabaseStorage implements IStorage {
       })
       .from(events)
       .leftJoin(users, eq(events.organizerId, users.id))
-      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
       .where(
-        and(
-          eq(events.isPrivateChat, true),
-          eq(events.isActive, true),
-          or(
-            eq(events.organizerId, userId),
-            eq(eventRsvps.userId, userId)
-          )
-        )
+        inArray(events.id, userEventIds.map(e => e.eventId))
       )
-      .groupBy(events.id, users.id)
       .orderBy(desc(events.createdAt));
+
+    console.log(`Private chats for user ${userId}:`, chats.length, chats.map(c => ({ id: c.id, title: c.title })));
 
     return chats.map(chat => ({
       ...chat,
