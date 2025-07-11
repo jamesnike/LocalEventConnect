@@ -525,7 +525,7 @@ export default function EventContentCard({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden" style={{ 
-          height: hasHomeLayout ? 'calc(100vh - 280px)' : 'calc(100vh - 220px)' // Adjusted for home layout
+          height: hasHomeLayout ? 'calc(100vh - 300px)' : 'calc(100vh - 220px)' // Further adjusted for home layout
         }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
@@ -545,7 +545,9 @@ export default function EventContentCard({
                 {/* Messages */}
                 <div 
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-4"
+                  className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+                    hasHomeLayout ? 'pb-20' : ''
+                  }`}
                 >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
@@ -669,7 +671,9 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input */}
-                <div className="border-t border-gray-200 bg-gray-50">
+                <div className={`border-t border-gray-200 bg-gray-50 ${
+                  hasHomeLayout ? 'fixed bottom-16 left-0 right-0 z-40 max-w-sm mx-auto' : ''
+                }`}>
                   {/* Quote preview */}
                   {quotedMessage && (
                     <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
@@ -861,7 +865,7 @@ export default function EventContentCard({
         </div>
 
         {/* Keep Exploring Button - Bottom right with spacing */}
-        {showKeepExploring && (
+        {showKeepExploring && !hasHomeLayout && (
           <div className="absolute bottom-12 right-4 z-30">
             <button
               onClick={handleKeepExploring}

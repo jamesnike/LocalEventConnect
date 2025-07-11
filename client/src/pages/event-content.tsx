@@ -138,7 +138,7 @@ export default function EventContentPage() {
     return (
       <div className="max-w-sm mx-auto bg-white">
         {/* Event Content - shorter for home page with header and bottom nav */}
-        <div className="h-[calc(100vh-140px)]"> {/* Reduced height for header + bottom nav */}
+        <div className="h-[calc(100vh-160px)]"> {/* Adjusted height for header + bottom nav */}
           <EventContentCard
             event={event}
             onSwipeLeft={() => {}}
