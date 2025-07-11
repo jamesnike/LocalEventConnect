@@ -249,7 +249,8 @@ export class DatabaseStorage implements IStorage {
       organizer: result.organizer!,
       rsvpCount: result.rsvpCount || 0,
       userRsvpStatus: result.userRsvpStatus || undefined,
-    }));
+      isPrivateChat: result.isPrivateChat ? true : undefined,
+    }) as any);
   }
 
   async getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined> {
@@ -317,7 +318,8 @@ export class DatabaseStorage implements IStorage {
       organizer: result.organizer!,
       rsvpCount: result.rsvpCount || 0,
       userRsvpStatus: result.userRsvpStatus || undefined,
-    };
+      isPrivateChat: result.isPrivateChat ? true : undefined,
+    } as any;
   }
 
   async createEvent(event: InsertEvent): Promise<Event> {
@@ -509,7 +511,8 @@ export class DatabaseStorage implements IStorage {
         organizer: result.organizer!,
         rsvpCount: result.rsvpCount || 0,
         userRsvpStatus: result.userRsvpStatus || undefined,
-      }));
+        isPrivateChat: result.isPrivateChat ? true : undefined,
+      }) as any);
     } else {
       // Get attending events with optional past filtering
       const query = db
@@ -598,7 +601,8 @@ export class DatabaseStorage implements IStorage {
         organizer: result.organizer!,
         rsvpCount: result.rsvpCount || 0,
         userRsvpStatus: result.userRsvpStatus || undefined,
-      }));
+        isPrivateChat: result.isPrivateChat ? true : undefined,
+      }) as any);
     }
   }
 
@@ -1228,7 +1232,8 @@ export class DatabaseStorage implements IStorage {
       organizer: chat.organizer!,
       rsvpCount: 2,
       userRsvpStatus: 'going',
-    };
+      isPrivateChat: true,
+    } as any;
   }
 
   async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
@@ -1304,7 +1309,8 @@ export class DatabaseStorage implements IStorage {
       organizer: chat.organizer!,
       rsvpCount: 2,
       userRsvpStatus: 'going',
-    }));
+      isPrivateChat: true,
+    }) as any);
   }
 }
 

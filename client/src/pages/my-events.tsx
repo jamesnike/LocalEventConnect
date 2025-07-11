@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Calendar, MapPin, MessageCircle, Clock } from "lucide-react";
+import { Calendar, MapPin, MessageCircle, Clock, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -322,9 +322,15 @@ export default function MyEvents() {
                 className="flex items-center p-4 bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
               >
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-white" />
-                  </div>
+                  {event.isPrivateChat ? (
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
