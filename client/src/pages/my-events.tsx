@@ -330,7 +330,7 @@ export default function MyEvents() {
                         )}
                       </div>
                       <span className="text-xs text-gray-500">
-                        {event.rsvpCount} members
+                        {event.rsvpCount + 1} members
                       </span>
                     </div>
                     <div className="flex items-center">
