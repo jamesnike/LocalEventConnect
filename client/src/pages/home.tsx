@@ -887,20 +887,20 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning || isSkippingInProgress}
-              className="flex items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <X className="w-7 h-7" />
+              <X className="w-8 h-8" />
             </button>
             
             <button
               onClick={handleSwipeRight}
               disabled={!currentEvent || isTransitioning}
-              className={`flex items-center justify-center w-16 h-16 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
-                <Heart className="w-7 h-7" />
+                <Heart className="w-8 h-8" />
               ) : (
-                <ArrowRight className="w-7 h-7" />
+                <ArrowRight className="w-8 h-8" />
               )}
             </button>
           </div>
