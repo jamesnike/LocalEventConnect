@@ -13,7 +13,10 @@ import MyEvents from "@/pages/my-events";
 import Browse from "@/pages/browse";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  // Debug logging
+  console.log("Router render - isAuthenticated:", isAuthenticated, "isLoading:", isLoading, "user:", user);
 
   // Show loading state while checking authentication
   if (isLoading) {
