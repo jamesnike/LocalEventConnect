@@ -489,21 +489,24 @@ export default function EventContentCard({
                           
                           {/* Message */}
                           <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-3 max-w-[80%]`}>
-                              <AnimeAvatar 
-                                seed={msg.user.animeAvatarSeed} 
-                                size="xs"
-                                customAvatarUrl={msg.user.customAvatarUrl}
-                                clickable={msg.user.id !== user?.id}
-                                behavior="profile"
-                                user={msg.user}
-                              />
-                              <div className={`flex-1 ${isOwnMessage ? 'mr-3' : 'ml-3'}`}>
-                                <div className={`flex items-center space-x-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                                  <span className="font-medium text-xs text-gray-800">
-                                    {msg.user.firstName} {msg.user.lastName}
-                                  </span>
-                                </div>
+                            <div className={`flex flex-col max-w-[80%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                              {/* User name */}
+                              <div className={`flex items-center mb-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                                <span className="font-medium text-xs text-gray-800">
+                                  {msg.user.firstName} {msg.user.lastName}
+                                </span>
+                              </div>
+                              
+                              {/* Avatar and message bubble */}
+                              <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2`}>
+                                <AnimeAvatar 
+                                  seed={msg.user.animeAvatarSeed} 
+                                  size="xs"
+                                  customAvatarUrl={msg.user.customAvatarUrl}
+                                  clickable={msg.user.id !== user?.id}
+                                  behavior="profile"
+                                  user={msg.user}
+                                />
                                 <div className={`${isOwnMessage ? 'text-right' : 'text-left'} group relative`}>
                                   <div className={`text-sm px-3 py-2 rounded-lg inline-block text-left ${
                                     isOwnMessage 
