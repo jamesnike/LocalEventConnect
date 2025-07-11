@@ -203,11 +203,11 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
         </p>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <MapPin className="w-3 h-3" />
+          <div className="flex items-center space-x-2 text-sm text-gray-600 min-w-0 flex-1 mr-4">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{event.location}</span>
           </div>
-          <div className="flex items-center space-x-2 ml-4">
+          <div className="flex items-center space-x-2 flex-shrink-0">
             <div className="flex -space-x-2">
               {attendees.slice(0, 3).map((attendee) => (
                 <AnimeAvatar 
