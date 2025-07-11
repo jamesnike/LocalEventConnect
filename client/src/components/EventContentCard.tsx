@@ -255,10 +255,10 @@ export default function EventContentCard({
       refetchMessages();
       // Mark event as read when actively opening chat
       markEventAsRead(event.id);
-      // Scroll to bottom when entering chat
+      // Scroll to bottom when entering chat - use longer delay to account for animation
       setTimeout(() => {
         scrollToBottom();
-      }, 200);
+      }, 400);
     }
   };
 
@@ -414,6 +414,12 @@ export default function EventContentCard({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col"
+                onAnimationComplete={() => {
+                  // Ensure scroll happens after animation completes
+                  setTimeout(() => {
+                    scrollToBottom();
+                  }, 50);
+                }}
               >
                 {/* Messages */}
                 <div 
