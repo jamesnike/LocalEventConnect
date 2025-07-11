@@ -158,48 +158,48 @@ export default function EventContentCard({
     );
   }, [messages]);
 
-  // Set initial messages from API when loaded
-  useEffect(() => {
-    if (chatMessages && chatMessages.length > 0) {
-      console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
-      setMessagesState(chatMessages);
-      if (setWsMessages) {
-        setWsMessages(chatMessages);
-      }
-    } else if (chatMessages && chatMessages.length === 0) {
-      console.log('Clearing messages for event:', event.id);
-      setMessagesState([]);
-      if (setWsMessages) {
-        setWsMessages([]);
-      }
-    }
-  }, [chatMessages, event.id, setWsMessages]); // Keep setWsMessages but ensure it's memoized in useWebSocket
+  // Set initial messages from API when loaded - temporarily disabled for debugging
+  // useEffect(() => {
+  //   if (chatMessages && chatMessages.length > 0) {
+  //     console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
+  //     setMessagesState(chatMessages);
+  //     if (setWsMessages) {
+  //       setWsMessages(chatMessages);
+  //     }
+  //   } else if (chatMessages && chatMessages.length === 0) {
+  //     console.log('Clearing messages for event:', event.id);
+  //     setMessagesState([]);
+  //     if (setWsMessages) {
+  //       setWsMessages([]);
+  //     }
+  //   }
+  // }, [chatMessages, event.id]); // Remove setWsMessages to prevent infinite loop
 
-  // Merge WebSocket messages with existing messages for real-time updates
-  useEffect(() => {
-    console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
-    
-    if (wsMessages.length > 0) {
-      setMessagesState(prevMessages => {
-        // Start with existing messages
-        const existingMessages = [...prevMessages];
-        
-        // Add new WebSocket messages that don't already exist
-        wsMessages.forEach(wsMsg => {
-          const exists = existingMessages.some(msg => msg.id === wsMsg.id);
-          if (!exists) {
-            console.log('Adding new WebSocket message:', wsMsg.id);
-            existingMessages.push(wsMsg);
-          }
-        });
-        
-        // Sort by creation time
-        return existingMessages.sort((a, b) => 
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-      });
-    }
-  }, [wsMessages, event.id]); // Keep event.id for proper cleanup when event changes
+  // Merge WebSocket messages with existing messages for real-time updates - temporarily disabled for debugging
+  // useEffect(() => {
+  //   console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
+  //   
+  //   if (wsMessages.length > 0) {
+  //     setMessagesState(prevMessages => {
+  //       // Start with existing messages
+  //       const existingMessages = [...prevMessages];
+  //       
+  //       // Add new WebSocket messages that don't already exist
+  //       wsMessages.forEach(wsMsg => {
+  //         const exists = existingMessages.some(msg => msg.id === wsMsg.id);
+  //         if (!exists) {
+  //           console.log('Adding new WebSocket message:', wsMsg.id);
+  //           existingMessages.push(wsMsg);
+  //         }
+  //       });
+  //       
+  //       // Sort by creation time
+  //       return existingMessages.sort((a, b) => 
+  //         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  //       );
+  //     });
+  //   }
+  // }, [wsMessages.length, event.id]); // Use wsMessages.length instead of wsMessages to prevent infinite loop
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
