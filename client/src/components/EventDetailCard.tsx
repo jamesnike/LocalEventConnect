@@ -175,14 +175,15 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     <div className="relative w-full max-w-sm mx-auto h-full">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg transform transition-all duration-300 flex flex-col ${
+        className={`bg-white rounded-2xl shadow-lg transform transition-all duration-300 ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
           height: '100%',
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
-          maxHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
 
       >
@@ -210,6 +211,31 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           </div>
         </div>
 
+        {/* SIMPLE SCROLLABLE TEST */}
+        <div style={{ 
+          height: '400px',
+          overflowY: 'auto',
+          border: '3px solid blue',
+          backgroundColor: 'yellow',
+          padding: '10px'
+        }}>
+          <h1 style={{ color: 'red', fontSize: '24px' }}>SCROLL TEST</h1>
+          {Array.from({length: 50}, (_, i) => (
+            <div key={i} style={{ 
+              height: '50px', 
+              backgroundColor: i % 2 === 0 ? '#ff0000' : '#00ff00',
+              margin: '5px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold'
+            }}>
+              BLOCK {i + 1}
+            </div>
+          ))}
+        </div>
+
         {/* Event Details Content - Scrollable */}
         <div 
           className="p-6 space-y-6 scrollable-content" 
@@ -217,7 +243,8 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             touchAction: 'pan-y', 
             overscrollBehavior: 'contain', 
             WebkitOverflowScrolling: 'touch', 
-            height: '300px',
+            flex: '1 1 0%',
+            minHeight: '0',
             overflowY: 'auto',
             scrollbarWidth: 'thin',
             border: '2px solid red'
