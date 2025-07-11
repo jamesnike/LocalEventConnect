@@ -610,6 +610,7 @@ export default function Home() {
               seed={user?.animeAvatarSeed || user?.id || "default"} 
               size="sm" 
               customAvatarUrl={user?.customAvatarUrl}
+              behavior="navigate"
             />
             
             {/* User Signature */}

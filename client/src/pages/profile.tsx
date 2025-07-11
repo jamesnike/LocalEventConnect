@@ -552,6 +552,7 @@ export default function Profile() {
             seed={user?.animeAvatarSeed || user?.id || "default"} 
             size="lg" 
             customAvatarUrl={user?.customAvatarUrl}
+            behavior="modal"
           />
           <div className="flex-1">
             {editingUsername ? (

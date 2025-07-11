@@ -8,9 +8,10 @@ interface AnimeAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
   customAvatarUrl?: string | null;
   clickable?: boolean;
+  behavior?: 'navigate' | 'modal';
 }
 
-export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clickable = true }: AnimeAvatarProps) {
+export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clickable = true, behavior = 'modal' }: AnimeAvatarProps) {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,12 +43,14 @@ export default function AnimeAvatar({ seed, size = 'md', customAvatarUrl, clicka
   const handleClick = () => {
     if (!clickable) return;
     
-    // If this is the user's own avatar (check if user exists and seed matches), show modal
-    if (user && seed === user.animeAvatarSeed) {
-      setIsModalOpen(true);
-    } else {
-      // Otherwise navigate to profile
+    if (behavior === 'navigate') {
+      // Navigate to profile page
       setLocation('/profile');
+    } else {
+      // Show modal for avatar update (only if it's the user's own avatar)
+      if (user && seed === user.animeAvatarSeed) {
+        setIsModalOpen(true);
+      }
     }
   };
 
