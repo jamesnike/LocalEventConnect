@@ -101,6 +101,9 @@ export default function EventContentCard({
         filtered: filtered.length,
         filteredEvents: filtered.map(e => ({ id: e.id, title: e.title, subCategory: e.subCategory }))
       });
+      
+      // Return the filtered events and log what we're returning
+      console.log('Returning filtered events:', filtered);
       console.log('=== SIMILAR EVENTS QUERY END ===');
       
       return filtered;
@@ -237,6 +240,16 @@ export default function EventContentCard({
 
   // Use fetched similar events if available, otherwise fall back to prop
   const similarEvents = fetchedSimilarEvents.length > 0 ? fetchedSimilarEvents : propSimilarEvents;
+  
+  // Debug log the similar events selection
+  console.log('Similar Events Selection:', {
+    fetchedSimilarEvents,
+    propSimilarEvents,
+    finalSimilarEvents: similarEvents,
+    fetchedLength: fetchedSimilarEvents.length,
+    propLength: propSimilarEvents.length,
+    finalLength: similarEvents.length
+  });
   
   console.log('EventContentCard similarEvents:', {
     fetchedCount: fetchedSimilarEvents.length,
