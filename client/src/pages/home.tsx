@@ -556,12 +556,15 @@ export default function Home() {
         await apiRequest(`/api/events/${currentEvent.id}/skip`, { method: 'POST' });
         // Invalidate the events query to refetch with updated skipped events
         queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+        
+        // Don't increment currentEventIndex here - the query refetch will handle showing the next event
+        // This prevents double-skipping since the filtered events array will change
       } catch (error) {
         console.error('Error skipping event:', error);
+        // On error, still advance to next event to prevent getting stuck
+        setCurrentEventIndex(prev => prev + 1);
       }
     }
-    
-    setCurrentEventIndex(prev => prev + 1);
   };
 
   const handleContentSwipeRight = async () => {
