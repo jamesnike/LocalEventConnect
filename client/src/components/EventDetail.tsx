@@ -662,12 +662,12 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                   {isOrganizer ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
-                      Organizing
+                      Organizing (click to Cancel)
                     </>
                   ) : (localRsvpStatus === 'going' || localRsvpStatus === 'attending') ? (
                     <>
                       <Check className="w-4 h-4 mr-2 inline" />
-                      Going
+                      Going (click to Ungo)
                     </>
                   ) : (
                     <>
