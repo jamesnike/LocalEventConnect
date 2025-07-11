@@ -547,13 +547,13 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
               Members
             </h3>
             <div className="flex items-center space-x-3">
-              <div className="flex -space-x-1">
+              <div className="flex -space-x-2">
                 {/* Show attendees (organizer already included in backend) */}
                 {attendees.slice(0, 10).map((attendee, index) => (
                   <AnimeAvatar 
                     key={attendee.id}
                     seed={attendee.animeAvatarSeed} 
-                    size="xs"
+                    size="md"
                     customAvatarUrl={attendee.customAvatarUrl}
                     behavior="profile"
                     user={attendee}
@@ -562,7 +562,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
                 {attendees.length === 0 && (
                   <AnimeAvatar 
                     seed={event.organizer.animeAvatarSeed} 
-                    size="xs"
+                    size="md"
                     customAvatarUrl={event.organizer.customAvatarUrl}
                     behavior="profile"
                     user={event.organizer}
