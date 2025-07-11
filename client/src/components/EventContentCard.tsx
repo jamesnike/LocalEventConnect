@@ -50,6 +50,8 @@ export default function EventContentCard({
   const [quotedMessage, setQuotedMessage] = useState<ChatMessageWithUser | null>(null);
   const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // Auto-scroll to bottom function
   const scrollToBottom = useCallback(() => {
@@ -57,6 +59,33 @@ export default function EventContentCard({
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, []);
+
+  // Handle viewport height changes for keyboard detection
+  useEffect(() => {
+    const handleResize = () => {
+      const currentHeight = window.innerHeight;
+      const heightDifference = viewportHeight - currentHeight;
+      
+      // Consider keyboard open if viewport height decreased by more than 150px
+      const keyboardThreshold = 150;
+      const keyboardOpen = heightDifference > keyboardThreshold;
+      
+      setIsKeyboardOpen(keyboardOpen);
+      
+      // Update viewport height for next comparison
+      if (!keyboardOpen) {
+        setViewportHeight(currentHeight);
+      }
+    };
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [viewportHeight]);
 
   // Allow all users to access chat
   const hasChatAccess = user !== null;
@@ -414,7 +443,7 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: 'calc(100vh - 80px)',
+          height: isKeyboardOpen ? 'calc(100vh - 40px)' : 'calc(100vh - 80px)',
           zIndex: isActive ? 10 : 1
         }}
       >
@@ -522,7 +551,7 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 280px)' }}>
+        <div className="flex-1 overflow-hidden transition-all duration-300" style={{ height: isKeyboardOpen ? 'calc(100vh - 240px)' : 'calc(100vh - 280px)' }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
               <motion.div
