@@ -175,7 +175,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     <div className="relative w-full max-w-sm mx-auto h-full">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col select-none ${
+        className={`bg-white rounded-2xl shadow-lg transform transition-all duration-300 flex flex-col ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
@@ -212,14 +212,15 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
         {/* Event Details Content - Scrollable */}
         <div 
-          className="overflow-y-scroll flex-1 p-6 space-y-6 scrollable-content" 
+          className="p-6 space-y-6 scrollable-content" 
           style={{ 
             touchAction: 'pan-y', 
             overscrollBehavior: 'contain', 
             WebkitOverflowScrolling: 'touch', 
             height: '300px',
-            overflowY: 'scroll',
-            scrollbarWidth: 'thin'
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            border: '2px solid red'
           }}
         >
           {/* Date and Time */}
@@ -371,22 +372,15 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             </div>
           </div>
           
-          {/* Test scrolling area - tall div for testing */}
-          <div className="bg-blue-50 border border-blue-200 rounded p-4 text-center">
-            <h3 className="font-bold text-blue-800 mb-2">Test Scrolling Area</h3>
-            <p className="text-blue-600">This is a test area to verify scrolling works.</p>
-            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
-              <span className="text-blue-700">Scroll Test Block 1</span>
-            </div>
-            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
-              <span className="text-blue-700">Scroll Test Block 2</span>
-            </div>
-            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
-              <span className="text-blue-700">Scroll Test Block 3</span>
-            </div>
-            <div className="h-32 bg-blue-100 mt-2 rounded flex items-center justify-center">
-              <span className="text-blue-700">Scroll Test Block 4</span>
-            </div>
+          {/* MASSIVE TEST AREA - This should definitely scroll */}
+          <div className="bg-red-200 border-4 border-red-500 p-4 text-center">
+            <h1 className="text-3xl font-bold text-red-800 mb-4">SCROLLING TEST</h1>
+            <p className="text-red-700 text-lg mb-4">If you can see this, the component is working!</p>
+            {Array.from({length: 20}, (_, i) => (
+              <div key={i} className="h-20 bg-red-100 mt-2 rounded flex items-center justify-center border-2 border-red-400">
+                <span className="text-red-700 font-bold text-lg">SCROLL BLOCK {i + 1}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
