@@ -151,55 +151,21 @@ export default function EventContentCard({
     },
   });
 
-  // Use messages from local state which gets updated by both API and WebSocket
+  // Use messages from React Query directly to avoid state management issues
   const allMessages = useMemo(() => {
-    return messages.sort((a, b) => 
+    // Combine API messages with WebSocket messages
+    const combined = [...(chatMessages || []), ...wsMessages];
+    
+    // Remove duplicates by message ID
+    const uniqueMessages = combined.filter((msg, index, array) => 
+      array.findIndex(m => m.id === msg.id) === index
+    );
+    
+    // Sort by creation time
+    return uniqueMessages.sort((a, b) => 
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-  }, [messages]);
-
-  // Set initial messages from API when loaded - temporarily disabled for debugging
-  // useEffect(() => {
-  //   if (chatMessages && chatMessages.length > 0) {
-  //     console.log('Setting initial messages from API for event:', event.id, chatMessages.length, 'messages');
-  //     setMessagesState(chatMessages);
-  //     if (setWsMessages) {
-  //       setWsMessages(chatMessages);
-  //     }
-  //   } else if (chatMessages && chatMessages.length === 0) {
-  //     console.log('Clearing messages for event:', event.id);
-  //     setMessagesState([]);
-  //     if (setWsMessages) {
-  //       setWsMessages([]);
-  //     }
-  //   }
-  // }, [chatMessages, event.id]); // Remove setWsMessages to prevent infinite loop
-
-  // Merge WebSocket messages with existing messages for real-time updates - temporarily disabled for debugging
-  // useEffect(() => {
-  //   console.log('WebSocket messages updated for event:', event.id, 'messages:', wsMessages.length);
-  //   
-  //   if (wsMessages.length > 0) {
-  //     setMessagesState(prevMessages => {
-  //       // Start with existing messages
-  //       const existingMessages = [...prevMessages];
-  //       
-  //       // Add new WebSocket messages that don't already exist
-  //       wsMessages.forEach(wsMsg => {
-  //         const exists = existingMessages.some(msg => msg.id === wsMsg.id);
-  //         if (!exists) {
-  //           console.log('Adding new WebSocket message:', wsMsg.id);
-  //           existingMessages.push(wsMsg);
-  //         }
-  //       });
-  //       
-  //       // Sort by creation time
-  //       return existingMessages.sort((a, b) => 
-  //         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  //       );
-  //     });
-  //   }
-  // }, [wsMessages.length, event.id]); // Use wsMessages.length instead of wsMessages to prevent infinite loop
+  }, [chatMessages, wsMessages]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
