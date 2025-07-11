@@ -53,6 +53,7 @@ function Router() {
         <Route path="/my-events" component={MyEvents} />
         <Route path="/browse" component={Browse} />
         <Route path="/event/:eventId" component={EventContentPage} />
+        <Route path="/event-content/:eventId" component={EventContentPage} />
         <Route path="*" component={NotFound} />
       </Switch>
     );
