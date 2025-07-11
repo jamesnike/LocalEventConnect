@@ -724,7 +724,7 @@ Please respond with just the signature text, nothing else.`;
                 
                 FORBIDDEN: Any background elements, patterns, textures, gradients, scenery, objects, or decorative elements. Keep it extremely simple and clean.`,
         n: 1,
-        size: "256x256",
+        size: "1024x1024",
         quality: "standard",
       });
 
@@ -742,10 +742,10 @@ Please respond with just the signature text, nothing else.`;
       
       const imageBuffer = await imageResponse2.buffer();
       
-      // Compress the image to reduce file size
+      // Compress the image to reduce file size significantly
       const compressedBuffer = await sharp(imageBuffer)
         .resize(256, 256, { fit: 'cover' })
-        .png({ quality: 80, compressionLevel: 9 })
+        .png({ quality: 60, compressionLevel: 9, palette: true })
         .toBuffer();
       
       const base64Image = `data:image/png;base64,${compressedBuffer.toString('base64')}`;
