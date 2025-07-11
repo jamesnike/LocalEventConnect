@@ -142,6 +142,14 @@
   .scrollbar-always::-webkit-scrollbar-thumb:hover {
     background-color: #6b7280 !important;
   }
+
+  /* Enable text selection for EventDetailCard */
+  .text-selectable {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
 }
 
 /* Custom colors for categories */

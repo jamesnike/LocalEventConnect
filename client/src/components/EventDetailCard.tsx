@@ -222,6 +222,9 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
           maxHeight: '100vh',
+          userSelect: 'text',
+          WebkitUserSelect: 'text',
+          msUserSelect: 'text'
         }}
       >
         {/* Overlay for swipe indication */}
@@ -258,7 +261,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
+        <div className="overflow-y-auto flex-1 p-6 space-y-6 text-selectable">
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
