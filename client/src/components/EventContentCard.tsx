@@ -48,6 +48,7 @@ export default function EventContentCard({
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedSimilarEvent, setSelectedSimilarEvent] = useState<EventWithOrganizer | null>(null);
   const [quotedMessage, setQuotedMessage] = useState<ChatMessageWithUser | null>(null);
+  const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom function
@@ -138,9 +139,12 @@ export default function EventContentCard({
     queryKey: ['/api/events', event.id, 'favorites'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/favorites`);
-      return response.json() as ChatMessageWithUser[];
+      const messages = await response.json() as ChatMessageWithUser[];
+      // Update the favorited messages set
+      setFavoritedMessages(new Set(messages.map(msg => msg.id)));
+      return messages;
     },
-    enabled: hasChatAccess && activeTab === 'favorites',
+    enabled: hasChatAccess,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -155,7 +159,9 @@ export default function EventContentCard({
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, messageId) => {
+      // Update the favorited messages set immediately
+      setFavoritedMessages(prev => new Set(prev).add(messageId));
       refetchFavorites();
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
     },
@@ -174,7 +180,13 @@ export default function EventContentCard({
         throw new Error('Failed to remove favorite message');
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, messageId) => {
+      // Update the favorited messages set immediately
+      setFavoritedMessages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
       refetchFavorites();
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
     },
@@ -304,6 +316,7 @@ export default function EventContentCard({
     console.log('EventContentCard: Event changed to', event.id);
     setActiveTab(initialTab);
     setNewMessage(''); // Clear any pending message
+    setFavoritedMessages(new Set()); // Clear favorited messages set
   }, [event.id, initialTab]);
 
   // Mark event as read when entering the component
@@ -600,21 +613,33 @@ export default function EventContentCard({
                                   </div>
                                   
                                   {/* Action buttons - show for all messages */}
-                                  <div className={`absolute ${isOwnMessage ? '-left-16' : '-right-16'} top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-1`}>
+                                  <div className={`absolute ${isOwnMessage ? '-left-16' : '-right-16'} top-1/2 transform -translate-y-1/2 flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-1`}>
                                     <button
                                       onClick={() => handleQuoteMessage(msg)}
-                                      className="p-1 hover:bg-gray-100 rounded-full"
+                                      className={`p-1 hover:bg-gray-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity`}
                                       title="Quote this message"
                                     >
                                       <Quote className="w-4 h-4 text-gray-500" />
                                     </button>
                                     <button
-                                      onClick={() => addFavoriteMutation.mutate(msg.id)}
-                                      disabled={addFavoriteMutation.isPending}
-                                      className="p-1 hover:bg-gray-100 rounded-full"
-                                      title="Add to favorites"
+                                      onClick={() => {
+                                        if (favoritedMessages.has(msg.id)) {
+                                          removeFavoriteMutation.mutate(msg.id);
+                                        } else {
+                                          addFavoriteMutation.mutate(msg.id);
+                                        }
+                                      }}
+                                      disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+                                      className={`p-1 hover:bg-gray-100 rounded-full transition-all duration-200 ${
+                                        favoritedMessages.has(msg.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                      }`}
+                                      title={favoritedMessages.has(msg.id) ? "Remove from favorites" : "Add to favorites"}
                                     >
-                                      <Heart className="w-4 h-4 text-gray-500 hover:text-red-500 transition-colors" />
+                                      <Heart className={`w-4 h-4 transition-colors ${
+                                        favoritedMessages.has(msg.id) 
+                                          ? 'text-red-500 fill-current' 
+                                          : 'text-gray-500 hover:text-red-500'
+                                      }`} />
                                     </button>
                                   </div>
                                 </div>
