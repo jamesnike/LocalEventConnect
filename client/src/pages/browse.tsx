@@ -15,7 +15,6 @@ export default function Browse() {
   });
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
-  const [isClosingDetail, setIsClosingDetail] = useState(false);
   const [, setLocation] = useLocation();
 
   const handleCategoryChange = (timeFilter: string) => {
@@ -38,44 +37,6 @@ export default function Browse() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
-
-  if (selectedEvent && !isClosingDetail) {
-    return (
-      <EventDetail
-        event={selectedEvent}
-        onClose={() => {
-          setIsClosingDetail(true);
-          // Use a small delay to ensure smooth transition
-          setTimeout(() => {
-            setSelectedEvent(null);
-            setIsClosingDetail(false);
-          }, 50);
-        }}
-        onNavigateToContent={() => {
-          // Navigate to EventContent page for group chat
-          setLocation(`/event-content/${selectedEvent.id}?fromBrowse=true`);
-        }}
-        fromPage="browse"
-      />
-    );
-  }
-
-  if (showCreateEvent) {
-    return <CreateEvent onClose={() => setShowCreateEvent(false)} />;
-  }
-
-  // Show loading state during transition to prevent black screen
-  if (isClosingDetail) {
-    return (
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-sm mx-auto bg-white min-h-screen">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -122,6 +83,28 @@ export default function Browse() {
 
         <BottomNav currentPage="browse" onCreateEvent={() => setShowCreateEvent(true)} />
       </div>
+
+      {/* EventDetail Modal Overlay */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50">
+          <EventDetail
+            event={selectedEvent}
+            onClose={() => setSelectedEvent(null)}
+            onNavigateToContent={() => {
+              // Navigate to EventContent page for group chat
+              setLocation(`/event-content/${selectedEvent.id}?fromBrowse=true`);
+            }}
+            fromPage="browse"
+          />
+        </div>
+      )}
+
+      {/* Create Event Modal Overlay */}
+      {showCreateEvent && (
+        <div className="fixed inset-0 z-50">
+          <CreateEvent onClose={() => setShowCreateEvent(false)} />
+        </div>
+      )}
     </div>
   );
 }
