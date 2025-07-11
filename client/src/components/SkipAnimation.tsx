@@ -21,10 +21,10 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
         setShowText(true);
       }, 300);
       
-      // Complete animation after 0.5 seconds (much faster for responsive UI)
+      // Complete animation after 1.5 seconds (shorter than celebration)
       setTimeout(() => {
         onComplete();
-      }, 500);
+      }, 1500);
     } else {
       setShowEffect(false);
       setShowText(false);
