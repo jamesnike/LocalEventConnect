@@ -221,7 +221,7 @@ export default function EventContentCard({
     if (isActive && hasChatAccess) {
       markEventAsRead(event.id);
     }
-  }, [isActive, event.id, hasChatAccess, markEventAsRead]); // Include markEventAsRead in dependencies
+  }, [isActive, event.id, hasChatAccess]); // Remove markEventAsRead from dependencies to prevent infinite loop
 
 
 
