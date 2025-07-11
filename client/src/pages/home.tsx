@@ -254,10 +254,6 @@ export default function Home() {
     // Check if coming from Messages tab specifically
     if (fromMessagesTab === 'true') {
       setIsFromMessagesTab(true);
-      // Reset the flag after a short delay to prevent interference with future navigation
-      setTimeout(() => {
-        setIsFromMessagesTab(false);
-      }, 100);
     }
     
     // Clear the localStorage
@@ -723,7 +719,8 @@ export default function Home() {
                   onBackClick={() => {
                     if (isFromMessagesTab) {
                       // Go back to My Events page with Messages tab active
-                      setLocation('/my-events');
+                      setIsFromMessagesTab(false); // Reset flag
+                      setLocation('/my-events?tab=messages');
                     } else if (isFromMyEvents) {
                       // Go back to EventDetail for this event (came from EventDetail in My Events)
                       setSelectedEvent(currentEvent);
