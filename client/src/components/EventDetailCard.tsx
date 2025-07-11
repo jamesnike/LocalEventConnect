@@ -150,6 +150,26 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const getOverlayColor = () => {
+    if (dragOffset.x > 60) return 'bg-green-500/20';
+    if (dragOffset.x < -60) return 'bg-red-500/20';
+    return 'bg-transparent';
+  };
+
+  const getOverlayIcon = () => {
+    if (dragOffset.x > 60) return (
+      <div className="text-center">
+        <div className="text-4xl font-bold text-green-500 mb-2">RSVP</div>
+      </div>
+    );
+    if (dragOffset.x < -60) return (
+      <div className="text-center">
+        <div className="text-4xl font-bold text-red-500 mb-2">Skip</div>
+      </div>
+    );
+    return null;
+  };
+
   return (
     <div className="relative w-full max-w-sm mx-auto h-full">
       <div
@@ -170,6 +190,11 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* Overlay for swipe indication */}
+        <div className={`absolute inset-0 ${getOverlayColor()} flex items-center justify-center transition-all duration-200 z-10`}>
+          {getOverlayIcon()}
+        </div>
+
         {/* Header with image */}
         <div className="relative h-48 flex-shrink-0">
           <img 
