@@ -20,10 +20,8 @@ export default function EventContentPage() {
   // Check if we're in Home page context (has home header and bottom nav)
   const hasHomeLayout = window.location.pathname === '/' || localStorage.getItem('fromHomeEventDetail') === 'true';
   
-  // Determine back navigation context based on localStorage flags
-  const fromMyEvents = localStorage.getItem('fromMyEvents') === 'true';
-  const fromBrowse = localStorage.getItem('fromBrowse') === 'true';
-  const fromMessagesTab = localStorage.getItem('fromMessagesTab') === 'true';
+  // Simple navigation context - Messages tab never uses ?tab=chat, EventDetail buttons do
+  const shouldReturnToMessages = !isFromEventDetail; // If no ?tab=chat, came from Messages tab
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -68,16 +66,16 @@ export default function EventContentPage() {
     }
   }, [hasHomeLayout]);
 
-  // Clean up localStorage flags on component unmount
+  // Debug logging for navigation context
   useEffect(() => {
-    return () => {
-      // Clean up all navigation flags when component unmounts
-      localStorage.removeItem('fromMyEvents');
-      localStorage.removeItem('fromBrowse');
-      localStorage.removeItem('fromMessagesTab');
-      localStorage.removeItem('fromHomeEventDetail');
-    };
-  }, []);
+    console.log('EventContentPage navigation context:', {
+      hasHomeLayout,
+      isFromEventDetail,
+      isFromMessages,
+      shouldReturnToMessages,
+      urlParams: window.location.search
+    });
+  }, [hasHomeLayout, isFromEventDetail, isFromMessages, shouldReturnToMessages]);
 
   if (isLoading) {
     return (
@@ -188,15 +186,13 @@ export default function EventContentPage() {
           showBackButton={true}
           showKeepExploring={false}
           onBackClick={() => {
-            // Navigate back based on context
-            if (fromMyEvents) {
-              setLocation('/my-events?tab=attending');
-            } else if (fromBrowse) {
-              setLocation('/browse');
-            } else if (fromMessagesTab) {
+            // Simple navigation logic:
+            // If no ?tab=chat in URL, came from Messages tab
+            if (shouldReturnToMessages) {
               setLocation('/my-events?tab=messages');
             } else {
-              setLocation('/my-events?tab=messages'); // Default fallback
+              // If ?tab=chat in URL, came from EventDetail - go back to My Events
+              setLocation('/my-events?tab=attending');
             }
           }}
           onSimilarEventClick={() => {}}
