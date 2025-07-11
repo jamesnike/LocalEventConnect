@@ -637,11 +637,9 @@ export default function Home() {
       }
     }
     
-    // Reset the skipping state after everything else
-    setTimeout(() => {
-      setIsSkippingInProgress(false);
-      setEventBeingSkipped(null);
-    }, 100);
+    // Reset the skipping state immediately
+    setIsSkippingInProgress(false);
+    setEventBeingSkipped(null);
   };
 
   const handleContentSwipeRight = async () => {
@@ -681,7 +679,7 @@ export default function Home() {
       setTimeout(() => {
         setShowDetailCard(true);
         setIsTransitioning(false);
-      }, 150);
+      }, 50);
     }
   };
 
@@ -709,7 +707,7 @@ export default function Home() {
       setTimeout(() => {
         setShowDetailCard(false);
         setIsTransitioning(false);
-      }, 150);
+      }, 50);
       return;
     }
     if (swipedEvents.size === 0) return;
