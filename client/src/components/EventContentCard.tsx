@@ -479,7 +479,7 @@ export default function EventContentCard({
                                   </span>
                                 </div>
                                 <div className={`${isOwnMessage ? 'text-right' : 'text-left'}`}>
-                                  <p className={`text-sm px-3 py-2 rounded-lg inline-block ${
+                                  <p className={`text-sm px-3 py-2 rounded-lg inline-block text-left ${
                                     isOwnMessage 
                                       ? 'bg-purple-500 text-white rounded-br-none' 
                                       : 'bg-gray-100 text-gray-700 rounded-bl-none'
