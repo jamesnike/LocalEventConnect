@@ -217,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Group chats - events where user can participate in chat (hasn't left chat)
+  // Group chats - events where user can participate in chat (hasn't left chat) + private chats
   app.get('/api/users/:userId/group-chats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.params.userId;
@@ -227,21 +227,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view these events" });
       }
       
-      // Get event IDs where user can participate in chat
+      // Get event IDs where user can participate in chat (regular events)
       const eventIds = await storage.getUserEventIds(userId);
       
-      if (eventIds.length === 0) {
-        return res.json([]);
-      }
-      
-      // Get full event details for these events
-      const events = await Promise.all(
+      // Get full event details for regular events
+      const regularEvents = await Promise.all(
         eventIds.map(eventId => storage.getEvent(eventId, userId))
       );
       
-      // Filter out any null results and sort by date
-      const validEvents = events.filter(event => event !== undefined) as EventWithOrganizer[];
-      const sortedEvents = validEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      // Get private chats for this user
+      const privateChats = await storage.getUserPrivateChats(userId);
+      
+      // Combine regular events and private chats
+      const allEvents = [
+        ...regularEvents.filter(event => event !== undefined),
+        ...privateChats
+      ] as EventWithOrganizer[];
+      
+      // Sort by date/created date
+      const sortedEvents = allEvents.sort((a, b) => {
+        const dateA = new Date(a.date || a.createdAt || 0).getTime();
+        const dateB = new Date(b.date || b.createdAt || 0).getTime();
+        return dateB - dateA; // Most recent first
+      });
       
       res.json(sortedEvents);
     } catch (error) {
@@ -523,6 +531,62 @@ Please respond with just the signature text, nothing else.`;
       }
       
       res.status(500).json({ message: "Failed to generate signature. Please try again later." });
+    }
+  });
+
+  // Private Chat routes
+  app.post('/api/private-chats', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const { otherUserId } = req.body;
+      
+      if (!otherUserId) {
+        return res.status(400).json({ message: "Other user ID is required" });
+      }
+      
+      if (currentUserId === otherUserId) {
+        return res.status(400).json({ message: "Cannot create private chat with yourself" });
+      }
+      
+      // Check if the other user exists
+      const otherUser = await storage.getUser(otherUserId);
+      if (!otherUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create or get existing private chat
+      const privateChat = await storage.createPrivateChat(currentUserId, otherUserId);
+      
+      res.json(privateChat);
+    } catch (error) {
+      console.error("Error creating private chat:", error);
+      res.status(500).json({ message: "Failed to create private chat" });
+    }
+  });
+
+  app.get('/api/private-chats/:otherUserId', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const otherUserId = req.params.otherUserId;
+      
+      if (!otherUserId) {
+        return res.status(400).json({ message: "Other user ID is required" });
+      }
+      
+      if (currentUserId === otherUserId) {
+        return res.status(400).json({ message: "Cannot get private chat with yourself" });
+      }
+      
+      const privateChat = await storage.getPrivateChat(currentUserId, otherUserId);
+      
+      if (!privateChat) {
+        return res.status(404).json({ message: "Private chat not found" });
+      }
+      
+      res.json(privateChat);
+    } catch (error) {
+      console.error("Error fetching private chat:", error);
+      res.status(500).json({ message: "Failed to fetch private chat" });
     }
   });
 

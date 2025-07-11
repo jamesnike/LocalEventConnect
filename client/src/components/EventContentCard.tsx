@@ -331,15 +331,22 @@ export default function EventContentCard({
                 clickable={false}
               />
               <div>
-                <h3 className="font-semibold text-lg">{event.title}</h3>
+                <h3 className="font-semibold text-lg">
+                  {event.isPrivateChat ? 'Private Chat' : event.title}
+                </h3>
                 <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => setShowMembersModal(true)}
-                    className="text-sm opacity-90 hover:opacity-100 hover:underline cursor-pointer transition-opacity"
-                  >
-                    {event.rsvpCount + 1} members
-                  </button>
-                  {event.subCategory && (
+                  {!event.isPrivateChat && (
+                    <button 
+                      onClick={() => setShowMembersModal(true)}
+                      className="text-sm opacity-90 hover:opacity-100 hover:underline cursor-pointer transition-opacity"
+                    >
+                      {event.rsvpCount + 1} members
+                    </button>
+                  )}
+                  {event.isPrivateChat && (
+                    <span className="text-sm opacity-90">1-on-1 chat</span>
+                  )}
+                  {event.subCategory && !event.isPrivateChat && (
                     <>
                       <span className="text-xs opacity-70">•</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${getSubCategoryColor(event.subCategory)} text-white font-medium`}>
@@ -351,8 +358,8 @@ export default function EventContentCard({
               </div>
             </div>
             
-            {/* Exit Group Chat Button */}
-            {hasChatAccess && (
+            {/* Exit Group Chat Button - Only for non-private chats */}
+            {hasChatAccess && !event.isPrivateChat && (
               <button
                 onClick={handleExitGroupChat}
                 disabled={exitGroupChatMutation.isPending}
@@ -378,26 +385,28 @@ export default function EventContentCard({
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => handleTabChange('chat')}
-            className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
+            className={`${event.isPrivateChat ? 'w-full' : 'flex-1'} py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
               activeTab === 'chat' 
                 ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Group Chat</span>
+            <span>{event.isPrivateChat ? 'Private Chat' : 'Group Chat'}</span>
           </button>
-          <button
-            onClick={() => handleTabChange('similar')}
-            className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
-              activeTab === 'similar' 
-                ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Similar Events</span>
-          </button>
+          {!event.isPrivateChat && (
+            <button
+              onClick={() => handleTabChange('similar')}
+              className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
+                activeTab === 'similar' 
+                  ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Similar Events</span>
+            </button>
+          )}
         </div>
 
         {/* Content */}

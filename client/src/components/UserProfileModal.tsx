@@ -1,6 +1,10 @@
 import { X, MapPin, Calendar, Star, Heart, MessageCircle } from 'lucide-react';
 import { User } from '@shared/schema';
 import AnimeAvatar from './AnimeAvatar';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -141,6 +145,37 @@ const availablePersonalityTraits = [
 ];
 
 export default function UserProfileModal({ isOpen, onClose, user }: UserProfileModalProps) {
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createPrivateChatMutation = useMutation({
+    mutationFn: async (otherUserId: string) => {
+      return apiRequest('/api/private-chats', {
+        method: 'POST',
+        body: JSON.stringify({ otherUserId }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    onSuccess: (privateChat) => {
+      // Navigate to the private chat using the EventContent interface
+      setLocation(`/event-content/${privateChat.id}?tab=chat&from=profile`);
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Error creating private chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create private chat. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleMessage = () => {
+    createPrivateChatMutation.mutate(user.id);
+  };
+
   if (!isOpen) return null;
 
   // Get user's interests with icons
@@ -256,9 +291,13 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
 
           {/* Action Buttons */}
           <div className="flex space-x-3 pt-4 border-t border-gray-100">
-            <button className="flex-1 bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center">
+            <button 
+              onClick={handleMessage}
+              disabled={createPrivateChatMutation.isPending}
+              className="flex-1 bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Message
+              {createPrivateChatMutation.isPending ? 'Creating...' : 'Message'}
             </button>
             <button className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center">
               <Heart className="w-4 h-4 mr-2" />

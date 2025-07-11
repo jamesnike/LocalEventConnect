@@ -60,6 +60,11 @@ export interface IStorage {
   
   // Attendee operations
   getEventAttendees(eventId: number): Promise<User[]>;
+  
+  // Private chat operations
+  createPrivateChat(user1Id: string, user2Id: string): Promise<Event>;
+  getPrivateChat(user1Id: string, user2Id: string): Promise<EventWithOrganizer | undefined>;
+  getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -207,6 +212,7 @@ export class DatabaseStorage implements IStorage {
         contactInfo: events.contactInfo,
         cancellationPolicy: events.cancellationPolicy,
         isActive: events.isActive,
+        isPrivateChat: events.isPrivateChat,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         organizer: {
@@ -274,6 +280,7 @@ export class DatabaseStorage implements IStorage {
         contactInfo: events.contactInfo,
         cancellationPolicy: events.cancellationPolicy,
         isActive: events.isActive,
+        isPrivateChat: events.isPrivateChat,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
         organizer: {
@@ -454,6 +461,7 @@ export class DatabaseStorage implements IStorage {
           contactInfo: events.contactInfo,
           cancellationPolicy: events.cancellationPolicy,
           isActive: events.isActive,
+          isPrivateChat: events.isPrivateChat,
           createdAt: events.createdAt,
           updatedAt: events.updatedAt,
           organizer: {
@@ -531,6 +539,7 @@ export class DatabaseStorage implements IStorage {
           contactInfo: events.contactInfo,
           cancellationPolicy: events.cancellationPolicy,
           isActive: events.isActive,
+          isPrivateChat: events.isPrivateChat,
           createdAt: events.createdAt,
           updatedAt: events.updatedAt,
           organizer: {
@@ -1078,6 +1087,223 @@ export class DatabaseStorage implements IStorage {
     }
     
     return attendees;
+  }
+
+  // Private chat operations
+  async createPrivateChat(user1Id: string, user2Id: string): Promise<Event> {
+    // Check if private chat already exists between these users
+    const existingChat = await this.getPrivateChat(user1Id, user2Id);
+    if (existingChat) {
+      return existingChat;
+    }
+
+    // Get both users' names to create chat title
+    const [user1, user2] = await Promise.all([
+      this.getUser(user1Id),
+      this.getUser(user2Id)
+    ]);
+
+    const user1Name = user1?.firstName || user1?.email || 'User';
+    const user2Name = user2?.firstName || user2?.email || 'User';
+
+    // Create a private chat "event" with minimal fields
+    const chatEvent = {
+      title: `${user1Name} & ${user2Name}`,
+      description: `Private chat between ${user1Name} and ${user2Name}`,
+      category: 'Private',
+      subCategory: 'Chat',
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().split(' ')[0],
+      location: 'Private Chat',
+      organizerId: user1Id,
+      isPrivateChat: true,
+      isActive: true,
+      isFree: true,
+      price: '0.00',
+    };
+
+    const newChat = await db
+      .insert(events)
+      .values(chatEvent)
+      .returning();
+
+    // Create RSVP for both users
+    await Promise.all([
+      db.insert(eventRsvps).values({
+        eventId: newChat[0].id,
+        userId: user1Id,
+        status: 'going',
+      }),
+      db.insert(eventRsvps).values({
+        eventId: newChat[0].id,
+        userId: user2Id,
+        status: 'going',
+      })
+    ]);
+
+    return newChat[0];
+  }
+
+  async getPrivateChat(user1Id: string, user2Id: string): Promise<EventWithOrganizer | undefined> {
+    // Find private chat between these two users
+    const chats = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        category: events.category,
+        subCategory: events.subCategory,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        latitude: events.latitude,
+        longitude: events.longitude,
+        price: events.price,
+        isFree: events.isFree,
+        eventImageUrl: events.eventImageUrl,
+        organizerId: events.organizerId,
+        maxAttendees: events.maxAttendees,
+        capacity: events.capacity,
+        parkingInfo: events.parkingInfo,
+        meetingPoint: events.meetingPoint,
+        duration: events.duration,
+        whatToBring: events.whatToBring,
+        specialNotes: events.specialNotes,
+        requirements: events.requirements,
+        contactInfo: events.contactInfo,
+        cancellationPolicy: events.cancellationPolicy,
+        isActive: events.isActive,
+        isPrivateChat: events.isPrivateChat,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        organizer: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          customAvatarUrl: users.customAvatarUrl,
+          animeAvatarSeed: users.animeAvatarSeed,
+          location: users.location,
+          interests: users.interests,
+          personality: users.personality,
+          aiSignature: users.aiSignature,
+          skippedEvents: users.skippedEvents,
+          eventsShownSinceSkip: users.eventsShownSinceSkip,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+        rsvpCount: sql<number>`2`, // Always 2 for private chats
+        userRsvpStatus: sql<string>`'going'`, // Both users are always going
+      })
+      .from(events)
+      .leftJoin(users, eq(events.organizerId, users.id))
+      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+      .where(
+        and(
+          eq(events.isPrivateChat, true),
+          eq(events.isActive, true),
+          or(
+            and(
+              eq(events.organizerId, user1Id),
+              eq(eventRsvps.userId, user2Id)
+            ),
+            and(
+              eq(events.organizerId, user2Id),
+              eq(eventRsvps.userId, user1Id)
+            )
+          )
+        )
+      )
+      .groupBy(events.id, users.id)
+      .limit(1);
+
+    if (chats.length === 0) {
+      return undefined;
+    }
+
+    const chat = chats[0];
+    return {
+      ...chat,
+      organizer: chat.organizer!,
+      rsvpCount: 2,
+      userRsvpStatus: 'going',
+    };
+  }
+
+  async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
+    const chats = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        category: events.category,
+        subCategory: events.subCategory,
+        organizerId: events.organizerId,
+        price: events.price,
+        isFree: events.isFree,
+        eventImageUrl: events.eventImageUrl,
+        latitude: events.latitude,
+        longitude: events.longitude,
+        maxAttendees: events.maxAttendees,
+        capacity: events.capacity,
+        parkingInfo: events.parkingInfo,
+        meetingPoint: events.meetingPoint,
+        duration: events.duration,
+        whatToBring: events.whatToBring,
+        specialNotes: events.specialNotes,
+        requirements: events.requirements,
+        contactInfo: events.contactInfo,
+        cancellationPolicy: events.cancellationPolicy,
+        isActive: events.isActive,
+        isPrivateChat: events.isPrivateChat,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+        organizer: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          customAvatarUrl: users.customAvatarUrl,
+          animeAvatarSeed: users.animeAvatarSeed,
+          location: users.location,
+          interests: users.interests,
+          personality: users.personality,
+          aiSignature: users.aiSignature,
+          skippedEvents: users.skippedEvents,
+          eventsShownSinceSkip: users.eventsShownSinceSkip,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+        rsvpCount: sql<number>`2`, // Always 2 for private chats
+        userRsvpStatus: sql<string>`'going'`, // Both users are always going
+      })
+      .from(events)
+      .leftJoin(users, eq(events.organizerId, users.id))
+      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+      .where(
+        and(
+          eq(events.isPrivateChat, true),
+          eq(events.isActive, true),
+          or(
+            eq(events.organizerId, userId),
+            eq(eventRsvps.userId, userId)
+          )
+        )
+      )
+      .groupBy(events.id, users.id)
+      .orderBy(desc(events.createdAt));
+
+    return chats.map(chat => ({
+      ...chat,
+      organizer: chat.organizer!,
+      rsvpCount: 2,
+      userRsvpStatus: 'going',
+    }));
   }
 }
 

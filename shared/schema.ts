@@ -74,6 +74,7 @@ export const events = pgTable("events", {
   contactInfo: text("contact_info"),
   cancellationPolicy: text("cancellation_policy"),
   isActive: boolean("is_active").default(true),
+  isPrivateChat: boolean("is_private_chat").default(false), // Mark for 1-on-1 private chats
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
