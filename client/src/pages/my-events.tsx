@@ -86,15 +86,15 @@ export default function MyEvents() {
       
       const events = await response.json() as EventWithOrganizer[];
       
-      // Sort by date - show upcoming events first, then past events
-      return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      // Server already sorts by most recent activity, no need for client-side sorting
+      return events;
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - show cached data first
+    staleTime: 0, // Don't cache - always get fresh activity sorting
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
     refetchOnMount: false, // Don't refetch on mount - use cache first
     refetchOnWindowFocus: false, // Don't refetch on window focus - use cache first
-    refetchInterval: activeTab === 'messages' ? 30000 : false, // Auto-refresh every 30 seconds when messages tab is active
+    refetchInterval: activeTab === 'messages' ? 10000 : false, // Auto-refresh every 10 seconds when messages tab is active for real-time reordering
   });
 
   // Handle Messages tab access - trigger background refresh on first access

@@ -246,11 +246,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...privateChats
       ] as EventWithOrganizer[];
       
-      // Sort by date/created date
-      const sortedEvents = allEvents.sort((a, b) => {
-        const dateA = new Date(a.date || a.createdAt || 0).getTime();
-        const dateB = new Date(b.date || b.createdAt || 0).getTime();
-        return dateB - dateA; // Most recent first
+      // Get most recent message timestamp for each event and sort by activity
+      const eventsWithActivity = await Promise.all(
+        allEvents.map(async (event) => {
+          try {
+            // Get the most recent message for this event
+            const recentMessages = await storage.getChatMessages(event.id, 1);
+            const lastMessageTime = recentMessages.length > 0 ? recentMessages[0].createdAt : event.createdAt;
+            return { ...event, lastMessageTime };
+          } catch (error) {
+            console.error(`Error fetching recent message for event ${event.id}:`, error);
+            return { ...event, lastMessageTime: event.createdAt };
+          }
+        })
+      );
+      
+      // Sort by most recent activity (last message time), then by event creation date
+      const sortedEvents = eventsWithActivity.sort((a, b) => {
+        const timeA = new Date(a.lastMessageTime || a.createdAt || 0).getTime();
+        const timeB = new Date(b.lastMessageTime || b.createdAt || 0).getTime();
+        return timeB - timeA; // Most recent activity first
       });
       
       res.json(sortedEvents);

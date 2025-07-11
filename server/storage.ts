@@ -1408,7 +1408,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
 
-    // Now get the full event details for those IDs
+    // Now get the full event details for those IDs with most recent message timestamp
     const chats = await db
       .select({
         id: events.id,
@@ -1458,13 +1458,22 @@ export class DatabaseStorage implements IStorage {
         },
         rsvpCount: sql<number>`2`, // Always 2 for private chats
         userRsvpStatus: sql<string>`'going'`, // Both users are always going
+        lastMessageTime: sql<Date>`(
+          SELECT MAX(created_at)
+          FROM chat_messages
+          WHERE event_id = ${events.id}
+        )`,
       })
       .from(events)
       .leftJoin(users, eq(events.organizerId, users.id))
       .where(
         inArray(events.id, userEventIds.map(e => e.eventId))
       )
-      .orderBy(desc(events.createdAt));
+      .orderBy(desc(sql`(
+        SELECT MAX(created_at)
+        FROM chat_messages
+        WHERE event_id = ${events.id}
+      )`), desc(events.createdAt));
 
     console.log(`Private chats for user ${userId}:`, chats.length, chats.map(c => ({ id: c.id, title: c.title })));
 

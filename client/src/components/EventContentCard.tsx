@@ -208,9 +208,10 @@ export default function EventContentCard({
       console.log('Message sent successfully:', data);
       // Clear quote after sending
       setQuotedMessage(null);
-      // Only invalidate notifications to update unread counts
-      // WebSocket will handle real-time message updates
+      // Invalidate notifications to update unread counts
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+      // Invalidate group chats to refresh activity-based sorting when user sends a message
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'group-chats'] });
     },
     onError: (error) => {
       console.error('Failed to send message:', error);
