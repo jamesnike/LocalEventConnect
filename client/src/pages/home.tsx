@@ -228,9 +228,13 @@ export default function Home() {
         setShowDetailCard(true);
         setShowContentCard(false);
         setCurrentEventIndex(eventIndex);
+        // This came from Attending tab, so set the flag
+        setIsFromMyEvents(true);
       } else {
         // Event not found in home page events, fetch it separately for EventDetail
         fetchSpecificEventForDetail(eventId);
+        // This came from Attending tab, so set the flag
+        setIsFromMyEvents(true);
       }
       
       // Clear localStorage
@@ -289,6 +293,10 @@ export default function Home() {
       setShowDetailCard(true);
       setShowContentCard(false);
       setCurrentEventIndex(0);
+      // Set the flag if this was triggered by EventContent back navigation
+      if (localStorage.getItem('reopenEventDetailId')) {
+        setIsFromMyEvents(true);
+      }
     } catch (error) {
       console.error('Error fetching specific event for detail:', error);
       toast({
@@ -300,6 +308,7 @@ export default function Home() {
       localStorage.removeItem('selectedEventId');
       localStorage.removeItem('showEventDetail');
       localStorage.removeItem('fromEventContent');
+      localStorage.removeItem('reopenEventDetailId');
     }
   };
 
