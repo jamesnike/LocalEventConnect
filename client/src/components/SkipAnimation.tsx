@@ -29,7 +29,7 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
       setShowEffect(false);
       setShowText(false);
     }
-  }, [isVisible, onComplete]);
+  }, [isVisible]); // Remove onComplete from dependencies to prevent multiple timeouts
 
   return (
     <AnimatePresence>
