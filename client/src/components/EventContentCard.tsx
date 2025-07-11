@@ -48,6 +48,16 @@ export default function EventContentCard({
   // Allow all users to access chat
   const hasChatAccess = user !== null;
 
+  // Fetch event attendees for avatar display
+  const { data: attendees = [] } = useQuery({
+    queryKey: ['/api/events', event.id, 'attendees'],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/attendees`);
+      return response.json();
+    },
+    enabled: hasChatAccess,
+  });
+
   const getSubCategoryColor = (subCategory: string) => {
     const colors = [
       'bg-pink-500', 'bg-indigo-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
