@@ -182,13 +182,6 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${rotation}deg)`,
           zIndex: isActive ? 10 : 1,
         }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Overlay for swipe indication */}
         <div className={`absolute inset-0 ${getOverlayColor()} flex items-center justify-center transition-all duration-200 z-10`}>
@@ -196,7 +189,16 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Header with image */}
-        <div className="relative h-48 flex-shrink-0">
+        <div 
+          className="relative h-48 flex-shrink-0"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
@@ -213,7 +215,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
         </div>
 
         {/* Event Details Content - Scrollable */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
+        <div className="overflow-y-auto flex-1 p-6 space-y-6 scrollable-content">
           {/* Date and Time */}
           <div className="flex items-center justify-between">
             <div>
