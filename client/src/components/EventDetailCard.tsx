@@ -174,7 +174,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
     <div className="relative w-full max-w-sm mx-auto h-full">
       <div
         ref={cardRef}
-        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${
+        className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col select-none ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{

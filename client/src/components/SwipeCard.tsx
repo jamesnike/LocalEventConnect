@@ -191,7 +191,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
     >
       <div
         ref={cardRef}
-        className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing"
+        className="relative w-full bg-white rounded-2xl shadow-xl cursor-grab active:cursor-grabbing select-none"
         style={{
           height: 'calc(100% - 80px)',
           transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)`,
