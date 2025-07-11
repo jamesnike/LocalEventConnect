@@ -119,6 +119,12 @@ export default function Home() {
       const response = await fetch("/api/events?limit=50");
       return response.json() as Promise<EventWithOrganizer[]>;
     },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   // Reset to Event Card view when page is refreshed (unless coming from other pages)
@@ -468,7 +474,6 @@ export default function Home() {
 
   const availableEvents = events?.filter(event => 
     !swipedEvents.has(event.id) && 
-    !skipQueue.has(event.id) && // Also exclude events in skip queue
     event.organizerId !== user?.id && 
     event.userRsvpStatus !== 'going' && 
     event.userRsvpStatus !== 'attending'
@@ -574,19 +579,16 @@ export default function Home() {
     }
   };
 
-  const handleSkipAnimationComplete = async () => {
+  const handleSkipAnimationComplete = () => {
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
-    if (user && eventBeingSkipped) {
+    if (eventBeingSkipped) {
       const eventIdToSkip = eventBeingSkipped;
       
       console.log('Processing skip for event ID:', eventIdToSkip);
       
-      // Add to skip queue immediately to prevent it from appearing again
-      setSkipQueue(prev => new Set(prev).add(eventIdToSkip));
-      
-      // Add to local swiped events as well
+      // Add to local swiped events immediately
       setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
       
       // Move to the next event in the current array
@@ -596,26 +598,19 @@ export default function Home() {
       setIsSkippingInProgress(false);
       setEventBeingSkipped(null);
       
-      // Do the database skip operation in the background
-      apiRequest(`/api/events/${eventIdToSkip}/skip`, { method: 'POST' })
+      // Do the database skip operation in the background (fire and forget)
+      if (user) {
+        fetch(`/api/events/${eventIdToSkip}/skip`, { 
+          method: 'POST',
+          credentials: 'include'
+        })
         .then(() => {
           console.log('Event skipped in background:', eventIdToSkip);
-          // Remove from skip queue after successful database operation
-          setSkipQueue(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(eventIdToSkip);
-            return newSet;
-          });
         })
         .catch(error => {
           console.error('Error skipping event in background:', error);
-          // Remove from skip queue on error as well
-          setSkipQueue(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(eventIdToSkip);
-            return newSet;
-          });
         });
+      }
     } else {
       // Reset the skipping flag even if no event to skip
       setIsSkippingInProgress(false);
