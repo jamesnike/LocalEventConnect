@@ -84,6 +84,7 @@ export default function Home() {
   const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
   const [lastSkipTime, setLastSkipTime] = useState(0);
   const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
+  const [eventBeingSkipped, setEventBeingSkipped] = useState<number | null>(null);
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
     const saved = loadHomeState();
     return saved?.lastActiveTab || 'chat';
@@ -546,15 +547,21 @@ export default function Home() {
       setGroupChatEvent(null); // Clear group chat event
     } else if (showDetailCard) {
       // From detail card, skip to next event
-      setIsSkippingInProgress(true);
-      setShowSkipAnimation(true);
-      setShowDetailCard(false);
-      setLastSkipTime(currentTime);
+      if (currentEvent) {
+        setEventBeingSkipped(currentEvent.id);
+        setIsSkippingInProgress(true);
+        setShowSkipAnimation(true);
+        setShowDetailCard(false);
+        setLastSkipTime(currentTime);
+      }
     } else {
       // From main card, skip this event with animation
-      setIsSkippingInProgress(true);
-      setShowSkipAnimation(true);
-      setLastSkipTime(currentTime);
+      if (currentEvent) {
+        setEventBeingSkipped(currentEvent.id);
+        setIsSkippingInProgress(true);
+        setShowSkipAnimation(true);
+        setLastSkipTime(currentTime);
+      }
     }
   };
 
@@ -570,32 +577,33 @@ export default function Home() {
   const handleSkipAnimationComplete = async () => {
     setShowSkipAnimation(false);
     
-    // Add event to skipped events in database
-    if (user && currentEvent) {
-      const eventToSkip = currentEvent; // Store reference to current event
+    // Use the captured event ID instead of current event
+    if (user && eventBeingSkipped) {
+      const eventIdToSkip = eventBeingSkipped;
       
-      console.log('Processing skip for event:', eventToSkip.id, eventToSkip.title);
+      console.log('Processing skip for event ID:', eventIdToSkip);
       
       // Add to skip queue immediately to prevent it from appearing again
-      setSkipQueue(prev => new Set(prev).add(eventToSkip.id));
+      setSkipQueue(prev => new Set(prev).add(eventIdToSkip));
       
       // Add to local swiped events as well
-      setSwipedEvents(prev => new Set(prev).add(eventToSkip.id));
+      setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
       
       // Move to the next event in the current array
       setCurrentEventIndex(prev => prev + 1);
       
-      // Reset the skipping flag immediately
+      // Reset the skipping state immediately
       setIsSkippingInProgress(false);
+      setEventBeingSkipped(null);
       
       // Do the database skip operation in the background
-      apiRequest(`/api/events/${eventToSkip.id}/skip`, { method: 'POST' })
+      apiRequest(`/api/events/${eventIdToSkip}/skip`, { method: 'POST' })
         .then(() => {
-          console.log('Event skipped in background:', eventToSkip.id, eventToSkip.title);
+          console.log('Event skipped in background:', eventIdToSkip);
           // Remove from skip queue after successful database operation
           setSkipQueue(prev => {
             const newSet = new Set(prev);
-            newSet.delete(eventToSkip.id);
+            newSet.delete(eventIdToSkip);
             return newSet;
           });
         })
@@ -604,13 +612,14 @@ export default function Home() {
           // Remove from skip queue on error as well
           setSkipQueue(prev => {
             const newSet = new Set(prev);
-            newSet.delete(eventToSkip.id);
+            newSet.delete(eventIdToSkip);
             return newSet;
           });
         });
     } else {
       // Reset the skipping flag even if no event to skip
       setIsSkippingInProgress(false);
+      setEventBeingSkipped(null);
     }
   };
 
