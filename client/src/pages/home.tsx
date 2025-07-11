@@ -83,6 +83,7 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSkippingInProgress, setIsSkippingInProgress] = useState(false);
   const [lastSkipTime, setLastSkipTime] = useState(0);
+  const [skipQueue, setSkipQueue] = useState<Set<number>>(new Set());
   const [lastActiveTab, setLastActiveTab] = useState<'chat' | 'similar'>(() => {
     const saved = loadHomeState();
     return saved?.lastActiveTab || 'chat';
@@ -466,6 +467,7 @@ export default function Home() {
 
   const availableEvents = events?.filter(event => 
     !swipedEvents.has(event.id) && 
+    !skipQueue.has(event.id) && // Also exclude events in skip queue
     event.organizerId !== user?.id && 
     event.userRsvpStatus !== 'going' && 
     event.userRsvpStatus !== 'attending'
@@ -572,7 +574,12 @@ export default function Home() {
     if (user && currentEvent) {
       const eventToSkip = currentEvent; // Store reference to current event
       
-      // Add to local swiped events FIRST to prevent showing it again
+      console.log('Processing skip for event:', eventToSkip.id, eventToSkip.title);
+      
+      // Add to skip queue immediately to prevent it from appearing again
+      setSkipQueue(prev => new Set(prev).add(eventToSkip.id));
+      
+      // Add to local swiped events as well
       setSwipedEvents(prev => new Set(prev).add(eventToSkip.id));
       
       // Move to the next event in the current array
@@ -581,14 +588,25 @@ export default function Home() {
       // Reset the skipping flag immediately
       setIsSkippingInProgress(false);
       
-      // Do the database skip operation in the background without waiting
-      // This prevents any potential state updates from affecting the UI
+      // Do the database skip operation in the background
       apiRequest(`/api/events/${eventToSkip.id}/skip`, { method: 'POST' })
         .then(() => {
           console.log('Event skipped in background:', eventToSkip.id, eventToSkip.title);
+          // Remove from skip queue after successful database operation
+          setSkipQueue(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(eventToSkip.id);
+            return newSet;
+          });
         })
         .catch(error => {
           console.error('Error skipping event in background:', error);
+          // Remove from skip queue on error as well
+          setSkipQueue(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(eventToSkip.id);
+            return newSet;
+          });
         });
     } else {
       // Reset the skipping flag even if no event to skip
