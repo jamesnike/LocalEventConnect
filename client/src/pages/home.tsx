@@ -603,6 +603,7 @@ export default function Home() {
   };
 
   const handleSkipAnimationComplete = () => {
+    console.log('Skip animation completed - resetting states');
     setShowSkipAnimation(false);
     
     // Use the captured event ID instead of current event
@@ -628,6 +629,7 @@ export default function Home() {
     }
     
     // Reset the skipping state immediately
+    console.log('Resetting isSkippingInProgress to false');
     setIsSkippingInProgress(false);
     setEventBeingSkipped(null);
   };
@@ -873,7 +875,10 @@ export default function Home() {
         <div className="absolute bottom-16 left-0 right-0 px-4 flex-shrink-0 z-20">
           <div className="flex justify-center space-x-16">
             <button
-              onClick={handleSwipeLeft}
+              onClick={() => {
+                console.log('Skip button clicked - currentEvent:', !!currentEvent, 'isTransitioning:', isTransitioning, 'isSkippingInProgress:', isSkippingInProgress);
+                handleSwipeLeft();
+              }}
               disabled={!currentEvent || isTransitioning || isSkippingInProgress}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
