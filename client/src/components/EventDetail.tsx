@@ -285,9 +285,6 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     onClose();
   };
 
-  // Check if current user is the organizer of this event
-  const isOrganizer = user?.id === currentEvent.organizerId;
-
   // Fetch fresh event data when opened from Browse page or when we need latest status
   const { data: freshEvent, isLoading: isFreshEventLoading } = useQuery({
     queryKey: ['/api/events', event.id, 'fresh'],
@@ -303,6 +300,9 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   // Use fresh event data if available, otherwise use prop event
   const currentEvent = freshEvent || event;
+
+  // Check if current user is the organizer of this event
+  const isOrganizer = user?.id === currentEvent.organizerId;
 
   // Update local state when fresh event data is available with priority on RSVP status
   useEffect(() => {
