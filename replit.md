@@ -141,6 +141,7 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 11, 2025. ENHANCED PRIVATE CHAT REJOIN FUNCTIONALITY: Implemented complete private chat lifecycle management. When users exit 1-on-1 chats, they disappear from Messages tab. When users click "Message" button in user modals after previously exiting, the system reactivates the existing private chat by setting hasLeftChat=false for both users, making it reappear in Messages tab. This provides seamless chat rejoin functionality without creating duplicate conversations.
 - July 11, 2025. FIXED PRIVATE CHAT EXIT FUNCTIONALITY: Enhanced 1-on-1 private chat exit behavior to match group chats. Added Exit button to private chat headers and updated getUserPrivateChats function to properly filter out private chats where users have left (hasLeftChat = true). Private chats now disappear from Messages tab after user exits, providing consistent behavior across all chat types.
 - July 11, 2025. ENHANCED EVENTCONTENT UI: Moved back button from separate section to replace organizer avatar in header, added empty space above header for better visual hierarchy, and improved overall layout consistency across all event content pages.
 - July 11, 2025. IMPROVED BROWSE PAGE HEADER: Removed search icon from header, changed text to "Browse Events in One Week" without bold formatting, and centered the header text for cleaner appearance.

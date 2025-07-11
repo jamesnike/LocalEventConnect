@@ -1119,9 +1119,77 @@ export class DatabaseStorage implements IStorage {
 
   // Private chat operations
   async createPrivateChat(user1Id: string, user2Id: string): Promise<Event> {
-    // Check if private chat already exists between these users
-    const existingChat = await this.getPrivateChat(user1Id, user2Id);
-    if (existingChat) {
+    // Check if private chat already exists between these users (including those where user has left)
+    const existingChatQuery = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        category: events.category,
+        subCategory: events.subCategory,
+        date: events.date,
+        time: events.time,
+        location: events.location,
+        latitude: events.latitude,
+        longitude: events.longitude,
+        price: events.price,
+        isFree: events.isFree,
+        eventImageUrl: events.eventImageUrl,
+        organizerId: events.organizerId,
+        maxAttendees: events.maxAttendees,
+        capacity: events.capacity,
+        parkingInfo: events.parkingInfo,
+        meetingPoint: events.meetingPoint,
+        duration: events.duration,
+        whatToBring: events.whatToBring,
+        specialNotes: events.specialNotes,
+        requirements: events.requirements,
+        contactInfo: events.contactInfo,
+        cancellationPolicy: events.cancellationPolicy,
+        isActive: events.isActive,
+        isPrivateChat: events.isPrivateChat,
+        createdAt: events.createdAt,
+        updatedAt: events.updatedAt,
+      })
+      .from(events)
+      .innerJoin(eventRsvps, eq(events.id, eventRsvps.eventId))
+      .where(
+        and(
+          eq(events.isPrivateChat, true),
+          eq(events.isActive, true),
+          or(
+            and(
+              eq(events.organizerId, user1Id),
+              eq(eventRsvps.userId, user2Id)
+            ),
+            and(
+              eq(events.organizerId, user2Id),
+              eq(eventRsvps.userId, user1Id)
+            )
+          )
+        )
+      )
+      .groupBy(events.id)
+      .limit(1);
+
+    if (existingChatQuery.length > 0) {
+      const existingChat = existingChatQuery[0];
+      
+      // Reactivate the chat for both users by setting hasLeftChat to false
+      await db
+        .update(eventRsvps)
+        .set({ hasLeftChat: false })
+        .where(
+          and(
+            eq(eventRsvps.eventId, existingChat.id),
+            or(
+              eq(eventRsvps.userId, user1Id),
+              eq(eventRsvps.userId, user2Id)
+            )
+          )
+        );
+      
+      console.log(`Reactivated existing private chat ${existingChat.id} for users ${user1Id} and ${user2Id}`);
       return existingChat;
     }
 
