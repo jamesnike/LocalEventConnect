@@ -38,7 +38,7 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none"
         >
           <div className="relative">
             {/* Flying X marks */}
@@ -82,7 +82,7 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="bg-white rounded-2xl p-6 shadow-xl text-center max-w-xs mx-4"
+              className="bg-white rounded-2xl p-6 shadow-xl text-center max-w-xs mx-4 pointer-events-none"
             >
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
