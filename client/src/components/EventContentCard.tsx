@@ -476,6 +476,7 @@ export default function EventContentCard({
                       <button
                         key={similarEvent.id}
                         onClick={() => {
+                          console.log('Similar event clicked:', similarEvent.title, 'onSimilarEventClick:', !!onSimilarEventClick);
                           onSimilarEventClick?.(similarEvent);
                         }}
                         className="w-full border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
