@@ -108,15 +108,15 @@ export class DatabaseStorage implements IStorage {
     let startTime: string, endTime: string;
     switch (timePart) {
       case 'morning':
-        startTime = '06:00:00';
+        startTime = '00:00:00';  // 12:00am (00:00) to 11:59am
         endTime = '11:59:59';
         break;
       case 'afternoon':
-        startTime = '12:00:00';
+        startTime = '12:00:00';  // 12:00pm (12:00) to 5:59pm
         endTime = '17:59:59';
         break;
       case 'night':
-        startTime = '18:00:00';
+        startTime = '18:00:00';  // 6:00pm (18:00) to 11:59pm
         endTime = '23:59:59';
         break;
       default:
