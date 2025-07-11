@@ -889,7 +889,7 @@ export default function Home() {
                 console.log('Skip button clicked - currentEvent:', !!currentEvent, 'isTransitioning:', isTransitioning, 'isSkippingInProgress:', isSkippingInProgress, 'showSkipAnimation:', showSkipAnimation);
                 handleSwipeLeft();
               }}
-              disabled={!currentEvent || isTransitioning}
+              disabled={!currentEvent}
               className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               <X className="w-8 h-8" />
@@ -897,7 +897,7 @@ export default function Home() {
             
             <button
               onClick={handleSwipeRight}
-              disabled={!currentEvent || isTransitioning}
+              disabled={!currentEvent}
               className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
