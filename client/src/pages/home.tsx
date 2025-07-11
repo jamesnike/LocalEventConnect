@@ -772,7 +772,7 @@ export default function Home() {
       </header>
 
       {/* Swipe Area */}
-      <div className="flex-1 relative bg-gray-50 overflow-hidden">
+      <div className="flex-1 relative bg-gray-50">
         {availableEvents.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -782,7 +782,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+          <div className="relative w-full h-full flex items-center justify-center">
             {/* Main Event Card */}
             <div className={`absolute inset-0 ${
               isFromMessagesTab ? 'transition-none' : 'transition-all duration-300 ease-in-out'
