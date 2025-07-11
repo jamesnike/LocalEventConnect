@@ -9,8 +9,30 @@ interface BottomNavProps {
 export default function BottomNav({ currentPage, onCreateEvent }: BottomNavProps) {
   const [, setLocation] = useLocation();
 
-  const navItems = [
-    { id: 'home', name: 'Home', icon: Home, path: '/' },
+  const handleHomeClick = () => {
+    // Clear any navigation state when going to home
+    localStorage.removeItem('eventContentId');
+    localStorage.removeItem('fromMyEvents');
+    localStorage.removeItem('fromBrowse');
+    localStorage.removeItem('fromMessagesTab');
+    localStorage.removeItem('preferredTab');
+    localStorage.removeItem('selectedEventId');
+    localStorage.removeItem('showEventDetail');
+    localStorage.removeItem('fromEventContent');
+    localStorage.removeItem('returnToMyEventsTab');
+    
+    // Navigate to home page
+    setLocation('/');
+  };
+
+  const navItems: Array<{
+    id: string;
+    name: string;
+    icon: any;
+    path: string;
+    onClick?: () => void;
+  }> = [
+    { id: 'home', name: 'Home', icon: Home, path: '/', onClick: handleHomeClick },
     { id: 'my-events', name: 'My Events', icon: Calendar, path: '/my-events' },
   ];
 
@@ -29,7 +51,7 @@ export default function BottomNav({ currentPage, onCreateEvent }: BottomNavProps
           return (
             <button
               key={item.id}
-              onClick={() => setLocation(item.path)}
+              onClick={() => item.onClick ? item.onClick() : setLocation(item.path)}
               className={`flex-1 py-3 text-center transition-colors ${
                 isActive ? 'text-primary' : 'text-gray-600 hover:text-primary'
               }`}

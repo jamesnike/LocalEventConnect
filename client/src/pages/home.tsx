@@ -148,6 +148,40 @@ export default function Home() {
     }
   }, []);  // Only run once on mount
 
+  // Reset to main swipe interface when navigating to home page
+  useEffect(() => {
+    const handleHomeNavigation = () => {
+      // Check if we're on the home page and there's no specific event navigation
+      const eventContentId = localStorage.getItem('eventContentId');
+      const fromMessagesTab = localStorage.getItem('fromMessagesTab');
+      const fromMyEvents = localStorage.getItem('fromMyEvents');
+      const fromBrowse = localStorage.getItem('fromBrowse');
+      
+      if (!eventContentId && !fromMessagesTab && !fromMyEvents && !fromBrowse && 
+          window.location.pathname === '/') {
+        // Reset to main swipe interface
+        setShowDetailCard(false);
+        setShowContentCard(false);
+        setSelectedEvent(null);
+        setIsFromMyEvents(false);
+        setIsFromBrowse(false);
+        setIsFromMessagesTab(false);
+        setGroupChatEvent(null);
+        setEventFromMyEvents(null);
+      }
+    };
+
+    // Listen for navigation events
+    window.addEventListener('popstate', handleHomeNavigation);
+    
+    // Check immediately when component mounts
+    handleHomeNavigation();
+    
+    return () => {
+      window.removeEventListener('popstate', handleHomeNavigation);
+    };
+  }, []);  // Only run once on mount
+
   // Check for event ID from localStorage (when navigating from other pages)
   useEffect(() => {
     const eventContentId = localStorage.getItem('eventContentId');
