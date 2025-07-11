@@ -11,6 +11,11 @@ export default function EventContentPage() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
+  
+  // Determine access method based on URL params and referrer
+  const urlParams = new URLSearchParams(window.location.search);
+  const isFromEventDetail = urlParams.get('tab') === 'chat'; // Group Chat/Rejoin Chat buttons use ?tab=chat
+  const isFromMessages = !isFromEventDetail; // Messages tab navigation doesn't use ?tab=chat
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -33,7 +38,9 @@ export default function EventContentPage() {
     event: !!event,
     pathname: window.location.pathname,
     search: window.location.search,
-    isRendering: 'EventContentPage is rendering'
+    isRendering: 'EventContentPage is rendering',
+    isFromEventDetail,
+    isFromMessages
   });
 
   // Set initial tab based on URL params or localStorage
