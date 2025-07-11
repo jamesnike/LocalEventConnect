@@ -96,32 +96,33 @@ export class DatabaseStorage implements IStorage {
   private getTimeFilterConditions(timeFilter: string) {
     if (!timeFilter) return undefined;
     
-    // Parse the time filter format: "today_morning", "tomorrow_afternoon", "day2_night", etc.
+    // Parse the time filter format: "today_morning", "day1_afternoon", etc.
     const [dayPart, timePart] = timeFilter.split('_');
     
-    // Calculate the target date
+    // Calculate the target date in local timezone
     let dayOffset = 0;
     if (dayPart === 'today') dayOffset = 0;
-    else if (dayPart === 'tomorrow') dayOffset = 1;
+    else if (dayPart === 'day1') dayOffset = 1;
+    else if (dayPart === 'day2') dayOffset = 2;
     else if (dayPart.startsWith('day')) dayOffset = parseInt(dayPart.substring(3));
     
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + dayOffset);
     const dateString = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Define time ranges based on time period
+    // Define time ranges based on time period - matching client expectations
     let startTime: string, endTime: string;
     switch (timePart) {
       case 'morning':
-        startTime = '00:00:00';  // 12:00am (00:00) to 11:59am
+        startTime = '06:00:00';  // 6:00am to 11:59am
         endTime = '11:59:59';
         break;
       case 'afternoon':
-        startTime = '12:00:00';  // 12:00pm (12:00) to 5:59pm
+        startTime = '12:00:00';  // 12:00pm to 5:59pm
         endTime = '17:59:59';
         break;
-      case 'night':
-        startTime = '18:00:00';  // 6:00pm (18:00) to 11:59pm
+      case 'evening':
+        startTime = '18:00:00';  // 6:00pm to 11:59pm
         endTime = '23:59:59';
         break;
       default:
