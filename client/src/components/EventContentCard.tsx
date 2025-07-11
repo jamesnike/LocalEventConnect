@@ -437,40 +437,56 @@ export default function EventContentCard({
                       <p className="text-gray-500 text-sm">No messages yet. Start the conversation!</p>
                     </div>
                   ) : (
-                    allMessages.map((msg) => {
+                    allMessages.map((msg, index) => {
                       const isOwnMessage = msg.user.id === user?.id;
+                      const currentTime = new Date(msg.createdAt);
+                      const previousTime = index > 0 ? new Date(allMessages[index - 1].createdAt) : null;
+                      
+                      // Check if we should show timestamp (30+ minutes gap or first message)
+                      const shouldShowTime = !previousTime || 
+                        (currentTime.getTime() - previousTime.getTime()) >= 30 * 60 * 1000;
+                      
                       return (
-                        <div key={msg.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-3 max-w-[80%]`}>
-                            <AnimeAvatar 
-                              seed={msg.user.animeAvatarSeed} 
-                              size="xs"
-                              customAvatarUrl={msg.user.customAvatarUrl}
-                              clickable={msg.user.id !== user?.id}
-                              behavior="profile"
-                              user={msg.user}
-                            />
-                            <div className={`flex-1 ${isOwnMessage ? 'mr-3' : 'ml-3'}`}>
-                              <div className={`flex items-center space-x-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <span className="font-medium text-sm text-gray-800">
-                                  {msg.user.firstName} {msg.user.lastName}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(msg.createdAt).toLocaleTimeString('en-US', { 
-                                    hour: 'numeric', 
-                                    minute: '2-digit',
-                                    hour12: true 
-                                  })}
-                                </span>
-                              </div>
-                              <div className={`mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
-                                <p className={`text-sm px-3 py-2 rounded-lg inline-block ${
-                                  isOwnMessage 
-                                    ? 'bg-purple-500 text-white rounded-br-none' 
-                                    : 'bg-gray-100 text-gray-700 rounded-bl-none'
-                                }`}>
-                                  {msg.message}
-                                </p>
+                        <div key={msg.id}>
+                          {/* Timestamp separator */}
+                          {shouldShowTime && (
+                            <div className="flex justify-center mb-4">
+                              <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
+                                {currentTime.toLocaleTimeString('en-US', { 
+                                  hour: 'numeric', 
+                                  minute: '2-digit',
+                                  hour12: true 
+                                })}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Message */}
+                          <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-3 max-w-[80%]`}>
+                              <AnimeAvatar 
+                                seed={msg.user.animeAvatarSeed} 
+                                size="xs"
+                                customAvatarUrl={msg.user.customAvatarUrl}
+                                clickable={msg.user.id !== user?.id}
+                                behavior="profile"
+                                user={msg.user}
+                              />
+                              <div className={`flex-1 ${isOwnMessage ? 'mr-3' : 'ml-3'}`}>
+                                <div className={`flex items-center space-x-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
+                                  <span className="font-medium text-sm text-gray-800">
+                                    {msg.user.firstName} {msg.user.lastName}
+                                  </span>
+                                </div>
+                                <div className={`${isOwnMessage ? 'text-right' : 'text-left'}`}>
+                                  <p className={`text-sm px-3 py-2 rounded-lg inline-block ${
+                                    isOwnMessage 
+                                      ? 'bg-purple-500 text-white rounded-br-none' 
+                                      : 'bg-gray-100 text-gray-700 rounded-bl-none'
+                                  }`}>
+                                    {msg.message}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
