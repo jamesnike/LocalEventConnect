@@ -2,8 +2,12 @@ import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCro
 import { EventWithOrganizer, User } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import { getEventImageUrl } from "@/lib/eventImages";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { useState, useEffect } from "react";
 
 interface EventCardProps {
   event: EventWithOrganizer;
@@ -13,6 +17,10 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, onEventClick, showStatus, onRemoveClick }: EventCardProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSaved, setIsSaved] = useState(false);
+
   // Fetch actual attendees for the event
   const { data: attendees = [] } = useQuery({
     queryKey: ['/api/events', event.id, 'attendees'],
@@ -22,6 +30,109 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Query to check if event is saved
+  const { data: savedStatus } = useQuery({
+    queryKey: ["/api/events", event.id, "saved-status"],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/events/${event.id}/saved-status`);
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 30000, // 30 seconds
+  });
+
+  // Update local saved state when query data changes
+  useEffect(() => {
+    if (savedStatus) {
+      setIsSaved(savedStatus.isSaved);
+    }
+  }, [savedStatus]);
+
+  // Mutation to save event
+  const saveEventMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest(`/api/events/${event.id}/save`, { 
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      setIsSaved(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "saved-events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "saved-status"] });
+      
+      toast({
+        title: "Event Saved",
+        description: "Event has been saved to your collection.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to save event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation to unsave event
+  const unsaveEventMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest(`/api/events/${event.id}/save`, { 
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      setIsSaved(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "saved-events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events", event.id, "saved-status"] });
+      
+      toast({
+        title: "Event Unsaved",
+        description: "Event has been removed from your saved collection.",
+        duration: 2000,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to unsave event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSaved) {
+      unsaveEventMutation.mutate();
+    } else {
+      saveEventMutation.mutate();
+    }
+  };
   const formatDate = (dateString: string) => {
     // Parse the date string as local time to avoid timezone issues
     const [year, month, day] = dateString.split('-');
@@ -160,7 +271,22 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
               <Trash2 className="w-4 h-4" />
             </button>
           ) : (
-            <Heart className="w-4 h-4 text-gray-400" />
+            <button 
+              onClick={handleSaveToggle}
+              disabled={saveEventMutation.isPending || unsaveEventMutation.isPending}
+              className={`transition-colors duration-200 ${
+                (saveEventMutation.isPending || unsaveEventMutation.isPending) 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:text-red-500'
+              }`}
+              title={isSaved ? "Remove from saved" : "Save event"}
+            >
+              {(saveEventMutation.isPending || unsaveEventMutation.isPending) ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+              ) : (
+                <Heart className={`w-4 h-4 ${isSaved ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+              )}
+            </button>
           )}
         </div>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
