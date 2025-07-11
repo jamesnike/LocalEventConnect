@@ -884,27 +884,20 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning || isSkippingInProgress}
-              className="flex flex-col items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <X className="w-6 h-6 mb-1" />
-              <span className="text-xs font-medium">Skip</span>
+              <X className="w-10 h-10" />
             </button>
             
             <button
               onClick={handleSwipeRight}
               disabled={!currentEvent || isTransitioning}
-              className={`flex flex-col items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              className={`flex items-center justify-center w-20 h-20 ${showDetailCard ? 'bg-green-500/80 hover:bg-green-600/80' : 'bg-blue-500/80 hover:bg-blue-600/80'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
-                <>
-                  <Heart className="w-6 h-6 mb-1" />
-                  <span className="text-xs font-medium">RSVP</span>
-                </>
+                <Heart className="w-10 h-10" />
               ) : (
-                <>
-                  <ArrowRight className="w-6 h-6 mb-1" />
-                  <span className="text-xs font-medium">Details</span>
-                </>
+                <ArrowRight className="w-10 h-10" />
               )}
             </button>
           </div>
