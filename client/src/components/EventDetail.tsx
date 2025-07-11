@@ -285,7 +285,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     onClose();
   };
 
-  // Fetch fresh RSVP status when opened from Browse page
+  // Fetch fresh RSVP status when opened from Browse page (background update)
   const { data: freshRsvpStatus } = useQuery({
     queryKey: ['/api/events', event.id, 'rsvp-status'],
     queryFn: async () => {
@@ -295,9 +295,10 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     enabled: fromPage === 'browse', // Only fetch when coming from browse page
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Force refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
-  // Fetch fresh attendees (members) when opened from Browse page
+  // Fetch fresh attendees (members) when opened from Browse page (background update)
   const { data: freshAttendees } = useQuery({
     queryKey: ['/api/events', event.id, 'attendees'],
     queryFn: async () => {
@@ -307,6 +308,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     enabled: fromPage === 'browse', // Only fetch when coming from browse page
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Force refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // Use event data from props (no need to fetch full event data)
@@ -315,11 +317,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
   // Check if current user is the organizer of this event
   const isOrganizer = user?.id === currentEvent.organizerId;
 
-  // Update local state when fresh RSVP status is available
+  // Silently update local state when fresh RSVP status is available
   useEffect(() => {
     if (freshRsvpStatus && fromPage === 'browse') {
       setLocalRsvpStatus(freshRsvpStatus.status);
-      console.log('EventDetail: Updated RSVP status from fresh data:', {
+      console.log('EventDetail: Silently updated RSVP status from fresh data:', {
         eventId: event.id,
         freshRsvpStatus: freshRsvpStatus.status,
         fromPage
@@ -327,11 +329,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
     }
   }, [freshRsvpStatus, event.id, fromPage]);
 
-  // Update local member count when fresh attendees are available
+  // Silently update local member count when fresh attendees are available
   useEffect(() => {
     if (freshAttendees && fromPage === 'browse') {
       setLocalRsvpCount(freshAttendees.length);
-      console.log('EventDetail: Updated member count from fresh data:', {
+      console.log('EventDetail: Silently updated member count from fresh data:', {
         eventId: event.id,
         freshMemberCount: freshAttendees.length,
         fromPage
@@ -483,12 +485,7 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
         isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
       }`}>
         <div className="relative h-full flex flex-col">
-          {/* Loading overlay when fetching fresh data */}
-          {(fromPage === 'browse' && (!freshRsvpStatus || !freshAttendees)) && (
-            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-            </div>
-          )}
+          {/* No loading overlay - show immediately with cached data */}
           
           <button 
             onClick={handleBack}
