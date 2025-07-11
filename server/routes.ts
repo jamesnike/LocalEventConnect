@@ -124,10 +124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get individual event by ID
-  app.get('/api/events/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/events/:id', async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      // Try to get user ID from auth, but don't require authentication
+      const userId = (req.user as any)?.claims?.sub;
       
       const event = await storage.getEvent(eventId, userId);
       if (!event) {
