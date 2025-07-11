@@ -21,10 +21,10 @@ export default function SkipAnimation({ isVisible, onComplete }: SkipAnimationPr
         setShowText(true);
       }, 300);
       
-      // Complete animation after 1.5 seconds (shorter than celebration)
+      // Complete animation after 2 seconds
       setTimeout(() => {
         onComplete();
-      }, 1500);
+      }, 2000);
     } else {
       setShowEffect(false);
       setShowText(false);
