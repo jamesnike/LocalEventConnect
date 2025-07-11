@@ -68,7 +68,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                 <button
                   key={option.id}
                   onClick={() => onCategoryChange(option.id)}
-                  className={`flex-shrink-0 flex items-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     isSelected
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -91,7 +91,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                 <button
                   key={option.id}
                   onClick={() => onCategoryChange(option.id)}
-                  className={`flex-shrink-0 flex items-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     isSelected
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -114,7 +114,7 @@ export default function CategoryFilter({ selectedCategory, onCategoryChange }: C
                 <button
                   key={option.id}
                   onClick={() => onCategoryChange(option.id)}
-                  className={`flex-shrink-0 flex items-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`w-20 flex items-center justify-center px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     isSelected
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
