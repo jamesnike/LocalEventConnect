@@ -223,7 +223,6 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           zIndex: isActive ? 10 : 1,
           maxHeight: '100vh',
         }}
-
       >
         {/* Overlay for swipe indication */}
         <div className={`absolute inset-0 ${getOverlayColor()} flex items-center justify-center transition-all duration-200 z-10`}>
@@ -232,8 +231,17 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
 
         {/* Temporarily disabled swipe zones for testing */}
 
-        {/* Header with image */}
-        <div className="relative h-48 flex-shrink-0">
+        {/* Header with image - Only this area handles swipes */}
+        <div 
+          className="relative h-48 flex-shrink-0"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <img 
             src={getEventImageUrl(event)}
             alt={event.title}
