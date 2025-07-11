@@ -749,32 +749,29 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={!currentEvent || isTransitioning}
-              className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex flex-col items-center justify-center bg-red-500 text-white rounded-full w-16 h-16 shadow-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 mb-1" />
+              <span className="text-xs font-medium">Skip</span>
             </button>
             
             <button
               onClick={handleSwipeRight}
               disabled={!currentEvent || isTransitioning}
-              className={`w-14 h-14 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
+              className={`flex flex-col items-center justify-center w-16 h-16 ${showDetailCard ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
             >
               {showDetailCard ? (
-                <Heart className="w-6 h-6" />
+                <>
+                  <Heart className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-medium">RSVP</span>
+                </>
               ) : (
-                <ArrowRight className="w-6 h-6" />
+                <>
+                  <ArrowRight className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-medium">Details</span>
+                </>
               )}
             </button>
-          </div>
-          
-          {/* Action Labels */}
-          <div className="flex justify-center space-x-16 mt-2">
-            <span className="text-xs text-gray-600 w-14 text-center">
-              Skip
-            </span>
-            <span className="text-xs text-gray-600 w-14 text-center">
-              {showDetailCard ? 'RSVP' : 'Details'}
-            </span>
           </div>
         </div>
       )}
