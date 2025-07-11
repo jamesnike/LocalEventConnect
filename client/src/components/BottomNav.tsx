@@ -15,7 +15,6 @@ export default function BottomNav({ currentPage, onCreateEvent }: BottomNavProps
   ];
 
   const rightNavItems = [
-    { id: 'browse', name: 'Browse', icon: Search, path: '/browse' },
     { id: 'profile', name: 'Profile', icon: User, path: '/profile' },
   ];
 

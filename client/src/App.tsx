@@ -10,7 +10,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import MyEvents from "@/pages/my-events";
-import Browse from "@/pages/browse";
+// import Browse from "@/pages/browse";
 import EventContentPage from "@/pages/event-content";
 
 function Router() {
@@ -51,7 +51,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/profile" component={Profile} />
         <Route path="/my-events" component={MyEvents} />
-        <Route path="/browse" component={Browse} />
+        {/* <Route path="/browse" component={Browse} /> */}
         <Route path="/event/:eventId" component={EventContentPage} />
         <Route path="/event-content/:eventId" component={EventContentPage} />
         <Route path="*" component={NotFound} />
