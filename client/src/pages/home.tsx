@@ -1011,20 +1011,6 @@ export default function Home() {
             }
           }}
           showGroupChatButton={isFromMyEvents}
-          onNavigateToContent={(event) => {
-            // Store the specific event (passed from EventDetail) in localStorage and navigate
-            // This ensures we navigate to the correct event that was RSVP'd to
-            localStorage.setItem('eventContentId', event.id.toString());
-            localStorage.setItem('preferredTab', 'chat');
-            if (isFromMyEvents) {
-              localStorage.setItem('fromMyEvents', 'true');
-            }
-            
-            // Close the modal and let the useEffect handle the navigation
-            setSelectedEvent(null);
-            setIsFromMyEvents(false);
-            setEventFromMyEvents(null);
-          }}
         />
       )}
 

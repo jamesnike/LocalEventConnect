@@ -13,14 +13,13 @@ import CelebrationAnimation from "./CelebrationAnimation";
 interface EventDetailProps {
   event: EventWithOrganizer;
   onClose: () => void;
-  onNavigateToContent?: (event: EventWithOrganizer) => void;
   showGroupChatButton?: boolean;
   onSkip?: () => void;
   onBack?: () => void;
   fromPage?: 'home' | 'browse' | 'my-events' | 'messages';
 }
 
-export default function EventDetail({ event, onClose, onNavigateToContent, showGroupChatButton = false, onSkip, onBack, fromPage }: EventDetailProps) {
+export default function EventDetail({ event, onClose, showGroupChatButton = false, onSkip, onBack, fromPage }: EventDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -383,10 +382,11 @@ export default function EventDetail({ event, onClose, onNavigateToContent, showG
 
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
-    // Navigate to EventContent after celebration
-    if (onNavigateToContent) {
-      onNavigateToContent(event);
-    }
+    // Navigate directly to EventContent page with the specific event ID
+    // Set flag for home layout context (since this comes from EventDetail modal)
+    localStorage.setItem('fromHomeEventDetail', 'true');
+    console.log('Celebration complete navigation:', `/event/${event.id}?tab=chat`);
+    setLocation(`/event/${event.id}?tab=chat`);
     onClose();
   };
 
