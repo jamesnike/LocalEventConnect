@@ -20,6 +20,9 @@ export default function EventContentPage() {
   // Check if we're in Home page context (has home header and bottom nav)
   // Home page context: accessed from EventDetail modal (Group Chat/Rejoin Chat buttons)
   const hasHomeLayout = isFromEventDetail;
+  
+  // Check if we came from EventDetail modal (by checking localStorage flag)
+  const isFromEventDetailModal = localStorage.getItem('fromHomeEventDetail') === 'true';
 
   // Fetch the specific event
   const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -149,7 +152,19 @@ export default function EventContentPage() {
             onTabChange={setActiveTab}
             showBackButton={true} // Always show back button
             showKeepExploring={false}
-            onBackClick={() => window.history.back()}
+            onBackClick={() => {
+              // Clear the localStorage flag
+              localStorage.removeItem('fromHomeEventDetail');
+              if (isFromEventDetailModal) {
+                // We came from EventDetail modal, so navigate back to home page
+                // but store the event ID to reopen the EventDetail modal
+                localStorage.setItem('reopenEventDetailId', eventId!);
+                setLocation('/');
+              } else {
+                // Default back navigation
+                window.history.back();
+              }
+            }}
             onSimilarEventClick={() => {}}
             hasHomeLayout={true} // Pass context to EventContentCard
           />

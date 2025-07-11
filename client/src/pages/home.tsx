@@ -192,6 +192,7 @@ export default function Home() {
     const fromMessagesTab = localStorage.getItem('fromMessagesTab');
     const fromEventContent = localStorage.getItem('fromEventContent');
     const preferredTab = localStorage.getItem('preferredTab');
+    const reopenEventDetailId = localStorage.getItem('reopenEventDetailId');
     
     // Handle EventDetail navigation from EventContent
     if (selectedEventId && showEventDetail === 'true' && events) {
@@ -214,6 +215,26 @@ export default function Home() {
       localStorage.removeItem('selectedEventId');
       localStorage.removeItem('showEventDetail');
       localStorage.removeItem('fromEventContent');
+    }
+    // Handle EventDetail modal reopening when coming back from EventContent
+    else if (reopenEventDetailId && events) {
+      const eventId = parseInt(reopenEventDetailId);
+      const eventIndex = events.findIndex(e => e.id === eventId);
+      
+      if (eventIndex !== -1) {
+        const event = events[eventIndex];
+        // Show EventDetail modal for the selected event
+        setSelectedEvent(event);
+        setShowDetailCard(true);
+        setShowContentCard(false);
+        setCurrentEventIndex(eventIndex);
+      } else {
+        // Event not found in home page events, fetch it separately for EventDetail
+        fetchSpecificEventForDetail(eventId);
+      }
+      
+      // Clear localStorage
+      localStorage.removeItem('reopenEventDetailId');
     }
     // Handle EventContent navigation from other pages
     else if (eventContentId && events) {
