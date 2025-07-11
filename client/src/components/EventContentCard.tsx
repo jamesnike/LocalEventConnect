@@ -456,7 +456,7 @@ export default function EventContentCard({
         }}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
+        <div className={`bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white ${isStandalonePage ? 'pt-12' : ''}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
