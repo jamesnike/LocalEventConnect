@@ -443,7 +443,9 @@ export default function EventContentCard({
                           seed={msg.user.animeAvatarSeed} 
                           size="xs"
                           customAvatarUrl={msg.user.customAvatarUrl}
-                          clickable={false}
+                          clickable={msg.user.id !== user?.id}
+                          behavior="profile"
+                          user={msg.user}
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
