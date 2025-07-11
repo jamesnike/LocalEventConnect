@@ -15,6 +15,7 @@ export default function Browse() {
   });
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [isClosingDetail, setIsClosingDetail] = useState(false);
   const [, setLocation] = useLocation();
 
   const handleCategoryChange = (timeFilter: string) => {
@@ -38,11 +39,18 @@ export default function Browse() {
     refetchOnWindowFocus: false,
   });
 
-  if (selectedEvent) {
+  if (selectedEvent && !isClosingDetail) {
     return (
       <EventDetail
         event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
+        onClose={() => {
+          setIsClosingDetail(true);
+          // Use a small delay to ensure smooth transition
+          setTimeout(() => {
+            setSelectedEvent(null);
+            setIsClosingDetail(false);
+          }, 50);
+        }}
         onNavigateToContent={() => {
           // Navigate to EventContent page for group chat
           setLocation(`/event-content/${selectedEvent.id}?fromBrowse=true`);
@@ -54,6 +62,19 @@ export default function Browse() {
 
   if (showCreateEvent) {
     return <CreateEvent onClose={() => setShowCreateEvent(false)} />;
+  }
+
+  // Show loading state during transition to prevent black screen
+  if (isClosingDetail) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="max-w-sm mx-auto bg-white min-h-screen">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
