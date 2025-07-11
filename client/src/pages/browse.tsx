@@ -25,14 +25,16 @@ export default function Browse() {
   };
 
   const { data: allEvents, isLoading } = useQuery({
-    queryKey: ["/api/events/browse"],
+    queryKey: ["/api/events/browse", Date.now()], // Add timestamp to force fresh fetch
     queryFn: async () => {
-      const response = await fetch("/api/events/browse?limit=100");
+      const response = await fetch("/api/events/browse?limit=100&t=" + Date.now());
       return response.json() as Promise<EventWithOrganizer[]>;
     },
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // Force refetch on mount to get fresh data
     refetchOnReconnect: false,
+    staleTime: 0, // Consider data immediately stale to force fresh fetch
+    gcTime: 0, // Don't cache at all
   });
 
   // Filter events on the frontend based on selected time filter
