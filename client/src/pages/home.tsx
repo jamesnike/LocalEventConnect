@@ -882,7 +882,7 @@ export default function Home() {
 
       {/* Action Buttons - Hidden when EventContent is active */}
       {!showContentCard && (
-        <div className="absolute bottom-20 left-0 right-0 px-4 py-2 flex-shrink-0 z-20">
+        <div className="absolute bottom-16 left-0 right-0 px-4 flex-shrink-0 z-20">
           <div className="flex justify-center space-x-16">
             <button
               onClick={handleSwipeLeft}
