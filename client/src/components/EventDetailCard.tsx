@@ -179,10 +179,10 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-white font-bold text-2xl mb-2">{event.title}</h2>
+            <h2 className="text-white font-bold text-2xl mb-2 break-words">{event.title}</h2>
             <div className="flex items-center text-white/90 text-base">
-              <MapPin className="w-5 h-5 mr-2" />
-              <span>{event.location}</span>
+              <MapPin className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="break-words">{event.location}</span>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           {/* Description */}
           <div>
             <h3 className="font-semibold text-gray-800 text-lg mb-3">About this event</h3>
-            <p className="text-gray-700 text-base leading-relaxed">
+            <p className="text-gray-700 text-base leading-relaxed break-words whitespace-pre-wrap">
               {event.description}
             </p>
           </div>
@@ -229,15 +229,15 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
               size="md"
               customAvatarUrl={event.organizer.customAvatarUrl}
             />
-            <div>
-              <p className="font-medium text-gray-800">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-gray-800 break-words">
                 {event.organizer.firstName || event.organizer.lastName 
                   ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim()
                   : 'Anonymous Organizer'}
               </p>
               <p className="text-sm text-gray-600">Event Organizer</p>
               {event.organizer.aiSignature && (
-                <p className="text-[10px] text-gray-500 italic mt-1">
+                <p className="text-[10px] text-gray-500 italic mt-1 break-words">
                   "{event.organizer.aiSignature}"
                 </p>
               )}
@@ -245,21 +245,21 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
           </div>
 
           {/* Event Details Section */}
-          <div className="bg-gray-50 rounded-lg p-5 space-y-5">
+          <div className="bg-gray-50 rounded-lg p-5 space-y-5 overflow-hidden">
             <h4 className="font-semibold text-gray-800 text-lg">Event Details</h4>
             
             {/* Capacity and Duration */}
             <div className="grid grid-cols-2 gap-4 text-base">
               {event.capacity && (
-                <div>
+                <div className="min-w-0">
                   <span className="text-gray-600 block">Capacity</span>
-                  <span className="font-medium text-gray-800">{event.capacity} people</span>
+                  <span className="font-medium text-gray-800 break-words">{event.capacity} people</span>
                 </div>
               )}
               {event.duration && (
-                <div>
+                <div className="min-w-0">
                   <span className="text-gray-600 block">Duration</span>
-                  <span className="font-medium text-gray-800">{event.duration}</span>
+                  <span className="font-medium text-gray-800 break-words">{event.duration}</span>
                 </div>
               )}
             </div>
@@ -268,7 +268,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.meetingPoint && (
               <div className="text-base">
                 <span className="text-gray-600 block">Meeting Point</span>
-                <span className="font-medium text-gray-800">{event.meetingPoint}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.meetingPoint}</span>
               </div>
             )}
             
@@ -276,7 +276,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.parkingInfo && (
               <div className="text-base">
                 <span className="text-gray-600 block">Parking</span>
-                <span className="font-medium text-gray-800">{event.parkingInfo}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.parkingInfo}</span>
               </div>
             )}
             
@@ -284,7 +284,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.whatToBring && (
               <div className="text-base">
                 <span className="text-gray-600 block">What to Bring</span>
-                <span className="font-medium text-gray-800">{event.whatToBring}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.whatToBring}</span>
               </div>
             )}
             
@@ -292,7 +292,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.requirements && (
               <div className="text-base">
                 <span className="text-gray-600 block">Requirements</span>
-                <span className="font-medium text-gray-800">{event.requirements}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.requirements}</span>
               </div>
             )}
             
@@ -300,7 +300,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.specialNotes && (
               <div className="text-base">
                 <span className="text-gray-600 block">Special Notes</span>
-                <span className="font-medium text-gray-800">{event.specialNotes}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.specialNotes}</span>
               </div>
             )}
             
@@ -308,7 +308,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.contactInfo && (
               <div className="text-base">
                 <span className="text-gray-600 block">Contact Info</span>
-                <span className="font-medium text-gray-800">{event.contactInfo}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.contactInfo}</span>
               </div>
             )}
             
@@ -316,7 +316,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
             {event.cancellationPolicy && (
               <div className="text-base">
                 <span className="text-gray-600 block">Cancellation Policy</span>
-                <span className="font-medium text-gray-800">{event.cancellationPolicy}</span>
+                <span className="font-medium text-gray-800 break-words whitespace-pre-wrap">{event.cancellationPolicy}</span>
               </div>
             )}
           </div>
