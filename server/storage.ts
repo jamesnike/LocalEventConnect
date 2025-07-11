@@ -177,18 +177,18 @@ export class DatabaseStorage implements IStorage {
     const weightedEvents = events.map(event => {
       let weight = 1.0;
       
-      // Add some base randomness to ensure variety
-      weight += Math.random() * 0.3; // Random 0-0.3 bonus
+      // Add stronger base randomness to ensure variety
+      weight += Math.random() * 0.5; // Random 0-0.5 bonus for more variety
       
-      // Recent events get subtle weight boost
+      // Minimal recent events boost to give older events better chances
       const eventCreatedAt = new Date(event.createdAt);
       const now = new Date();
       const daysSinceCreated = (now.getTime() - eventCreatedAt.getTime()) / (1000 * 60 * 60 * 24);
       
       if (daysSinceCreated <= 7) {
-        weight *= 1.1; // Only 10% boost for recent events
+        weight *= 1.03; // Only 3% boost for recent events
       } else if (daysSinceCreated <= 30) {
-        weight *= 1.05; // 5% boost for events created in last 30 days
+        weight *= 1.01; // 1% boost for events created in last 30 days
       }
       
       // Events skipped before get lower weight (0.7x weight - mild reduction)
@@ -196,14 +196,14 @@ export class DatabaseStorage implements IStorage {
         weight *= 0.7;
       }
       
-      // Events happening soon get small boost
+      // Very minimal boost for upcoming events
       const eventDate = new Date(`${event.date}T${event.time}`);
       const hoursUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
       
       if (hoursUntilEvent <= 24 && hoursUntilEvent > 0) {
-        weight *= 1.15; // 15% boost for events happening within 24 hours
+        weight *= 1.05; // Only 5% boost for events happening within 24 hours
       } else if (hoursUntilEvent <= 72 && hoursUntilEvent > 0) {
-        weight *= 1.08; // 8% boost for events happening within 72 hours
+        weight *= 1.02; // Only 2% boost for events happening within 72 hours
       }
       
       return { event, weight };

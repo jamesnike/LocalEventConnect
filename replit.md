@@ -141,6 +141,8 @@ EventConnect is a mobile-first event discovery and management platform that allo
 
 ## Changelog
 
+- July 11, 2025. IMPROVED WEIGHTED SHUFFLING BALANCE: Enhanced weighted shuffling algorithm to give more variety and better chances for older events. Reduced recent event boost from 10% to 3%, increased randomness factor from 30% to 50%, and reduced upcoming event boost from 15% to 5%. This creates a more balanced discovery experience with good mix of old and new events while maintaining slight preference for relevant content.
+- July 11, 2025. IMPLEMENTED BACKGROUND SYNC FOR SKIPPED EVENTS: Added background sync system that batches skipped events and sends them to database every 5 seconds. Created useSkippedEventsSync hook with automatic retry logic, authentication-based start/stop, and force sync before page unload. This reduces API calls while ensuring data persistence and better user experience.
 - July 11, 2025. ADDED PAST TENSE STATUS LABELS: Updated Messages tab to show "Organized/Attended" for past events vs "Organizing/Attending" for future events, with proper local time comparison to determine event status.
 - July 11, 2025. FIXED BROWSE PAGE CACHE INVALIDATION: Fixed issue where cancelled events continued to appear in Browse page after cancellation. Added Browse page cache invalidation (`/api/events/browse`) to cancel event mutation, ensuring cancelled events disappear immediately from Browse page.
 - July 11, 2025. ENHANCED MEMBER AVATAR DISPLAY: Updated EventDetail component to show up to 10 member avatars (increased from 5) with normal medium size. Shows "+X more" when there are more than 10 members to indicate the exact additional count.
