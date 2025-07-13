@@ -97,6 +97,7 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
       
       // If user is RSVPing "going", show celebration animation
       if (status === 'going') {
+        console.log('🎉 RSVP mutation success - showing celebration animation');
         setShowCelebration(true);
       } else {
         toast({

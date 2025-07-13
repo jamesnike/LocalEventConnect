@@ -23,6 +23,7 @@ export default function CelebrationAnimation({ isVisible, onComplete }: Celebrat
       
       // Complete animation after 3 seconds
       setTimeout(() => {
+        console.log('🎊 CelebrationAnimation calling onComplete');
         onComplete();
       }, 3000);
     } else {
