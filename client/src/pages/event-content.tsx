@@ -23,14 +23,21 @@ export default function EventContentPage() {
   
   // Check if we came from EventDetail modal (by checking localStorage flag)
   const isFromEventDetailModal = localStorage.getItem('fromHomeEventDetail') === 'true';
+  
+  // Check if we have a stored RSVP'd event from EventDetail modal
+  const rsvpedEventData = localStorage.getItem('rsvpedEvent');
+  const storedEvent = rsvpedEventData ? JSON.parse(rsvpedEventData) : null;
 
   // Fetch the specific event
-  const { data: event, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
+  const { data: fetchedEvent, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
     queryKey: [`/api/events/${eventId}`],
-    enabled: !!eventId && !!user && !authLoading,
+    enabled: !!eventId && !!user && !authLoading && !storedEvent, // Skip fetch if we have stored event
     retry: 1,
     refetchOnWindowFocus: false,
   });
+
+  // Use stored event if available, otherwise use fetched event
+  const event = storedEvent || fetchedEvent;
 
   const isLoading = authLoading || eventLoading;
 
@@ -49,6 +56,16 @@ export default function EventContentPage() {
     isFromEventDetail,
     isFromMessages
   });
+
+  // Clean up stored event data when component unmounts
+  useEffect(() => {
+    return () => {
+      if (storedEvent) {
+        localStorage.removeItem('rsvpedEvent');
+        localStorage.removeItem('fromHomeEventDetail');
+      }
+    };
+  }, [storedEvent]);
 
   // Set initial tab based on URL params or localStorage
   useEffect(() => {

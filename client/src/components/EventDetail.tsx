@@ -382,8 +382,20 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
 
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
-    // Navigate directly to EventContent page with the specific event ID
-    // Set flag for home layout context (since this comes from EventDetail modal)
+    // Store the RSVP'd event information for EventContent to use
+    localStorage.setItem('rsvpedEvent', JSON.stringify({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      organizer: event.organizer,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      category: event.category,
+      subCategory: event.subCategory,
+      rsvpCount: event.rsvpCount,
+      userRsvpStatus: 'going'
+    }));
     localStorage.setItem('fromHomeEventDetail', 'true');
     console.log('EventDetail celebration complete - event ID:', event.id);
     console.log('EventDetail celebration complete - event title:', event.title);
