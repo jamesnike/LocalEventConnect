@@ -195,18 +195,21 @@ export default function EventContentPage() {
             console.log('🔙 EventContent - isFromEventDetailModal:', isFromEventDetailModal);
             console.log('🔙 EventContent - actualEventId:', actualEventId);
             
+            // Clear all navigation flags to prevent state issues
+            localStorage.removeItem('fromHomeEventDetail');
+            localStorage.removeItem('rsvpedEvent');
+            localStorage.removeItem('forceEventId');
+            localStorage.removeItem('preventHomeAdvancement');
+            localStorage.removeItem('showEventContent');
+            localStorage.removeItem('eventContentTab');
+            
             // If Home page header and bottom navigation are present, route back to Home page Event card
             if (hasHomeLayout) {
               console.log('🔙 EventContent - Home layout detected, routing back to Home page Event card');
-              // Clear navigation flags
-              localStorage.removeItem('fromHomeEventDetail');
-              localStorage.removeItem('rsvpedEvent');
-              localStorage.removeItem('forceEventId');
-              localStorage.removeItem('preventHomeAdvancement');
               
               // If we came from EventDetail modal, restore that modal
-              if (isFromEventDetailModal) {
-                localStorage.setItem('reopenEventDetailId', actualEventId!);
+              if (isFromEventDetailModal && actualEventId) {
+                localStorage.setItem('reopenEventDetailId', actualEventId);
               }
               
               // Navigate to Home page
@@ -214,13 +217,12 @@ export default function EventContentPage() {
             } else {
               // Original logic for non-Home page contexts
               console.log('🔙 EventContent - No Home layout detected, using original logic');
-              localStorage.removeItem('fromHomeEventDetail');
               
-              if (isFromEventDetailModal) {
+              if (isFromEventDetailModal && actualEventId) {
                 // We came from EventDetail modal, so navigate back to home page
                 // but store the event ID to reopen the EventDetail modal
                 console.log('🔙 EventContent - navigating back to Home with EventDetail modal');
-                localStorage.setItem('reopenEventDetailId', actualEventId!);
+                localStorage.setItem('reopenEventDetailId', actualEventId);
                 setLocation('/');
               } else {
                 // Default back navigation

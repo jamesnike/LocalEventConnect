@@ -962,12 +962,19 @@ export default function Home() {
               showDetailCard && !showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
               <div className="flex items-center justify-center h-full">
-                <EventDetailCard
-                  event={currentEvent}
-                  onSwipeLeft={handleSwipeLeft}
-                  onSwipeRight={handleSwipeRight}
-                  isActive={showDetailCard}
-                />
+                {currentEvent ? (
+                  <EventDetailCard
+                    event={currentEvent}
+                    onSwipeLeft={handleSwipeLeft}
+                    onSwipeRight={handleSwipeRight}
+                    isActive={showDetailCard}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-gray-500 text-sm mt-2">Loading event...</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -978,40 +985,49 @@ export default function Home() {
               showContentCard ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
             }`}>
               <div className="w-full h-full">
-                <EventContentCard
-                  event={currentEvent}
-                  onSwipeLeft={handleSwipeLeft}
-                  onSwipeRight={handleContentSwipeRight}
-                  isActive={showContentCard}
-                  similarEvents={availableEvents.filter(e => e.id !== currentEvent?.id && e.category === currentEvent?.category).slice(0, 3)}
-                  onSimilarEventClick={(event) => {
-                    console.log('onSimilarEventClick called with event:', event.title, event.id);
-                    setSelectedEvent(event);
-                  }}
-                  initialTab={lastActiveTab}
-                  onTabChange={setLastActiveTab}
-                  showBackButton={isFromMyEvents || isFromBrowse || isFromMessagesTab}
-                  showKeepExploring={!isFromMyEvents && !isFromBrowse && !isFromMessagesTab}
-                  onBackClick={() => {
-                    if (isFromMessagesTab) {
-                      // Go back to My Events page with Messages tab active
-                      setIsFromMessagesTab(false); // Reset flag
-                      setLocation('/my-events?tab=messages');
-                    } else if (isFromMyEvents) {
-                      // Go back to EventDetail for this event (came from EventDetail in My Events)
-                      setSelectedEvent(currentEvent);
-                      setShowContentCard(false);
-                    } else if (isFromBrowse) {
-                      // Go back to Browse page
-                      setLocation('/browse');
-                    } else {
-                      // Default: just close the content card and return to main swipe interface
-                      setShowContentCard(false);
-                      setShowDetailCard(false);
-                      setGroupChatEvent(null); // Clear group chat event
-                    }
-                  }}
-                />
+                {currentEvent ? (
+                  <EventContentCard
+                    event={currentEvent}
+                    onSwipeLeft={handleSwipeLeft}
+                    onSwipeRight={handleContentSwipeRight}
+                    isActive={showContentCard}
+                    similarEvents={availableEvents.filter(e => e.id !== currentEvent?.id && e.category === currentEvent?.category).slice(0, 3)}
+                    onSimilarEventClick={(event) => {
+                      console.log('onSimilarEventClick called with event:', event.title, event.id);
+                      setSelectedEvent(event);
+                    }}
+                    initialTab={lastActiveTab}
+                    onTabChange={setLastActiveTab}
+                    showBackButton={isFromMyEvents || isFromBrowse || isFromMessagesTab}
+                    showKeepExploring={!isFromMyEvents && !isFromBrowse && !isFromMessagesTab}
+                    onBackClick={() => {
+                      if (isFromMessagesTab) {
+                        // Go back to My Events page with Messages tab active
+                        setIsFromMessagesTab(false); // Reset flag
+                        setLocation('/my-events?tab=messages');
+                      } else if (isFromMyEvents) {
+                        // Go back to EventDetail for this event (came from EventDetail in My Events)
+                        setSelectedEvent(currentEvent);
+                        setShowContentCard(false);
+                      } else if (isFromBrowse) {
+                        // Go back to Browse page
+                        setLocation('/browse');
+                      } else {
+                        // Default: just close the content card and return to main swipe interface
+                        setShowContentCard(false);
+                        setShowDetailCard(false);
+                        setGroupChatEvent(null); // Clear group chat event
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                      <p className="text-gray-500 text-sm mt-2">Loading event...</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
