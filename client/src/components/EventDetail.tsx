@@ -374,9 +374,12 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
 
     if (localRsvpStatus === 'going' || localRsvpStatus === 'attending') {
       // Remove RSVP
+      console.log('🔄 handleRsvp - removing RSVP, current status:', localRsvpStatus);
       removeRsvpMutation.mutate();
     } else {
       // Add RSVP
+      console.log('🔄 handleRsvp - adding RSVP, current status:', localRsvpStatus);
+      console.log('🔄 handleRsvp - calling rsvpMutation.mutate with "going"');
       rsvpMutation.mutate('going');
     }
   };
