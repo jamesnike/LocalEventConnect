@@ -132,6 +132,14 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
         localStorage.setItem('showEventContent', 'true');
         localStorage.setItem('eventContentTab', 'chat');
         
+        console.log('🎉 RSVP mutation - localStorage flags set:', {
+          showEventContent: localStorage.getItem('showEventContent'),
+          eventContentTab: localStorage.getItem('eventContentTab'),
+          forceEventId: localStorage.getItem('forceEventId'),
+          fromHomeEventDetail: localStorage.getItem('fromHomeEventDetail'),
+          preventHomeAdvancement: localStorage.getItem('preventHomeAdvancement')
+        });
+        
         // Close the EventDetail modal
         handleClose();
       } else {

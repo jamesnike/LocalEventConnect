@@ -200,6 +200,14 @@ export default function Home() {
     // Handle EventDetail RSVP navigation to EventContent within Home page
     if (showEventContent === 'true' && forceEventId && events) {
       console.log('🏠 Home page - handling EventDetail RSVP navigation to EventContent');
+      console.log('🏠 Home page - localStorage flags detected:', {
+        showEventContent,
+        eventContentTab,
+        forceEventId,
+        fromHomeEventDetail: localStorage.getItem('fromHomeEventDetail'),
+        preventHomeAdvancement: localStorage.getItem('preventHomeAdvancement')
+      });
+      
       const eventId = parseInt(forceEventId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
@@ -219,6 +227,7 @@ export default function Home() {
         }
         
         console.log('🏠 Home page - showing EventContent for event:', event.id);
+        console.log('🏠 Home page - showContentCard set to true, showDetailCard set to false');
       } else {
         console.log('🏠 Home page - event not found in events array for EventContent');
       }
