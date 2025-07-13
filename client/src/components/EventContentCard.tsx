@@ -456,15 +456,15 @@ export default function EventContentCard({
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
-          height: isHomeLayoutActive ? 'calc(100% - 20px)' : 'calc(100% - 40px)', // Reduced height for home layout
+          height: '100%', // Full height for better screen utilization
           zIndex: isActive ? 10 : 1
         }}
       >
-        {/* Empty space above header - conditional based on layout */}
-        {!isHomeLayoutActive && <div className="h-8"></div>}
+        {/* Top padding for better spacing */}
+        <div className="h-4"></div>
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-5 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
@@ -565,7 +565,7 @@ export default function EventContentCard({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden" style={{ 
-          height: isHomeLayoutActive ? 'calc(100vh - 300px)' : 'calc(100vh - 220px)' // Further adjusted for home layout
+          height: 'calc(100vh - 200px)' // Optimized height for better screen utilization
         }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
@@ -585,9 +585,7 @@ export default function EventContentCard({
                 {/* Messages */}
                 <div 
                   ref={messagesContainerRef}
-                  className={`flex-1 overflow-y-auto p-4 space-y-4 ${
-                    isHomeLayoutActive ? 'pb-20' : ''
-                  }`}
+                  className="flex-1 overflow-y-auto px-6 py-4 space-y-4"
                 >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
@@ -710,13 +708,11 @@ export default function EventContentCard({
                   )}
                 </div>
 
-                {/* Message Input */}
-                <div className={`border-t border-gray-200 bg-gray-50 ${
-                  isHomeLayoutActive ? 'fixed bottom-16 left-0 right-0 z-40 max-w-sm mx-auto' : ''
-                }`}>
+                {/* Message Input - Always visible with proper padding */}
+                <div className="border-t border-gray-200 bg-white shadow-lg">
                   {/* Quote preview */}
                   {quotedMessage && (
-                    <div className="px-4 pt-3 pb-2 bg-blue-50 border-b border-blue-200">
+                    <div className="px-6 pt-4 pb-3 bg-blue-50 border-b border-blue-200">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="text-xs text-blue-600 font-medium mb-1">
@@ -736,20 +732,20 @@ export default function EventContentCard({
                     </div>
                   )}
                   
-                  <div className="p-4">
-                    <div className="flex space-x-2">
+                  <div className="px-6 py-4">
+                    <div className="flex space-x-3">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder={quotedMessage ? "Reply to message..." : "Type a message..."}
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                        className="flex-1 px-5 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-colors"
                       />
                       <button
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                        className="px-4 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-5 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                       >
                         {sendMessageMutation.isPending ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -767,7 +763,7 @@ export default function EventContentCard({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="h-full overflow-y-auto p-4"
+                className="h-full overflow-y-auto px-6 py-4"
               >
                 <div className="space-y-4">
                   {similarEvents.length > 0 ? (
@@ -827,7 +823,7 @@ export default function EventContentCard({
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col"
               >
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
                   {isLoadingFavorites ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>

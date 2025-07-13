@@ -174,75 +174,10 @@ export default function EventContentPage() {
     );
   }
 
-  // Different layouts based on access context
-  if (hasHomeLayout) {
-    // Home page context: shorter height, no top padding, input above nav
-    return (
-      <div className="max-w-sm mx-auto bg-white">
-        {/* Event Content - shorter for home page with header and bottom nav */}
-        <div className="h-[calc(100vh-160px)]"> {/* Adjusted height for header + bottom nav */}
-          <EventContentCard
-            event={event}
-            eventId={parseInt(actualEventId || '0')}
-            onSwipeLeft={() => {}}
-            onSwipeRight={() => {}}
-            isActive={true}
-            initialTab={activeTab}
-            onTabChange={setActiveTab}
-            showBackButton={true} // Always show back button
-            showKeepExploring={false}
-            onBackClick={() => {
-              console.log('🔙 EventContent back button clicked');
-              console.log('🔙 EventContent - hasHomeLayout:', hasHomeLayout);
-              console.log('🔙 EventContent - isFromEventDetailModal:', isFromEventDetailModal);
-              console.log('🔙 EventContent - actualEventId:', actualEventId);
-              
-              // If Home page header and bottom navigation are present, route back to Home page Event card
-              if (hasHomeLayout) {
-                console.log('🔙 EventContent - Home layout detected, routing back to Home page Event card');
-                // Clear navigation flags
-                localStorage.removeItem('fromHomeEventDetail');
-                localStorage.removeItem('rsvpedEvent');
-                localStorage.removeItem('forceEventId');
-                localStorage.removeItem('preventHomeAdvancement');
-                
-                // If we came from EventDetail modal, restore that modal
-                if (isFromEventDetailModal) {
-                  localStorage.setItem('reopenEventDetailId', actualEventId!);
-                }
-                
-                // Navigate to Home page
-                setLocation('/');
-              } else {
-                // Original logic for non-Home page contexts
-                console.log('🔙 EventContent - No Home layout detected, using original logic');
-                localStorage.removeItem('fromHomeEventDetail');
-                
-                if (isFromEventDetailModal) {
-                  // We came from EventDetail modal, so navigate back to home page
-                  // but store the event ID to reopen the EventDetail modal
-                  console.log('🔙 EventContent - navigating back to Home with EventDetail modal');
-                  localStorage.setItem('reopenEventDetailId', actualEventId!);
-                  setLocation('/');
-                } else {
-                  // Default back navigation
-                  console.log('🔙 EventContent - using default back navigation');
-                  window.history.back();
-                }
-              }
-            }}
-            onSimilarEventClick={() => {}}
-            hasHomeLayout={true} // Pass context to EventContentCard
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Messages tab context: full screen standalone
+  // Optimized full-screen layout with good padding
   return (
-    <div className="max-w-sm mx-auto bg-white min-h-screen">
-      {/* Event Content - full screen */}
+    <div className="w-full min-h-screen bg-white">
+      {/* Event Content - full screen with proper padding */}
       <div className="h-screen">
         <EventContentCard
           event={event}
@@ -254,9 +189,48 @@ export default function EventContentPage() {
           onTabChange={setActiveTab}
           showBackButton={true}
           showKeepExploring={false}
-          onBackClick={() => window.history.back()}
+          onBackClick={() => {
+            console.log('🔙 EventContent back button clicked');
+            console.log('🔙 EventContent - hasHomeLayout:', hasHomeLayout);
+            console.log('🔙 EventContent - isFromEventDetailModal:', isFromEventDetailModal);
+            console.log('🔙 EventContent - actualEventId:', actualEventId);
+            
+            // If Home page header and bottom navigation are present, route back to Home page Event card
+            if (hasHomeLayout) {
+              console.log('🔙 EventContent - Home layout detected, routing back to Home page Event card');
+              // Clear navigation flags
+              localStorage.removeItem('fromHomeEventDetail');
+              localStorage.removeItem('rsvpedEvent');
+              localStorage.removeItem('forceEventId');
+              localStorage.removeItem('preventHomeAdvancement');
+              
+              // If we came from EventDetail modal, restore that modal
+              if (isFromEventDetailModal) {
+                localStorage.setItem('reopenEventDetailId', actualEventId!);
+              }
+              
+              // Navigate to Home page
+              setLocation('/');
+            } else {
+              // Original logic for non-Home page contexts
+              console.log('🔙 EventContent - No Home layout detected, using original logic');
+              localStorage.removeItem('fromHomeEventDetail');
+              
+              if (isFromEventDetailModal) {
+                // We came from EventDetail modal, so navigate back to home page
+                // but store the event ID to reopen the EventDetail modal
+                console.log('🔙 EventContent - navigating back to Home with EventDetail modal');
+                localStorage.setItem('reopenEventDetailId', actualEventId!);
+                setLocation('/');
+              } else {
+                // Default back navigation
+                console.log('🔙 EventContent - using default back navigation');
+                window.history.back();
+              }
+            }
+          }}
           onSimilarEventClick={() => {}}
-          hasHomeLayout={false} // Pass context to EventContentCard
+          hasHomeLayout={hasHomeLayout}
         />
       </div>
     </div>
