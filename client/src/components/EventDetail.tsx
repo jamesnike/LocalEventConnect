@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Trash2, Bookmark } from "lucide-react";
 import { useLocation } from "wouter";
@@ -381,7 +381,8 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
     }
   };
 
-  const handleCelebrationComplete = () => {
+  const handleCelebrationComplete = useCallback(() => {
+    console.log('🎉 handleCelebrationComplete called - START');
     setShowCelebration(false);
     // Store the RSVP'd event information for EventContent to use
     const eventData = {
@@ -410,7 +411,8 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
     setLocation(`/event/${event.id}?tab=chat`);
     // DO NOT close the modal - let the navigation handle the page change
     // The modal will be unmounted when we navigate away from the current page
-  };
+    console.log('🎉 handleCelebrationComplete called - END');
+  }, [event.id, event.title, event.description, event.organizer, event.date, event.time, event.location, event.category, event.subCategory, event.rsvpCount, setLocation]);
 
   // Fetch fresh RSVP status when opened from Browse page (background update)
   const { data: freshRsvpStatus } = useQuery({
