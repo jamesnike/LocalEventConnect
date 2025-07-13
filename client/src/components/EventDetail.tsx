@@ -385,7 +385,9 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
     // Navigate directly to EventContent page with the specific event ID
     // Set flag for home layout context (since this comes from EventDetail modal)
     localStorage.setItem('fromHomeEventDetail', 'true');
-    console.log('Celebration complete navigation:', `/event/${event.id}?tab=chat`);
+    console.log('EventDetail celebration complete - event ID:', event.id);
+    console.log('EventDetail celebration complete - event title:', event.title);
+    console.log('EventDetail celebration complete - navigation URL:', `/event/${event.id}?tab=chat`);
     // Navigate directly to EventContent page - this bypasses the Home page entirely
     setLocation(`/event/${event.id}?tab=chat`);
     // Close the modal after navigation starts
