@@ -50,7 +50,7 @@ export default function EventContentCard({
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedSimilarEvent, setSelectedSimilarEvent] = useState<EventWithOrganizer | null>(null);
   const [quotedMessage, setQuotedMessage] = useState<ChatMessageWithUser | null>(null);
-  const [favoritedMessages, setFavoritedMessages] = useState<Set<number>>(new Set());
+
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Detect if Home page header and bottom nav are present using MutationObserver for better performance
@@ -188,18 +188,7 @@ export default function EventContentCard({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Update favorited messages set when favorites data changes
-  useEffect(() => {
-    console.log('Favorites data changed:', favoriteMessages.length, 'messages');
-    if (favoriteMessages.length > 0) {
-      const messageIds = favoriteMessages.map(msg => msg.id);
-      console.log('Setting favorited message IDs:', messageIds);
-      setFavoritedMessages(new Set(messageIds));
-    } else {
-      console.log('No favorite messages, clearing set');
-      setFavoritedMessages(new Set());
-    }
-  }, [favoriteMessages]);
+
 
   // Add favorite message mutation
   const addFavoriteMutation = useMutation({
@@ -213,10 +202,10 @@ export default function EventContentCard({
       return response.json();
     },
     onSuccess: (_, messageId) => {
-      // Update the favorited messages set immediately
-      setFavoritedMessages(prev => new Set(prev).add(messageId));
-      refetchFavorites();
+      // Invalidate messages cache to update favorites display
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
+      refetchFavorites();
     },
     onError: (error) => {
       console.error('Failed to favorite message:', error);
@@ -234,14 +223,10 @@ export default function EventContentCard({
       }
     },
     onSuccess: (_, messageId) => {
-      // Update the favorited messages set immediately
-      setFavoritedMessages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(messageId);
-        return newSet;
-      });
-      refetchFavorites();
+      // Invalidate messages cache to update favorites display
+      queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events', event.id, 'favorites'] });
+      refetchFavorites();
     },
     onError: (error) => {
       console.error('Failed to remove favorite message:', error);
@@ -667,6 +652,36 @@ export default function EventContentCard({
                                     <div className="break-words whitespace-pre-wrap overflow-wrap-anywhere force-word-wrap">
                                       {msg.message}
                                     </div>
+                                    
+                                    {/* Favorites display - show if message has favorites */}
+                                    {msg.favorites && msg.favorites.length > 0 && (
+                                      <div className="mt-2 pt-2 border-t border-gray-200/50">
+                                        <div className="flex items-center space-x-2">
+                                          <div className="flex items-center space-x-1">
+                                            <Heart className="w-3 h-3 text-red-500 fill-current" />
+                                            <span className="text-xs text-gray-500">
+                                              {msg.favorites.length} {msg.favorites.length === 1 ? 'favorite' : 'favorites'}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center space-x-1">
+                                            <span className="text-xs text-gray-500">by</span>
+                                            <div className="flex items-center space-x-1">
+                                              {msg.favorites.slice(0, 3).map((favorite, index) => (
+                                                <span key={favorite.user.id} className="text-xs text-gray-600 font-medium">
+                                                  {favorite.user.firstName}
+                                                  {index < Math.min(msg.favorites!.length, 3) - 1 ? ',' : ''}
+                                                </span>
+                                              ))}
+                                              {msg.favorites.length > 3 && (
+                                                <span className="text-xs text-gray-500">
+                                                  and {msg.favorites.length - 3} others
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                   
                                   {/* Action buttons - show for all messages */}
@@ -680,8 +695,9 @@ export default function EventContentCard({
                                     </button>
                                     <button
                                       onClick={() => {
-                                        console.log('Heart button clicked for message', msg.id, 'is favorited:', favoritedMessages.has(msg.id));
-                                        if (favoritedMessages.has(msg.id)) {
+                                        const isCurrentlyFavorited = msg.favorites?.some(fav => fav.user.id === user?.id) || false;
+                                        console.log('Heart button clicked for message', msg.id, 'is favorited:', isCurrentlyFavorited);
+                                        if (isCurrentlyFavorited) {
                                           removeFavoriteMutation.mutate(msg.id);
                                         } else {
                                           addFavoriteMutation.mutate(msg.id);
@@ -689,12 +705,12 @@ export default function EventContentCard({
                                       }}
                                       disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
                                       className={`p-1 hover:bg-gray-100 rounded-full transition-all duration-200 ${
-                                        favoritedMessages.has(msg.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                        msg.favorites?.some(fav => fav.user.id === user?.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                                       }`}
-                                      title={favoritedMessages.has(msg.id) ? "Remove from favorites" : "Add to favorites"}
+                                      title={msg.favorites?.some(fav => fav.user.id === user?.id) ? "Remove from favorites" : "Add to favorites"}
                                     >
                                       <Heart className={`w-4 h-4 transition-colors ${
-                                        favoritedMessages.has(msg.id) 
+                                        msg.favorites?.some(fav => fav.user.id === user?.id) 
                                           ? 'text-red-500 fill-current' 
                                           : 'text-gray-500 hover:text-red-500'
                                       }`} />

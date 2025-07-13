@@ -260,6 +260,11 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type ChatMessageWithUser = ChatMessage & {
   user: User;
   quotedMessage?: ChatMessage & { user: User };
+  favorites?: Array<{
+    user: User;
+    createdAt: string;
+  }>;
+  favoritesCount?: number;
 };
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type MessageRead = typeof messageReads.$inferSelect;

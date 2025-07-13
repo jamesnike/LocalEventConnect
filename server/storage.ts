@@ -840,10 +840,44 @@ export class DatabaseStorage implements IStorage {
           }
         }
         
+        // Fetch favorites for this message
+        const favoritesQuery = await db
+          .select({
+            user: {
+              id: users.id,
+              customAvatarUrl: users.customAvatarUrl,
+              animeAvatarSeed: users.animeAvatarSeed,
+              location: users.location,
+              email: users.email,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              profileImageUrl: users.profileImageUrl,
+              interests: users.interests,
+              personality: users.personality,
+              aiSignature: users.aiSignature,
+              skippedEvents: users.skippedEvents,
+              eventsShownSinceSkip: users.eventsShownSinceSkip,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+            },
+            createdAt: messageFavorites.createdAt,
+          })
+          .from(messageFavorites)
+          .leftJoin(users, eq(messageFavorites.userId, users.id))
+          .where(eq(messageFavorites.messageId, result.id))
+          .orderBy(desc(messageFavorites.createdAt));
+        
+        const favorites = favoritesQuery.map(fav => ({
+          user: fav.user!,
+          createdAt: fav.createdAt.toISOString(),
+        }));
+        
         return {
           ...result,
           user: result.user!,
           quotedMessage: quotedMessage || undefined,
+          favorites,
+          favoritesCount: favorites.length,
         };
       })
     );
