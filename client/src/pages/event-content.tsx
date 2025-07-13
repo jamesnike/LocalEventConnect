@@ -192,15 +192,22 @@ export default function EventContentPage() {
             showBackButton={true} // Always show back button
             showKeepExploring={false}
             onBackClick={() => {
+              console.log('🔙 EventContent back button clicked');
+              console.log('🔙 EventContent - isFromEventDetailModal:', isFromEventDetailModal);
+              console.log('🔙 EventContent - actualEventId:', actualEventId);
+              console.log('🔙 EventContent - fromHomeEventDetail flag:', localStorage.getItem('fromHomeEventDetail'));
+              
               // Clear the localStorage flag
               localStorage.removeItem('fromHomeEventDetail');
               if (isFromEventDetailModal) {
                 // We came from EventDetail modal, so navigate back to home page
                 // but store the event ID to reopen the EventDetail modal
+                console.log('🔙 EventContent - navigating back to Home with EventDetail modal');
                 localStorage.setItem('reopenEventDetailId', actualEventId!);
                 setLocation('/');
               } else {
                 // Default back navigation
+                console.log('🔙 EventContent - using default back navigation');
                 window.history.back();
               }
             }}
