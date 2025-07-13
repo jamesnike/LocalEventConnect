@@ -450,9 +450,9 @@ export default function EventContentCard({
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full p-2">
       <div
-        className={`bg-white overflow-hidden transform transition-all duration-300 ${
+        className={`bg-white overflow-hidden transform transition-all duration-300 rounded-2xl shadow-xl ${
           isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'
         }`}
         style={{
@@ -461,10 +461,10 @@ export default function EventContentCard({
         }}
       >
         {/* Top padding for better spacing */}
-        <div className="h-4"></div>
+        <div className="h-6"></div>
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-5 text-white">
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-6 text-white mx-4 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
@@ -525,7 +525,7 @@ export default function EventContentCard({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 mx-4 mt-6">
           <button
             onClick={() => handleTabChange('chat')}
             className={`${event.isPrivateChat ? 'w-1/2' : 'flex-1'} py-3 px-4 text-sm font-medium flex items-center justify-center space-x-2 ${
@@ -564,8 +564,8 @@ export default function EventContentCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden" style={{ 
-          height: 'calc(100vh - 200px)' // Optimized height for better screen utilization
+        <div className="flex-1 overflow-hidden mx-4" style={{ 
+          height: 'calc(100vh - 220px)' // Optimized height for better screen utilization
         }}>
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
@@ -585,7 +585,7 @@ export default function EventContentCard({
                 {/* Messages */}
                 <div 
                   ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto px-6 py-4 space-y-4"
+                  className="flex-1 overflow-y-auto px-8 py-6 space-y-4"
                 >
                   {isLoadingMessages ? (
                     <div className="text-center py-8">
@@ -709,10 +709,10 @@ export default function EventContentCard({
                 </div>
 
                 {/* Message Input - Always visible with proper padding */}
-                <div className="border-t border-gray-200 bg-white shadow-lg">
+                <div className="border-t border-gray-200 bg-white shadow-lg mx-4 mb-4 rounded-xl">
                   {/* Quote preview */}
                   {quotedMessage && (
-                    <div className="px-6 pt-4 pb-3 bg-blue-50 border-b border-blue-200">
+                    <div className="px-8 pt-5 pb-4 bg-blue-50 border-b border-blue-200 rounded-t-xl">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="text-xs text-blue-600 font-medium mb-1">
@@ -732,8 +732,8 @@ export default function EventContentCard({
                     </div>
                   )}
                   
-                  <div className="px-6 py-4">
-                    <div className="flex space-x-3">
+                  <div className="px-8 py-5">
+                    <div className="flex space-x-4">
                       <input
                         type="text"
                         value={newMessage}
@@ -763,7 +763,7 @@ export default function EventContentCard({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="h-full overflow-y-auto px-6 py-4"
+                className="h-full overflow-y-auto px-8 py-6"
               >
                 <div className="space-y-4">
                   {similarEvents.length > 0 ? (
@@ -823,7 +823,7 @@ export default function EventContentCard({
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col"
               >
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
                   {isLoadingFavorites ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
