@@ -383,7 +383,7 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
     // Store the RSVP'd event information for EventContent to use
-    localStorage.setItem('rsvpedEvent', JSON.stringify({
+    const eventData = {
       id: event.id,
       title: event.title,
       description: event.description,
@@ -395,10 +395,12 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
       subCategory: event.subCategory,
       rsvpCount: event.rsvpCount,
       userRsvpStatus: 'going'
-    }));
+    };
+    localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
     localStorage.setItem('fromHomeEventDetail', 'true');
     console.log('EventDetail celebration complete - event ID:', event.id);
     console.log('EventDetail celebration complete - event title:', event.title);
+    console.log('EventDetail celebration complete - storing event data:', eventData);
     console.log('EventDetail celebration complete - navigation URL:', `/event/${event.id}?tab=chat`);
     // Navigate directly to EventContent page - this bypasses the Home page entirely
     setLocation(`/event/${event.id}?tab=chat`);

@@ -48,6 +48,7 @@ export default function EventContentPage() {
   console.log('EventContentPage debug:', {
     eventId,
     eventIdType: typeof eventId,
+    actualEventId,
     user: !!user,
     authLoading,
     eventLoading,
@@ -63,18 +64,23 @@ export default function EventContentPage() {
     storedEventId: storedEvent?.id,
     storedEventTitle: storedEvent?.title,
     fetchedEventId: fetchedEvent?.id,
-    fetchedEventTitle: fetchedEvent?.title
+    fetchedEventTitle: fetchedEvent?.title,
+    rsvpedEventData: rsvpedEventData,
+    isFromEventDetailModal
   });
 
-  // Clean up stored event data when component unmounts
+  // Clean up stored event data when component unmounts (only if not navigating to another event page)
   useEffect(() => {
     return () => {
-      if (storedEvent) {
-        localStorage.removeItem('rsvpedEvent');
-        localStorage.removeItem('fromHomeEventDetail');
-      }
+      // Only clean up if we're not navigating to another event page
+      setTimeout(() => {
+        if (!window.location.pathname.includes('/event/')) {
+          localStorage.removeItem('rsvpedEvent');
+          localStorage.removeItem('fromHomeEventDetail');
+        }
+      }, 100);
     };
-  }, [storedEvent]);
+  }, []);
 
   // Set initial tab based on URL params or localStorage
   useEffect(() => {
