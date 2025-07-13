@@ -117,6 +117,8 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
         localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
         localStorage.setItem('fromHomeEventDetail', 'true');
         localStorage.setItem('forceEventId', event.id.toString());
+        // Set flag to prevent Home page from advancing after RSVP
+        localStorage.setItem('preventHomeAdvancement', 'true');
         
         console.log('🎉 RSVP mutation - storing event data for navigation');
         console.log('🎉 RSVP mutation - event ID:', event.id);

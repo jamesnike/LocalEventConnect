@@ -733,6 +733,16 @@ export default function Home() {
 
   const handleCelebrationComplete = async () => {
     setShowCelebration(false);
+    
+    // Check if we should prevent home advancement (RSVP from EventDetail modal)
+    const preventAdvancement = localStorage.getItem('preventHomeAdvancement');
+    if (preventAdvancement === 'true') {
+      console.log('🏠 Home page - preventing advancement due to EventDetail RSVP');
+      localStorage.removeItem('preventHomeAdvancement');
+      // Don't show content card or advance to next event
+      return;
+    }
+    
     setShowContentCard(true);
     
     // Increment events shown counter in database

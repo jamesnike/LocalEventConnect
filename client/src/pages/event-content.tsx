@@ -82,6 +82,7 @@ export default function EventContentPage() {
           localStorage.removeItem('rsvpedEvent');
           localStorage.removeItem('fromHomeEventDetail');
           localStorage.removeItem('forceEventId');
+          localStorage.removeItem('preventHomeAdvancement');
         }
       }, 100);
     };
