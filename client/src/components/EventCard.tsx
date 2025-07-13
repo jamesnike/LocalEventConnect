@@ -234,15 +234,11 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                // Two-step confirmation for canceling event
+                // Single confirmation for canceling event
                 const confirmMessage = `Are you sure you want to cancel "${event.title}"?\n\nThis action cannot be undone and will notify all attendees.`;
                 
                 if (window.confirm(confirmMessage)) {
-                  const finalConfirmMessage = `Final confirmation: Cancel "${event.title}"?`;
-                  
-                  if (window.confirm(finalConfirmMessage)) {
-                    onRemoveClick();
-                  }
+                  onRemoveClick();
                 }
               }}
               className="text-red-500 hover:text-red-700"
@@ -254,15 +250,11 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                // Two-step confirmation for removing RSVP
+                // Single confirmation for removing RSVP
                 const confirmMessage = `Are you sure you want to remove your RSVP for "${event.title}"?\n\nYou will no longer be attending this event.`;
                 
                 if (window.confirm(confirmMessage)) {
-                  const finalConfirmMessage = `Final confirmation: Remove RSVP for "${event.title}"?`;
-                  
-                  if (window.confirm(finalConfirmMessage)) {
-                    onRemoveClick();
-                  }
+                  onRemoveClick();
                 }
               }}
               className="text-red-500 hover:text-red-700"
