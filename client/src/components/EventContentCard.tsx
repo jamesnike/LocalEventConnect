@@ -919,15 +919,23 @@ export default function EventContentCard({
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center space-x-2">
                               <Heart className="w-4 h-4 text-red-500 fill-current" />
-                              <span className="text-xs text-gray-500">Favorited</span>
+                              <span className="text-xs text-gray-500">
+                                Favorited by {message.favorites?.length || 0} {message.favorites?.length === 1 ? 'person' : 'people'}
+                              </span>
                             </div>
-                            <button
-                              onClick={() => removeFavoriteMutation.mutate(message.id)}
-                              disabled={removeFavoriteMutation.isPending}
-                              className="text-xs text-red-500 hover:text-red-700 transition-colors"
-                            >
-                              {removeFavoriteMutation.isPending ? 'Removing...' : 'Remove'}
-                            </button>
+                            <div className="flex items-center space-x-2">
+                              {message.favorites?.slice(0, 3).map((favorite, index) => (
+                                <span key={favorite.user.id} className="text-xs text-gray-600 font-medium">
+                                  {favorite.user.firstName}
+                                  {index < Math.min(message.favorites!.length, 3) - 1 ? ',' : ''}
+                                </span>
+                              ))}
+                              {message.favorites && message.favorites.length > 3 && (
+                                <span className="text-xs text-gray-500">
+                                  +{message.favorites.length - 3} more
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -937,7 +945,7 @@ export default function EventContentCard({
                       <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-500 text-sm">No favorite messages yet</p>
                       <p className="text-gray-400 text-xs mt-2">
-                        Hover over any message in the chat to add it to your favorites
+                        Messages favorited by any member will appear here
                       </p>
                     </div>
                   )}

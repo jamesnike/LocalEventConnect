@@ -1536,6 +1536,7 @@ export class DatabaseStorage implements IStorage {
   
   // Favorite message operations
   async getFavoriteMessages(eventId: number, userId: string): Promise<ChatMessageWithUser[]> {
+    // Get all messages that have been favorited by any user in this event
     const favoriteMessages = await db
       .select({
         id: chatMessages.id,
@@ -1566,17 +1567,17 @@ export class DatabaseStorage implements IStorage {
       .from(messageFavorites)
       .innerJoin(chatMessages, eq(messageFavorites.messageId, chatMessages.id))
       .innerJoin(users, eq(chatMessages.userId, users.id))
-      .where(and(
-        eq(messageFavorites.userId, userId),
-        eq(chatMessages.eventId, eventId)
-      ))
-      .orderBy(desc(messageFavorites.createdAt));
+      .where(eq(chatMessages.eventId, eventId))
+      .groupBy(chatMessages.id, users.id, chatMessages.eventId, chatMessages.userId, chatMessages.message, chatMessages.quotedMessageId, chatMessages.createdAt, chatMessages.updatedAt)
+      .orderBy(desc(chatMessages.createdAt));
     
-    // Handle quoted messages
-    const messagesWithQuotes = await Promise.all(
+    // Handle quoted messages and favorites information
+    const messagesWithQuotesAndFavorites = await Promise.all(
       favoriteMessages.map(async (message) => {
+        let quotedMessage = null;
+        
         if (message.quotedMessageId) {
-          const quotedMessage = await db
+          const quotedResult = await db
             .select({
               id: chatMessages.id,
               eventId: chatMessages.eventId,
@@ -1608,16 +1609,56 @@ export class DatabaseStorage implements IStorage {
             .where(eq(chatMessages.id, message.quotedMessageId))
             .limit(1);
           
-          return {
-            ...message,
-            quotedMessage: quotedMessage[0] || undefined,
-          };
+          if (quotedResult.length > 0) {
+            quotedMessage = {
+              ...quotedResult[0],
+              user: quotedResult[0].user!,
+            };
+          }
         }
-        return message;
+        
+        // Fetch favorites for this message
+        const favoritesQuery = await db
+          .select({
+            user: {
+              id: users.id,
+              customAvatarUrl: users.customAvatarUrl,
+              animeAvatarSeed: users.animeAvatarSeed,
+              location: users.location,
+              email: users.email,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              profileImageUrl: users.profileImageUrl,
+              interests: users.interests,
+              personality: users.personality,
+              aiSignature: users.aiSignature,
+              skippedEvents: users.skippedEvents,
+              eventsShownSinceSkip: users.eventsShownSinceSkip,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+            },
+            createdAt: messageFavorites.createdAt,
+          })
+          .from(messageFavorites)
+          .leftJoin(users, eq(messageFavorites.userId, users.id))
+          .where(eq(messageFavorites.messageId, message.id))
+          .orderBy(desc(messageFavorites.createdAt));
+        
+        const favorites = favoritesQuery.map(fav => ({
+          user: fav.user!,
+          createdAt: fav.createdAt.toISOString(),
+        }));
+        
+        return {
+          ...message,
+          quotedMessage: quotedMessage || undefined,
+          favorites,
+          favoritesCount: favorites.length,
+        };
       })
     );
     
-    return messagesWithQuotes;
+    return messagesWithQuotesAndFavorites;
   }
   
   async addFavoriteMessage(userId: string, messageId: number): Promise<void> {
