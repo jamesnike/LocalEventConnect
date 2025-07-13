@@ -125,11 +125,9 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
         console.log('🎉 RSVP mutation - event title:', event.title);
         console.log('🎉 RSVP mutation - forceEventId set to:', event.id.toString());
         
-        // Navigate to EventContent after celebration animation completes
-        setTimeout(() => {
-          console.log('🎉 RSVP mutation - navigating to EventContent:', `/event/${event.id}?tab=chat`);
-          setLocation(`/event/${event.id}?tab=chat`);
-        }, 3000);
+        // Navigate to EventContent immediately (celebration animation runs in background)
+        console.log('🎉 RSVP mutation - navigating to EventContent:', `/event/${event.id}?tab=chat`);
+        setLocation(`/event/${event.id}?tab=chat`);
       } else {
         toast({
           title: "RSVP Updated",
