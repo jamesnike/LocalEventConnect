@@ -960,10 +960,12 @@ export default function Home() {
       />
 
       {/* Celebration Animation */}
-      <CelebrationAnimation 
-        isVisible={showCelebration} 
-        onComplete={handleCelebrationComplete}
-      />
+      {!selectedEvent && (
+        <CelebrationAnimation 
+          isVisible={showCelebration} 
+          onComplete={handleCelebrationComplete}
+        />
+      )}
 
       {/* Skip Animation */}
       <SkipAnimation 
