@@ -27,9 +27,12 @@ export default function EventContentPage() {
   // Check if we have a stored RSVP'd event from EventDetail modal
   const rsvpedEventData = localStorage.getItem('rsvpedEvent');
   const storedEvent = rsvpedEventData ? JSON.parse(rsvpedEventData) : null;
+  
+  // Check if we have a forced event ID from EventDetail modal
+  const forceEventId = localStorage.getItem('forceEventId');
 
-  // Determine which event ID to use - stored event ID takes precedence
-  const actualEventId = storedEvent ? storedEvent.id : eventId;
+  // Determine which event ID to use - forced event ID takes highest precedence
+  const actualEventId = forceEventId || (storedEvent ? storedEvent.id : eventId);
 
   // Fetch the specific event (only if we don't have a stored event)
   const { data: fetchedEvent, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
@@ -49,6 +52,7 @@ export default function EventContentPage() {
     eventId,
     eventIdType: typeof eventId,
     actualEventId,
+    forceEventId,
     user: !!user,
     authLoading,
     eventLoading,
@@ -77,6 +81,7 @@ export default function EventContentPage() {
         if (!window.location.pathname.includes('/event/')) {
           localStorage.removeItem('rsvpedEvent');
           localStorage.removeItem('fromHomeEventDetail');
+          localStorage.removeItem('forceEventId');
         }
       }, 100);
     };

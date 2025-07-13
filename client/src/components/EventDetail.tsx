@@ -398,11 +398,13 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
     };
     localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
     localStorage.setItem('fromHomeEventDetail', 'true');
+    // Store the correct event ID to force URL to use this event
+    localStorage.setItem('forceEventId', event.id.toString());
     console.log('EventDetail celebration complete - event ID:', event.id);
     console.log('EventDetail celebration complete - event title:', event.title);
     console.log('EventDetail celebration complete - storing event data:', eventData);
     console.log('EventDetail celebration complete - navigation URL:', `/event/${event.id}?tab=chat`);
-    // Navigate directly to EventContent page - this bypasses the Home page entirely
+    // Navigate directly to EventContent page using the RSVP'd event ID
     setLocation(`/event/${event.id}?tab=chat`);
     // DO NOT close the modal - let the navigation handle the page change
     // The modal will be unmounted when we navigate away from the current page
