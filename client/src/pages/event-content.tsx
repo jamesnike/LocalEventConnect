@@ -48,7 +48,7 @@ export default function EventContentPage() {
   const isLoading = authLoading || eventLoading;
 
   // Debug logging
-  console.log('EventContentPage debug:', {
+  console.log('🔍 EventContentPage debug:', {
     eventId,
     eventIdType: typeof eventId,
     actualEventId,
