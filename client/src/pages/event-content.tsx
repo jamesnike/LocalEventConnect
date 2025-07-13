@@ -17,14 +17,14 @@ export default function EventContentPage() {
   const hasTabParam = urlParams.get('tab') === 'chat'; // Group Chat/Rejoin Chat buttons use ?tab=chat
   
   // Check navigation context using localStorage flags
-  const isFromEventDetailModal = localStorage.getItem('fromHomeEventDetail') === 'true';
+  const isFromEventDetailModal = localStorage.getItem('fromEventDetailModal') === 'true';
   const isFromBrowse = localStorage.getItem('fromBrowse') === 'true';
   const isFromMyEvents = localStorage.getItem('fromMyEvents') === 'true';
   const isFromMessages = localStorage.getItem('fromMessagesTab') === 'true';
   
   // Determine navigation source priority:
-  // 1. EventDetailCard (Home page swipe interface) - shows Group Chat button with ?tab=chat
-  // 2. EventDetail Component (Modal) - shows Group Chat button with ?tab=chat + fromHomeEventDetail flag
+  // 1. EventDetailCard (Home page swipe interface) - direct navigation to EventContent
+  // 2. EventDetail Component (Modal) - shows Group Chat button with ?tab=chat + fromEventDetailModal flag
   // 3. Messages Tab - direct navigation without ?tab=chat
   let navigationSource: 'home-eventdetail' | 'modal-eventdetail' | 'messages' = 'home-eventdetail';
   
@@ -99,7 +99,7 @@ export default function EventContentPage() {
       setTimeout(() => {
         if (!window.location.pathname.includes('/event/')) {
           localStorage.removeItem('rsvpedEvent');
-          localStorage.removeItem('fromHomeEventDetail');
+          localStorage.removeItem('fromEventDetailModal');
           localStorage.removeItem('forceEventId');
           localStorage.removeItem('preventHomeAdvancement');
           localStorage.removeItem('fromBrowse');
@@ -212,7 +212,7 @@ export default function EventContentPage() {
             console.log('🔙 EventContent - actualEventId:', actualEventId);
             
             // Clear all navigation flags to prevent state issues
-            localStorage.removeItem('fromHomeEventDetail');
+            localStorage.removeItem('fromEventDetailModal');
             localStorage.removeItem('rsvpedEvent');
             localStorage.removeItem('forceEventId');
             localStorage.removeItem('preventHomeAdvancement');
