@@ -95,10 +95,39 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
         setLocalRsvpCount(prev => prev + 1);
       }
       
-      // If user is RSVPing "going", show celebration animation
+      // If user is RSVPing "going", show celebration animation and navigate after delay
       if (status === 'going') {
         console.log('🎉 RSVP mutation success - showing celebration animation');
         setShowCelebration(true);
+        
+        // Store the RSVP'd event information for EventContent to use
+        const eventData = {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          organizer: event.organizer,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+          category: event.category,
+          subCategory: event.subCategory,
+          rsvpCount: event.rsvpCount,
+          userRsvpStatus: 'going'
+        };
+        localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
+        localStorage.setItem('fromHomeEventDetail', 'true');
+        localStorage.setItem('forceEventId', event.id.toString());
+        
+        console.log('🎉 RSVP mutation - storing event data for navigation');
+        console.log('🎉 RSVP mutation - event ID:', event.id);
+        console.log('🎉 RSVP mutation - event title:', event.title);
+        console.log('🎉 RSVP mutation - forceEventId set to:', event.id.toString());
+        
+        // Navigate to EventContent after celebration animation completes
+        setTimeout(() => {
+          console.log('🎉 RSVP mutation - navigating to EventContent:', `/event/${event.id}?tab=chat`);
+          setLocation(`/event/${event.id}?tab=chat`);
+        }, 3000);
       } else {
         toast({
           title: "RSVP Updated",
@@ -382,37 +411,9 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
   };
 
   const handleCelebrationComplete = useCallback(() => {
-    console.log('🎉 handleCelebrationComplete called - START');
+    console.log('🎊 CelebrationAnimation onComplete - hiding celebration');
     setShowCelebration(false);
-    // Store the RSVP'd event information for EventContent to use
-    const eventData = {
-      id: event.id,
-      title: event.title,
-      description: event.description,
-      organizer: event.organizer,
-      date: event.date,
-      time: event.time,
-      location: event.location,
-      category: event.category,
-      subCategory: event.subCategory,
-      rsvpCount: event.rsvpCount,
-      userRsvpStatus: 'going'
-    };
-    localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
-    localStorage.setItem('fromHomeEventDetail', 'true');
-    // Store the correct event ID to force URL to use this event
-    localStorage.setItem('forceEventId', event.id.toString());
-    console.log('🎉 EventDetail celebration complete - event ID:', event.id);
-    console.log('🎉 EventDetail celebration complete - event title:', event.title);
-    console.log('🎉 EventDetail celebration complete - storing event data:', eventData);
-    console.log('🎉 EventDetail celebration complete - forceEventId set to:', event.id.toString());
-    console.log('🎉 EventDetail celebration complete - navigation URL:', `/event/${event.id}?tab=chat`);
-    // Navigate directly to EventContent page using the RSVP'd event ID
-    setLocation(`/event/${event.id}?tab=chat`);
-    // DO NOT close the modal - let the navigation handle the page change
-    // The modal will be unmounted when we navigate away from the current page
-    console.log('🎉 handleCelebrationComplete called - END');
-  }, [event.id, event.title, event.description, event.organizer, event.date, event.time, event.location, event.category, event.subCategory, event.rsvpCount, setLocation]);
+  }, []);
 
   // Fetch fresh RSVP status when opened from Browse page (background update)
   const { data: freshRsvpStatus } = useQuery({
