@@ -193,9 +193,42 @@ export default function Home() {
     const fromEventContent = localStorage.getItem('fromEventContent');
     const preferredTab = localStorage.getItem('preferredTab');
     const reopenEventDetailId = localStorage.getItem('reopenEventDetailId');
+    const showEventContent = localStorage.getItem('showEventContent');
+    const eventContentTab = localStorage.getItem('eventContentTab');
+    const forceEventId = localStorage.getItem('forceEventId');
     
+    // Handle EventDetail RSVP navigation to EventContent within Home page
+    if (showEventContent === 'true' && forceEventId && events) {
+      console.log('🏠 Home page - handling EventDetail RSVP navigation to EventContent');
+      const eventId = parseInt(forceEventId);
+      const eventIndex = events.findIndex(e => e.id === eventId);
+      
+      if (eventIndex !== -1) {
+        const event = events[eventIndex];
+        console.log('🏠 Home page - found event for EventContent:', event.title);
+        
+        // Set the event and show EventContent
+        setCurrentEventIndex(eventIndex);
+        setShowDetailCard(false);
+        setShowContentCard(true);
+        setSelectedEvent(null);
+        
+        // Set the active tab
+        if (eventContentTab) {
+          setLastActiveTab(eventContentTab as 'chat' | 'similar' | 'favorites');
+        }
+        
+        console.log('🏠 Home page - showing EventContent for event:', event.id);
+      } else {
+        console.log('🏠 Home page - event not found in events array for EventContent');
+      }
+      
+      // Clear localStorage flags
+      localStorage.removeItem('showEventContent');
+      localStorage.removeItem('eventContentTab');
+    }
     // Handle EventDetail navigation from EventContent
-    if (selectedEventId && showEventDetail === 'true' && events) {
+    else if (selectedEventId && showEventDetail === 'true' && events) {
       const eventId = parseInt(selectedEventId);
       const eventIndex = events.findIndex(e => e.id === eventId);
       
