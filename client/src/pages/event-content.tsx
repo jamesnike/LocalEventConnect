@@ -28,10 +28,13 @@ export default function EventContentPage() {
   const rsvpedEventData = localStorage.getItem('rsvpedEvent');
   const storedEvent = rsvpedEventData ? JSON.parse(rsvpedEventData) : null;
 
-  // Fetch the specific event
+  // Determine which event ID to use - stored event ID takes precedence
+  const actualEventId = storedEvent ? storedEvent.id : eventId;
+
+  // Fetch the specific event (only if we don't have a stored event)
   const { data: fetchedEvent, isLoading: eventLoading, error } = useQuery<EventWithOrganizer>({
-    queryKey: [`/api/events/${eventId}`],
-    enabled: !!eventId && !!user && !authLoading && !storedEvent, // Skip fetch if we have stored event
+    queryKey: [`/api/events/${actualEventId}`],
+    enabled: !!actualEventId && !!user && !authLoading && !storedEvent, // Skip fetch if we have stored event
     retry: 1,
     refetchOnWindowFocus: false,
   });
@@ -50,11 +53,17 @@ export default function EventContentPage() {
     eventLoading,
     error: error?.message,
     event: !!event,
+    eventTitle: event?.title,
     pathname: window.location.pathname,
     search: window.location.search,
     isRendering: 'EventContentPage is rendering',
     isFromEventDetail,
-    isFromMessages
+    isFromMessages,
+    hasStoredEvent: !!storedEvent,
+    storedEventId: storedEvent?.id,
+    storedEventTitle: storedEvent?.title,
+    fetchedEventId: fetchedEvent?.id,
+    fetchedEventTitle: fetchedEvent?.title
   });
 
   // Clean up stored event data when component unmounts
@@ -162,6 +171,7 @@ export default function EventContentPage() {
         <div className="h-[calc(100vh-160px)]"> {/* Adjusted height for header + bottom nav */}
           <EventContentCard
             event={event}
+            eventId={parseInt(actualEventId || '0')}
             onSwipeLeft={() => {}}
             onSwipeRight={() => {}}
             isActive={true}
@@ -175,7 +185,7 @@ export default function EventContentPage() {
               if (isFromEventDetailModal) {
                 // We came from EventDetail modal, so navigate back to home page
                 // but store the event ID to reopen the EventDetail modal
-                localStorage.setItem('reopenEventDetailId', eventId!);
+                localStorage.setItem('reopenEventDetailId', actualEventId!);
                 setLocation('/');
               } else {
                 // Default back navigation
@@ -197,6 +207,7 @@ export default function EventContentPage() {
       <div className="h-screen">
         <EventContentCard
           event={event}
+          eventId={parseInt(actualEventId || '0')}
           onSwipeLeft={() => {}}
           onSwipeRight={() => {}}
           isActive={true}
