@@ -1002,7 +1002,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserEventIds(userId: string): Promise<number[]> {
-    // Get events where user has RSVPed but hasn't left the chat (EXCLUDE private chats)
+    // Get events where user has RSVPed but hasn't left the chat (INCLUDE private chats)
     const rsvpEvents = await db
       .select({ eventId: eventRsvps.eventId })
       .from(eventRsvps)
@@ -1013,16 +1013,12 @@ export class DatabaseStorage implements IStorage {
           or(
             eq(eventRsvps.hasLeftChat, false),
             sql`${eventRsvps.hasLeftChat} IS NULL`
-          ),
-          // Exclude private chats
-          or(
-            eq(events.isPrivateChat, false),
-            sql`${events.isPrivateChat} IS NULL`
           )
+          // Removed private chat exclusion to include private chats in notifications
         )
       );
     
-    // Get events where user is organizer AND has not left the chat (EXCLUDE private chats)
+    // Get events where user is organizer AND has not left the chat (INCLUDE private chats)
     // Check if organizer has an RSVP entry and hasn't left chat
     const organizerEvents = await db
       .select({ id: events.id })
@@ -1034,11 +1030,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(events.organizerId, userId),
-          // Exclude private chats
-          or(
-            eq(events.isPrivateChat, false),
-            sql`${events.isPrivateChat} IS NULL`
-          ),
+          // Removed private chat exclusion to include private chats in notifications
           // Include organizer events only if:
           // 1. No RSVP entry exists (hasn't left chat yet), OR
           // 2. RSVP exists and hasLeftChat is false/null
@@ -1057,12 +1049,12 @@ export class DatabaseStorage implements IStorage {
       ...rsvpEvents.map(e => e.eventId),
     ]);
     
-    // Debug: Uncomment to see event filtering details
-    // console.log(`getUserEventIds for user ${userId}:`, {
-    //   rsvpEvents: rsvpEvents.map(e => e.eventId),
-    //   organizerEvents: organizerEvents.map(e => e.id),
-    //   finalEventIds: Array.from(eventIds)
-    // });
+    // Debug: Temporarily enabled to see event filtering details
+    console.log(`getUserEventIds for user ${userId}:`, {
+      rsvpEvents: rsvpEvents.map(e => e.eventId),
+      organizerEvents: organizerEvents.map(e => e.id),
+      finalEventIds: Array.from(eventIds)
+    });
     
     return Array.from(eventIds);
   }
