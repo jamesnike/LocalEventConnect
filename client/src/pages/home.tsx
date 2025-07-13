@@ -398,9 +398,49 @@ export default function Home() {
         body: JSON.stringify({ status })
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, { eventId, status }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", user?.id, "events", "attending"] });
+      
+      // If user is RSVPing "attending" from Home page swipe, navigate to EventContent
+      if (status === 'attending') {
+        console.log('🏠 Home page RSVP mutation success - showing celebration animation');
+        
+        // Find the event that was RSVP'd
+        const rsvpedEvent = events?.find(e => e.id === eventId);
+        if (rsvpedEvent) {
+          // Store the RSVP'd event information for EventContent to use
+          const eventData = {
+            id: rsvpedEvent.id,
+            title: rsvpedEvent.title,
+            description: rsvpedEvent.description,
+            organizer: rsvpedEvent.organizer,
+            date: rsvpedEvent.date,
+            time: rsvpedEvent.time,
+            location: rsvpedEvent.location,
+            category: rsvpedEvent.category,
+            subCategory: rsvpedEvent.subCategory,
+            rsvpCount: rsvpedEvent.rsvpCount,
+            userRsvpStatus: 'attending'
+          };
+          localStorage.setItem('rsvpedEvent', JSON.stringify(eventData));
+          localStorage.setItem('fromHomeEventDetail', 'true');
+          localStorage.setItem('forceEventId', rsvpedEvent.id.toString());
+          // Set flag to prevent Home page from advancing after RSVP
+          localStorage.setItem('preventHomeAdvancement', 'true');
+          
+          console.log('🏠 Home page RSVP mutation - storing event data for navigation');
+          console.log('🏠 Home page RSVP mutation - event ID:', rsvpedEvent.id);
+          console.log('🏠 Home page RSVP mutation - event title:', rsvpedEvent.title);
+          console.log('🏠 Home page RSVP mutation - forceEventId set to:', rsvpedEvent.id.toString());
+          
+          // Navigate to EventContent after celebration animation completes
+          setTimeout(() => {
+            console.log('🏠 Home page RSVP mutation - navigating to EventContent:', `/event/${rsvpedEvent.id}?tab=chat`);
+            setLocation(`/event/${rsvpedEvent.id}?tab=chat`);
+          }, 3000);
+        }
+      }
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
