@@ -12,17 +12,32 @@ export default function EventContentPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'chat' | 'similar'>('chat');
   
-  // Determine access method based on URL params and referrer
+  // Determine access method based on URL params and localStorage flags
   const urlParams = new URLSearchParams(window.location.search);
-  const isFromEventDetail = urlParams.get('tab') === 'chat'; // Group Chat/Rejoin Chat buttons use ?tab=chat
-  const isFromMessages = !isFromEventDetail; // Messages tab navigation doesn't use ?tab=chat
+  const hasTabParam = urlParams.get('tab') === 'chat'; // Group Chat/Rejoin Chat buttons use ?tab=chat
+  
+  // Check navigation context using localStorage flags
+  const isFromEventDetailModal = localStorage.getItem('fromHomeEventDetail') === 'true';
+  const isFromBrowse = localStorage.getItem('fromBrowse') === 'true';
+  const isFromMyEvents = localStorage.getItem('fromMyEvents') === 'true';
+  const isFromMessages = localStorage.getItem('fromMessagesTab') === 'true';
+  
+  // Determine navigation source priority:
+  // 1. EventDetailCard (Home page swipe interface) - shows Group Chat button with ?tab=chat
+  // 2. EventDetail Component (Modal) - shows Group Chat button with ?tab=chat + fromHomeEventDetail flag
+  // 3. Messages Tab - direct navigation without ?tab=chat
+  let navigationSource: 'home-eventdetail' | 'modal-eventdetail' | 'messages' = 'home-eventdetail';
+  
+  if (isFromMessages) {
+    navigationSource = 'messages';
+  } else if (isFromEventDetailModal && hasTabParam) {
+    navigationSource = 'modal-eventdetail';
+  } else if (hasTabParam) {
+    navigationSource = 'home-eventdetail';
+  }
   
   // Check if we're in Home page context (has home header and bottom nav)
-  // Home page context: accessed from EventDetail modal (Group Chat/Rejoin Chat buttons)
-  const hasHomeLayout = isFromEventDetail;
-  
-  // Check if we came from EventDetail modal (by checking localStorage flag)
-  const isFromEventDetailModal = localStorage.getItem('fromHomeEventDetail') === 'true';
+  const hasHomeLayout = navigationSource === 'home-eventdetail';
   
   // Check if we have a stored RSVP'd event from EventDetail modal
   const rsvpedEventData = localStorage.getItem('rsvpedEvent');
@@ -62,7 +77,11 @@ export default function EventContentPage() {
     pathname: window.location.pathname,
     search: window.location.search,
     isRendering: 'EventContentPage is rendering',
-    isFromEventDetail,
+    navigationSource,
+    hasTabParam,
+    isFromEventDetailModal,
+    isFromBrowse,
+    isFromMyEvents,
     isFromMessages,
     hasStoredEvent: !!storedEvent,
     storedEventId: storedEvent?.id,
@@ -70,7 +89,7 @@ export default function EventContentPage() {
     fetchedEventId: fetchedEvent?.id,
     fetchedEventTitle: fetchedEvent?.title,
     rsvpedEventData: rsvpedEventData,
-    isFromEventDetailModal
+    hasHomeLayout
   });
 
   // Clean up stored event data when component unmounts (only if not navigating to another event page)
@@ -83,6 +102,9 @@ export default function EventContentPage() {
           localStorage.removeItem('fromHomeEventDetail');
           localStorage.removeItem('forceEventId');
           localStorage.removeItem('preventHomeAdvancement');
+          localStorage.removeItem('fromBrowse');
+          localStorage.removeItem('fromMyEvents');
+          localStorage.removeItem('fromMessagesTab');
         }
       }, 100);
     };
@@ -98,12 +120,7 @@ export default function EventContentPage() {
     
     // Clear localStorage after reading
     localStorage.removeItem('preferredTab');
-    
-    // Clean up home layout flag if not from home layout
-    if (!hasHomeLayout) {
-      localStorage.removeItem('fromHomeEventDetail');
-    }
-  }, [hasHomeLayout]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -191,8 +208,7 @@ export default function EventContentPage() {
           showKeepExploring={false}
           onBackClick={() => {
             console.log('🔙 EventContent back button clicked');
-            console.log('🔙 EventContent - hasHomeLayout:', hasHomeLayout);
-            console.log('🔙 EventContent - isFromEventDetailModal:', isFromEventDetailModal);
+            console.log('🔙 EventContent - navigationSource:', navigationSource);
             console.log('🔙 EventContent - actualEventId:', actualEventId);
             
             // Clear all navigation flags to prevent state issues
@@ -202,37 +218,41 @@ export default function EventContentPage() {
             localStorage.removeItem('preventHomeAdvancement');
             localStorage.removeItem('showEventContent');
             localStorage.removeItem('eventContentTab');
+            localStorage.removeItem('fromBrowse');
+            localStorage.removeItem('fromMyEvents');
+            localStorage.removeItem('fromMessagesTab');
             
-            // If Home page header and bottom navigation are present, route back to Home page Event card
-            if (hasHomeLayout) {
-              console.log('🔙 EventContent - Home layout detected, routing back to Home page Event card');
-              
-              // If we came from EventDetail modal, restore that modal
-              if (isFromEventDetailModal && actualEventId) {
-                localStorage.setItem('reopenEventDetailId', actualEventId);
-              }
-              
-              // Navigate to Home page
-              setLocation('/');
-            } else {
-              // Original logic for non-Home page contexts
-              console.log('🔙 EventContent - No Home layout detected, using original logic');
-              
-              if (isFromEventDetailModal && actualEventId) {
-                // We came from EventDetail modal, so navigate back to home page
-                // but store the event ID to reopen the EventDetail modal
-                console.log('🔙 EventContent - navigating back to Home with EventDetail modal');
-                localStorage.setItem('reopenEventDetailId', actualEventId);
+            // Handle navigation based on source
+            switch (navigationSource) {
+              case 'home-eventdetail':
+                // EventDetailCard --> EventContent, should go back to Home Page EventCard
+                console.log('🔙 EventContent - From EventDetailCard, navigating back to Home page');
                 setLocation('/');
-              } else {
-                // Default back navigation
-                console.log('🔙 EventContent - using default back navigation');
+                break;
+                
+              case 'modal-eventdetail':
+                // EventDetail Component --> EventContent, should go back to EventDetail component
+                console.log('🔙 EventContent - From EventDetail modal, navigating back to EventDetail modal');
+                if (actualEventId) {
+                  localStorage.setItem('reopenEventDetailId', actualEventId);
+                }
+                setLocation('/');
+                break;
+                
+              case 'messages':
+                // Messages Tab --> EventContent, should go back to Messages Tab
+                console.log('🔙 EventContent - From Messages tab, navigating back to Messages tab');
+                setLocation('/my-events?tab=messages');
+                break;
+                
+              default:
+                // Fallback to browser back
+                console.log('🔙 EventContent - Using fallback browser back');
                 window.history.back();
-              }
+                break;
             }
           }}
           onSimilarEventClick={() => {}}
-          hasHomeLayout={hasHomeLayout}
         />
       </div>
     </div>
