@@ -642,8 +642,8 @@ export default function EventContentCard({
                                   behavior="profile"
                                   user={msg.user}
                                 />
-                                <div className={`${isOwnMessage ? 'text-right' : 'text-left'} group relative`}>
-                                  <div className={`text-sm px-3 py-2 rounded-lg inline-block text-left ${
+                                <div className={`${isOwnMessage ? 'text-right' : 'text-left'} group relative min-w-0`}>
+                                  <div className={`text-sm px-3 py-2 rounded-lg inline-block text-left min-w-0 ${
                                     isOwnMessage 
                                       ? 'bg-purple-500 text-white rounded-br-none' 
                                       : 'bg-gray-100 text-gray-700 rounded-bl-none'
@@ -655,16 +655,18 @@ export default function EventContentCard({
                                           ? 'border-purple-200 bg-purple-400' 
                                           : 'border-gray-400 bg-gray-200 text-gray-600'
                                       }`}>
-                                        <div className="truncate">
+                                        <div className="break-words whitespace-pre-wrap">
                                           <span className="font-medium">
                                             {msg.quotedMessage.user.firstName} {msg.quotedMessage.user.lastName}:
                                           </span>
                                           {' '}
-                                          <span>{msg.quotedMessage.message}</span>
+                                          <span className="break-words">{msg.quotedMessage.message}</span>
                                         </div>
                                       </div>
                                     )}
-                                    {msg.message}
+                                    <div className="break-words whitespace-pre-wrap overflow-wrap-anywhere force-word-wrap">
+                                      {msg.message}
+                                    </div>
                                   </div>
                                   
                                   {/* Action buttons - show for all messages */}
@@ -718,7 +720,7 @@ export default function EventContentCard({
                           <div className="text-xs text-blue-600 font-medium mb-1">
                             Replying to {quotedMessage.user.firstName} {quotedMessage.user.lastName}
                           </div>
-                          <div className="text-sm text-gray-700 bg-white px-3 py-2 rounded border-l-2 border-blue-400">
+                          <div className="text-sm text-gray-700 bg-white px-3 py-2 rounded border-l-2 border-blue-400 break-words whitespace-pre-wrap">
                             {quotedMessage.message}
                           </div>
                         </div>
@@ -733,14 +735,25 @@ export default function EventContentCard({
                   )}
                   
                   <div className="px-8 py-5">
-                    <div className="flex space-x-4">
-                      <input
-                        type="text"
+                    <div className="flex items-start space-x-4">
+                      <textarea
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                         placeholder={quotedMessage ? "Reply to message..." : "Type a message..."}
-                        className="flex-1 px-5 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-colors"
+                        className="flex-1 px-5 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-colors resize-none overflow-hidden break-words whitespace-pre-wrap force-word-wrap"
+                        style={{
+                          minHeight: '48px',
+                          maxHeight: '120px',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}
+                        rows={1}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = 'auto';
+                          target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                        }}
                       />
                       <button
                         onClick={handleSendMessage}
@@ -861,7 +874,7 @@ export default function EventContentCard({
                             </div>
                           )}
                           
-                          <p className="text-gray-800 text-sm mt-1 break-words whitespace-pre-wrap">
+                          <p className="text-gray-800 text-sm mt-1 break-words whitespace-pre-wrap overflow-wrap-anywhere">
                             {message.message}
                           </p>
                           
