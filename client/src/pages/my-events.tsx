@@ -106,25 +106,23 @@ export default function MyEvents() {
       return events;
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - only fetch fresh data when cache is empty
+    staleTime: 0, // Don't cache - always get fresh activity sorting
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
     refetchOnMount: false, // Don't refetch on mount - use cache first
     refetchOnWindowFocus: false, // Don't refetch on window focus - use cache first
-    refetchInterval: activeTab === 'messages' ? 60000 : false, // Auto-refresh every 60 seconds when messages tab is active (reduced from 10 seconds)
+    refetchInterval: activeTab === 'messages' ? 10000 : false, // Auto-refresh every 10 seconds when messages tab is active for real-time reordering
   });
 
-  // Handle Messages tab access - trigger background refresh only when cache is empty
+  // Handle Messages tab access - trigger background refresh on first access
   useEffect(() => {
     if (activeTab === 'messages' && messagesTabFirstAccess && user?.id) {
-      // Only trigger refresh if no cached data exists
-      if (!groupChats || groupChats.length === 0) {
-        setTimeout(() => {
-          refetchGroupChats();
-        }, 100); // Small delay to ensure cache is shown first
-      }
-      setMessagesTabFirstAccess(false);
+      // Trigger background refresh without showing loading state
+      setTimeout(() => {
+        refetchGroupChats();
+        setMessagesTabFirstAccess(false);
+      }, 100); // Small delay to ensure cache is shown first
     }
-  }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats, groupChats]);
+  }, [activeTab, messagesTabFirstAccess, user?.id, refetchGroupChats]);
 
   // Fetch attendees for each group chat event (for avatar display)
   const { data: attendeesMap = {} } = useQuery({
