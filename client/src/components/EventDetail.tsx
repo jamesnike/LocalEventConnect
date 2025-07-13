@@ -390,10 +390,8 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
     console.log('EventDetail celebration complete - navigation URL:', `/event/${event.id}?tab=chat`);
     // Navigate directly to EventContent page - this bypasses the Home page entirely
     setLocation(`/event/${event.id}?tab=chat`);
-    // Close the modal after navigation starts
-    setTimeout(() => {
-      onClose();
-    }, 100);
+    // DO NOT close the modal - let the navigation handle the page change
+    // The modal will be unmounted when we navigate away from the current page
   };
 
   // Fetch fresh RSVP status when opened from Browse page (background update)
