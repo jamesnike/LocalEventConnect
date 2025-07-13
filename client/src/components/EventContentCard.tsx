@@ -113,26 +113,38 @@ export default function EventContentCard({
     enabled: hasChatAccess,
   });
 
-  // Fetch similar events with same category and sub-category (recent events only)
+  // Fetch similar events with matching category or sub-category (recent events only)
   const { data: fetchedSimilarEvents = [], error: similarEventsError, isLoading: isLoadingSimilarEvents } = useQuery({
     queryKey: ['/api/events', 'similar', event.category, event.subCategory, event.id],
     queryFn: async () => {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
       
-      const response = await apiRequest(`/api/events?category=${encodeURIComponent(event.category)}&timeFilter=upcoming&limit=50`);
+      const response = await apiRequest(`/api/events?timeFilter=upcoming&limit=100`);
       const events = await response.json() as EventWithOrganizer[];
       
-      // Filter for same sub-category, exclude current event, and only show future events
+      // Filter for same category OR same sub-category, exclude current event, and only show future events
       const filtered = events.filter(e => 
-        e.subCategory === event.subCategory && 
+        (e.category === event.category || e.subCategory === event.subCategory) && 
         e.id !== event.id &&
         e.date >= todayStr
       );
       
-      return filtered;
+      // Sort by priority: exact sub-category matches first, then category matches
+      const sorted = filtered.sort((a, b) => {
+        const aSubCategoryMatch = a.subCategory === event.subCategory;
+        const bSubCategoryMatch = b.subCategory === event.subCategory;
+        
+        if (aSubCategoryMatch && !bSubCategoryMatch) return -1;
+        if (!aSubCategoryMatch && bSubCategoryMatch) return 1;
+        
+        // If both have same match type, sort by date
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+      
+      return sorted;
     },
-    enabled: !!event.category && !!event.subCategory && activeTab === 'similar',
+    enabled: (!!event.category || !!event.subCategory) && activeTab === 'similar',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -809,7 +821,17 @@ export default function EventContentCard({
                             className="w-16 h-16 object-cover rounded-lg"
                           />
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-800 text-sm hover:text-purple-600 transition-colors">{similarEvent.title}</h4>
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-gray-800 text-sm hover:text-purple-600 transition-colors">{similarEvent.title}</h4>
+                              {/* Match type indicator */}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                similarEvent.subCategory === event.subCategory 
+                                  ? 'bg-purple-100 text-purple-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {similarEvent.subCategory === event.subCategory ? 'Same type' : 'Same category'}
+                              </span>
+                            </div>
                             <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                               <Clock className="w-3 h-3" />
                               <span>{formatDateTime(similarEvent.date, similarEvent.time)}</span>
