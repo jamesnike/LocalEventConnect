@@ -191,10 +191,10 @@ export default function EventContentPage() {
     );
   }
 
-  // Optimized full-screen layout with good padding
+  // Optimized layout with consistent width matching other pages
   return (
-    <div className="w-full min-h-screen bg-white">
-      {/* Event Content - full screen with proper padding */}
+    <div className="max-w-sm mx-auto bg-white min-h-screen">
+      {/* Event Content - consistent width with other pages */}
       <div className="h-screen">
         <EventContentCard
           event={event}
