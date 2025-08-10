@@ -12,6 +12,9 @@ if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
+// Development mode - bypass authentication if REPL_ID is not set
+const isDevelopmentMode = !process.env.REPL_ID;
+
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
@@ -73,6 +76,53 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Development mode - create a mock user
+  if (isDevelopmentMode) {
+    console.log("🔧 Running in development mode - authentication bypassed");
+    
+    // Create a mock user for development
+    const mockUser = {
+      claims: {
+        sub: "dev-user-123",
+        email: "dev@example.com",
+        first_name: "Development",
+        last_name: "User",
+        profile_image_url: "https://via.placeholder.com/150"
+      },
+      access_token: "mock-token",
+      refresh_token: "mock-refresh-token",
+      expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+    };
+
+    // Mock authentication middleware for development
+    app.use((req, res, next) => {
+      if (!req.user) {
+        req.user = mockUser;
+      }
+      next();
+    });
+
+    passport.serializeUser((user: Express.User, cb) => cb(null, user));
+    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+    
+    // Mock auth routes for development
+    app.get("/api/login", (req, res) => {
+      res.json({ message: "Development mode - no login required" });
+    });
+
+    app.get("/api/callback", (req, res) => {
+      res.redirect("/?auth=success");
+    });
+
+    app.get("/api/logout", (req, res) => {
+      req.user = undefined;
+      res.json({ message: "Logged out" });
+    });
+
+    return;
+  }
+
+  // Production mode - normal OAuth setup
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (
@@ -147,6 +197,11 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Development mode - always allow
+  if (isDevelopmentMode) {
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

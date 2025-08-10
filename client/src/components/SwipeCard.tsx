@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MapPin, Clock, DollarSign, Heart, X, Info } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
-import { getEventImageUrl } from "@/lib/eventImages";
+import { getEventImageUrl } from '@shared/eventImages';
 
 interface SwipeCardProps {
   event: EventWithOrganizer;
@@ -233,7 +233,7 @@ export default function SwipeCard({ event, onSwipeLeft, onSwipeRight, onInfoClic
             <div className="flex items-center space-x-0.5">
               <DollarSign className="w-4 h-4 text-gray-500" />
               <span className="text-base text-gray-600">
-                {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `${parseFloat(event.price).toFixed(2)}`}
+                {event.isFree || parseFloat(event.price ?? '0') === 0 ? 'Free' : `${parseFloat(event.price ?? '0').toFixed(2)}`}
               </span>
             </div>
           </div>

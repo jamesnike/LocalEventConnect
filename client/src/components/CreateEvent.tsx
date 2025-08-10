@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Camera, Calendar, Clock, MapPin, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from '@shared/authUtils';
+import { apiRequest } from '@shared/queryClient';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertEventSchema } from "@shared/schema";
@@ -236,9 +236,14 @@ export default function CreateEvent({ onClose }: CreateEventProps) {
                       <FormItem>
                         <FormControl>
                           <Input 
-                            {...field} 
-                            placeholder="Enter image URL"
-                            className="mt-2"
+                            placeholder="Event image URL (optional)"
+                            className="w-full"
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            value={field.value ?? ""}
+                            disabled={form.formState.isSubmitting}
+                            name="eventImageUrl"
+                            ref={field.ref}
                           />
                         </FormControl>
                         <FormMessage />

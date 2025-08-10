@@ -1,13 +1,17 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
+import { storage, MockStorage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertEventSchema, externalEventSchema, insertRsvpSchema, insertChatMessageSchema, chatMessages, users } from "@shared/schema";
+import { insertEventSchema, externalEventSchema, insertRsvpSchema, insertChatMessageSchema, chatMessages, users, type EventWithOrganizer } from "@shared/schema";
 import { z } from "zod";
 import OpenAI from "openai";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+
+// Use mock storage for development
+const isDevelopment = process.env.NODE_ENV === 'development';
+const storageInstance = isDevelopment ? new MockStorage() : storage;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -17,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await storageInstance.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -35,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timezoneOffset = req.query.timezoneOffset ? parseInt(req.query.timezoneOffset as string) : 0;
       
       // Don't pass userId to avoid filtering skipped events, and don't exclude past events for Browse
-      const events = await storage.getEvents(undefined, category, timeFilter, limit, false, timezoneOffset);
+      const events = await storageInstance.getEvents(undefined, category, timeFilter, limit, false, timezoneOffset);
       res.json(events);
     } catch (error) {
       console.error("Error fetching browse events:", error);
@@ -51,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       
       // For Home page, exclude past events
-      const events = await storage.getEvents(userId, category, timeFilter, limit, true);
+      const events = await storageInstance.getEvents(userId, category, timeFilter, limit, true);
       res.json(events);
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -64,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = (req.user as any)?.claims?.sub;
       
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
@@ -80,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const eventId = parseInt(req.params.id);
       
-      const attendees = await storage.getEventAttendees(eventId);
+      const attendees = await storageInstance.getEventAttendees(eventId);
       res.json(attendees);
     } catch (error) {
       console.error("Error fetching event attendees:", error);
@@ -96,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizerId: userId,
       });
       
-      const event = await storage.createEvent(eventData);
+      const event = await storageInstance.createEvent(eventData);
       res.status(201).json(event);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -113,7 +117,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate required fields using external event schema
       const eventData = externalEventSchema.omit({ organizerId: true }).parse(req.body);
       
-      const event = await storage.createExternalEvent(eventData);
+      const event = await storageInstance.createExternalEvent({
+        ...eventData,
+        latitude: eventData.latitude ?? undefined,
+        longitude: eventData.longitude ?? undefined,
+        price: eventData.price ?? undefined,
+        isFree: eventData.isFree ?? undefined,
+        eventImageUrl: eventData.eventImageUrl ?? undefined,
+      });
       res.status(201).json({ 
         success: true, 
         eventId: event.id,
@@ -143,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to get user ID from auth, but don't require authentication
       const userId = (req.user as any)?.claims?.sub;
       
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
@@ -161,13 +172,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       // Check if user is the organizer
-      const existingEvent = await storage.getEvent(eventId);
+      const existingEvent = await storageInstance.getEvent(eventId);
       if (!existingEvent || existingEvent.organizerId !== userId) {
         return res.status(403).json({ message: "Not authorized to update this event" });
       }
       
       const eventData = insertEventSchema.partial().parse(req.body);
-      const updatedEvent = await storage.updateEvent(eventId, eventData);
+      const updatedEvent = await storageInstance.updateEvent(eventId, eventData);
       
       res.json(updatedEvent);
     } catch (error) {
@@ -185,12 +196,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       // Check if user is the organizer
-      const existingEvent = await storage.getEvent(eventId);
+      const existingEvent = await storageInstance.getEvent(eventId);
       if (!existingEvent || existingEvent.organizerId !== userId) {
         return res.status(403).json({ message: "Not authorized to delete this event" });
       }
       
-      await storage.deleteEvent(eventId);
+      await storageInstance.deleteEvent(eventId);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting event:", error);
@@ -210,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view these events" });
       }
       
-      const events = await storage.getUserEvents(userId, type, pastOnly);
+      const events = await storageInstance.getUserEvents(userId, type, pastOnly);
       res.json(events);
     } catch (error) {
       console.error("Error fetching user events:", error);
@@ -229,15 +240,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get event IDs where user can participate in chat (regular events)
-      const eventIds = await storage.getUserEventIds(userId);
+      const eventIds = await storageInstance.getUserEventIds(userId);
       
       // Get full event details for regular events
       const regularEvents = await Promise.all(
-        eventIds.map(eventId => storage.getEvent(eventId, userId))
+        eventIds.map(eventId => storageInstance.getEvent(eventId, userId))
       );
       
       // Get private chats for this user
-      const privateChats = await storage.getUserPrivateChats(userId);
+      const privateChats = await storageInstance.getUserPrivateChats(userId);
       console.log(`Private chats for user ${userId}:`, privateChats.length, privateChats.map(c => ({ id: c.id, title: c.title })));
       
       // Combine regular events and private chats
@@ -251,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allEvents.map(async (event) => {
           try {
             // Get the most recent message for this event
-            const recentMessages = await storage.getChatMessages(event.id, 1);
+            const recentMessages = await storageInstance.getChatMessages(event.id, 1);
             const lastMessageTime = recentMessages.length > 0 ? recentMessages[0].createdAt : event.createdAt;
             return { ...event, lastMessageTime };
           } catch (error) {
@@ -287,18 +298,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if RSVP already exists
-      const existingRsvp = await storage.getUserRsvp(eventId, userId);
+      const existingRsvp = await storageInstance.getUserRsvp(eventId, userId);
       
       let rsvp;
       if (existingRsvp) {
-        rsvp = await storage.updateRsvp(eventId, userId, status);
+        rsvp = await storageInstance.updateRsvp(eventId, userId, status);
       } else {
         const rsvpData = insertRsvpSchema.parse({
           eventId,
           userId,
           status,
         });
-        rsvp = await storage.createRsvp(rsvpData);
+        rsvp = await storageInstance.createRsvp(rsvpData);
       }
       
       res.json(rsvp);
@@ -316,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
-      await storage.deleteRsvp(eventId, userId);
+      await storageInstance.deleteRsvp(eventId, userId);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting RSVP:", error);
@@ -330,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       console.log(`API: User ${userId} attempting to leave chat for event ${eventId}`);
-      await storage.leaveEventChat(eventId, userId);
+      await storageInstance.leaveEventChat(eventId, userId);
       console.log(`API: User ${userId} successfully left chat for event ${eventId}`);
       res.status(204).send();
     } catch (error) {
@@ -345,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       console.log(`API: User ${userId} attempting to rejoin chat for event ${eventId}`);
-      await storage.rejoinEventChat(eventId, userId);
+      await storageInstance.rejoinEventChat(eventId, userId);
       console.log(`API: User ${userId} successfully rejoined chat for event ${eventId}`);
       
       res.json({ message: "Successfully rejoined chat" });
@@ -362,14 +373,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       
       // Check if user is the organizer
-      const event = await storage.getEvent(eventId);
+      const event = await storageInstance.getEvent(eventId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
       const isOrganizer = event.organizerId === userId;
       
-      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const userRsvp = await storageInstance.getUserRsvp(eventId, userId);
       
       // If user is organizer and has no RSVP, create a virtual RSVP status
       if (isOrganizer && !userRsvp) {
@@ -401,7 +412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { location, interests, personality } = req.body;
       
-      const updatedUser = await storage.upsertUser({
+      const updatedUser = await storageInstance.upsertUser({
         id: userId,
         email: req.user.claims.email,
         firstName: req.user.claims.first_name,
@@ -423,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/users/generate-signature', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = await storageInstance.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -476,7 +487,7 @@ Please respond with just the signature text, nothing else.`;
         }
 
         // Save the signature to the database
-        await storage.upsertUser({
+        await storageInstance.upsertUser({
           id: userId,
           email: user.email,
           firstName: user.firstName,
@@ -513,7 +524,7 @@ Please respond with just the signature text, nothing else.`;
         const fallbackSignature = templates[Math.floor(Math.random() * templates.length)];
         
         // Save the fallback signature to the database
-        await storage.upsertUser({
+        await storageInstance.upsertUser({
           id: userId,
           email: user.email,
           firstName: user.firstName,
@@ -535,13 +546,13 @@ Please respond with just the signature text, nothing else.`;
       console.error("Error generating signature:", error);
       
       // Handle specific OpenAI errors
-      if (error.status === 429) {
+      if (error instanceof Error && (error as any).status === 429) {
         return res.status(429).json({ 
           message: "OpenAI API quota exceeded. Please check your OpenAI billing and usage limits." 
         });
       }
       
-      if (error.status === 401) {
+      if (error instanceof Error && (error as any).status === 401) {
         return res.status(401).json({ 
           message: "OpenAI API key is invalid. Please check your API key configuration." 
         });
@@ -566,13 +577,13 @@ Please respond with just the signature text, nothing else.`;
       }
       
       // Check if the other user exists
-      const otherUser = await storage.getUser(otherUserId);
+      const otherUser = await storageInstance.getUser(otherUserId);
       if (!otherUser) {
         return res.status(404).json({ message: "User not found" });
       }
       
       // Create or get existing private chat
-      const privateChat = await storage.createPrivateChat(currentUserId, otherUserId);
+      const privateChat = await storageInstance.createPrivateChat(currentUserId, otherUserId);
       
       res.json(privateChat);
     } catch (error) {
@@ -594,7 +605,7 @@ Please respond with just the signature text, nothing else.`;
         return res.status(400).json({ message: "Cannot get private chat with yourself" });
       }
       
-      const privateChat = await storage.getPrivateChat(currentUserId, otherUserId);
+      const privateChat = await storageInstance.getPrivateChat(currentUserId, otherUserId);
       
       if (!privateChat) {
         return res.status(404).json({ message: "Private chat not found" });
@@ -615,12 +626,12 @@ Please respond with just the signature text, nothing else.`;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      const messages = await storage.getChatMessages(eventId, limit);
+      const messages = await storageInstance.getChatMessages(eventId, limit);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching chat messages:", error);
@@ -643,7 +654,7 @@ Please respond with just the signature text, nothing else.`;
       }
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
@@ -655,10 +666,10 @@ Please respond with just the signature text, nothing else.`;
         quotedMessageId: quotedMessageId || null,
       });
       
-      const newMessage = await storage.createChatMessage(messageData);
+      const newMessage = await storageInstance.createChatMessage(messageData);
       
       // Get message with user data - get the most recent message
-      const messagesWithUser = await storage.getChatMessages(eventId, 1);
+      const messagesWithUser = await storageInstance.getChatMessages(eventId, 1);
       const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
       
       // Debugging removed - system working correctly
@@ -682,11 +693,11 @@ Please respond with just the signature text, nothing else.`;
       }
       
       // Broadcast notification to all users subscribed to notifications
-      const eventData = await storage.getEvent(eventId);
-      const senderUser = await storage.getUser(userId);
+      const eventData = await storageInstance.getEvent(eventId);
+      const senderUser = await storageInstance.getUser(userId);
       
       // Get all user IDs who should receive notifications for this event
-      const userEventIds = await storage.getUserEventIds(userId);
+      const userEventIds = await storageInstance.getUserEventIds(userId);
       
       // Broadcast to notification subscribers (excluding the sender to avoid self-notifications)
       notificationSubscribers.forEach(client => {
@@ -724,12 +735,12 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if user has access to this event and owns the message
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      await storage.deleteChatMessage(messageId, userId);
+      await storageInstance.deleteChatMessage(messageId, userId);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting chat message:", error);
@@ -744,12 +755,12 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists and user has access
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      const favoriteMessages = await storage.getFavoriteMessages(eventId, userId);
+      const favoriteMessages = await storageInstance.getFavoriteMessages(eventId, userId);
       res.json(favoriteMessages);
     } catch (error) {
       console.error("Error fetching favorite messages:", error);
@@ -764,25 +775,25 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists and user has access
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
       // Check if message exists
-      const messages = await storage.getChatMessages(eventId, 1000);
+      const messages = await storageInstance.getChatMessages(eventId, 1000);
       const messageExists = messages.some(msg => msg.id === messageId);
       if (!messageExists) {
         return res.status(404).json({ message: "Message not found" });
       }
       
       // Check if already favorited
-      const isAlreadyFavorited = await storage.checkMessageFavorite(userId, messageId);
+      const isAlreadyFavorited = await storageInstance.checkMessageFavorite(userId, messageId);
       if (isAlreadyFavorited) {
         return res.status(400).json({ message: "Message already favorited" });
       }
       
-      await storage.addFavoriteMessage(userId, messageId);
+      await storageInstance.addFavoriteMessage(userId, messageId);
       res.status(201).json({ message: "Message favorited successfully" });
     } catch (error) {
       console.error("Error favoriting message:", error);
@@ -797,12 +808,12 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists and user has access
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      await storage.removeFavoriteMessage(userId, messageId);
+      await storageInstance.removeFavoriteMessage(userId, messageId);
       res.status(204).send();
     } catch (error) {
       console.error("Error removing favorite message:", error);
@@ -821,7 +832,7 @@ Please respond with just the signature text, nothing else.`;
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const savedEvents = await storage.getSavedEvents(userId);
+      const savedEvents = await storageInstance.getSavedEvents(userId);
       res.json(savedEvents);
     } catch (error) {
       console.error("Error fetching saved events:", error);
@@ -833,7 +844,7 @@ Please respond with just the signature text, nothing else.`;
     try {
       const userId = req.user.claims.sub;
       
-      const savedEvents = await storage.getSavedEvents(userId);
+      const savedEvents = await storageInstance.getSavedEvents(userId);
       res.json(savedEvents);
     } catch (error) {
       console.error("Error fetching saved events:", error);
@@ -847,18 +858,18 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
       // Check if already saved
-      const isAlreadySaved = await storage.checkEventSaved(userId, eventId);
+      const isAlreadySaved = await storageInstance.checkEventSaved(userId, eventId);
       if (isAlreadySaved) {
         return res.status(400).json({ message: "Event already saved" });
       }
       
-      await storage.addSavedEvent(userId, eventId);
+      await storageInstance.addSavedEvent(userId, eventId);
       res.status(201).json({ message: "Event saved successfully" });
     } catch (error) {
       console.error("Error saving event:", error);
@@ -872,12 +883,12 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      await storage.removeSavedEvent(userId, eventId);
+      await storageInstance.removeSavedEvent(userId, eventId);
       res.status(204).send();
     } catch (error) {
       console.error("Error removing saved event:", error);
@@ -891,12 +902,12 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      const isSaved = await storage.checkEventSaved(userId, eventId);
+      const isSaved = await storageInstance.checkEventSaved(userId, eventId);
       res.json({ isSaved });
     } catch (error) {
       console.error("Error checking saved status:", error);
@@ -908,7 +919,7 @@ Please respond with just the signature text, nothing else.`;
   app.get('/api/notifications/unread', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const unreadCounts = await storage.getUnreadCounts(userId);
+      const unreadCounts = await storageInstance.getUnreadCounts(userId);
       res.json(unreadCounts);
     } catch (error) {
       console.error("Error fetching unread counts:", error);
@@ -922,19 +933,19 @@ Please respond with just the signature text, nothing else.`;
       const userId = req.user.claims.sub;
       
       // Check if event exists
-      const event = await storage.getEvent(eventId, userId);
+      const event = await storageInstance.getEvent(eventId, userId);
       if (!event) {
         return res.status(404).json({ message: "Event not found" });
       }
       
-      const userRsvp = await storage.getUserRsvp(eventId, userId);
+      const userRsvp = await storageInstance.getUserRsvp(eventId, userId);
       const isOrganizer = event.organizerId === userId;
       
       if (!isOrganizer && !userRsvp) {
         return res.status(403).json({ message: "Not authorized to mark this event as read" });
       }
       
-      await storage.markEventAsRead(eventId, userId);
+      await storageInstance.markEventAsRead(eventId, userId);
       res.status(200).json({ message: "Event marked as read" });
     } catch (error) {
       console.error("Error marking event as read:", error);
@@ -979,7 +990,10 @@ Please respond with just the signature text, nothing else.`;
         response_format: "b64_json",
       });
 
-      // Get base64 data directly from OpenAI (faster than downloading)
+      // For imageResponse.data, add a check before accessing [0]:
+      if (!imageResponse.data || !imageResponse.data[0]) {
+        throw new Error("No base64 data received from OpenAI");
+      }
       const base64Data = imageResponse.data[0].b64_json;
       if (!base64Data) {
         throw new Error("No base64 data received from OpenAI");
@@ -1043,7 +1057,7 @@ Please respond with just the signature text, nothing else.`;
       const eventId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
-      await storage.addSkippedEvent(userId, eventId);
+      await storageInstance.addSkippedEvent(userId, eventId);
       res.status(200).json({ message: "Event skipped" });
     } catch (error) {
       console.error("Error skipping event:", error);
@@ -1055,7 +1069,7 @@ Please respond with just the signature text, nothing else.`;
     try {
       const userId = req.user.claims.sub;
       
-      await storage.incrementEventsShown(userId);
+      await storageInstance.incrementEventsShown(userId);
       res.status(200).json({ message: "Events shown counter incremented" });
     } catch (error) {
       console.error("Error incrementing events shown:", error);
@@ -1085,7 +1099,7 @@ Please respond with just the signature text, nothing else.`;
           const { eventId, userId } = message;
           
           // Verify event exists
-          const event = await storage.getEvent(eventId, userId);
+          const event = await storageInstance.getEvent(eventId, userId);
           if (!event) {
             ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
             return;
@@ -1117,7 +1131,7 @@ Please respond with just the signature text, nothing else.`;
           
           try {
             // Mark all messages before this timestamp as read for this user/event
-            await storage.markMessagesAsReadBeforeTime(eventId, userId, timestamp);
+            await storageInstance.markMessagesAsReadBeforeTime(eventId, userId, timestamp);
             console.log(`Acknowledged read for event ${eventId}, user ${userId} before ${timestamp}`);
             // No response needed - just update database
           } catch (error) {
@@ -1129,7 +1143,7 @@ Please respond with just the signature text, nothing else.`;
           const { eventId, userId, content } = message;
           
           // Verify event exists
-          const event = await storage.getEvent(eventId, userId);
+          const event = await storageInstance.getEvent(eventId, userId);
           if (!event) {
             ws.send(JSON.stringify({ type: 'error', message: 'Event not found' }));
             return;
@@ -1142,10 +1156,10 @@ Please respond with just the signature text, nothing else.`;
             message: content.trim(),
           });
           
-          const newMessage = await storage.createChatMessage(messageData);
+          const newMessage = await storageInstance.createChatMessage(messageData);
           
           // Get message with user data - get the most recent message
-          const messagesWithUser = await storage.getChatMessages(eventId, 1);
+          const messagesWithUser = await storageInstance.getChatMessages(eventId, 1);
           const messageWithUser = messagesWithUser[0]; // Get the first (most recent) message
           
           console.log('Created message:', newMessage);

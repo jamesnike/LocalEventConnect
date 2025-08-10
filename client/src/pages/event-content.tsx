@@ -122,6 +122,12 @@ export default function EventContentPage() {
     localStorage.removeItem('preferredTab');
   }, []);
 
+  const handleTabChange = (tab: 'chat' | 'similar' | 'favorites') => {
+    if (tab === 'chat' || tab === 'similar') {
+      setActiveTab(tab);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-sm mx-auto bg-white min-h-screen">
@@ -198,12 +204,11 @@ export default function EventContentPage() {
       <div className="h-screen">
         <EventContentCard
           event={event}
-          eventId={parseInt(actualEventId || '0')}
           onSwipeLeft={() => {}}
           onSwipeRight={() => {}}
           isActive={true}
           initialTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           showBackButton={true}
           showKeepExploring={false}
           onBackClick={() => {

@@ -1,12 +1,12 @@
 import { MapPin, Heart, Clock, DollarSign, Music, Activity, Palette, UtensilsCrossed, Laptop, Trash2, X } from "lucide-react";
 import { EventWithOrganizer, User } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
-import { getEventImageUrl } from "@/lib/eventImages";
+import { getEventImageUrl } from '@shared/eventImages';
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from '@shared/queryClient';
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
+import { isUnauthorizedError } from '@shared/authUtils';
 import { useState, useEffect } from "react";
 
 interface EventCardProps {
@@ -26,7 +26,7 @@ export default function EventCard({ event, onEventClick, showStatus, onRemoveCli
     queryKey: ['/api/events', event.id, 'attendees'],
     queryFn: async () => {
       const response = await apiRequest(`/api/events/${event.id}/attendees`);
-      return response.json() as User[];
+      return response.json() as unknown as User[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

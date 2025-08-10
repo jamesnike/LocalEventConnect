@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { Calendar } from "lucide-react";
-import { queryClient } from "./lib/queryClient";
+import { queryClient } from "@shared/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";

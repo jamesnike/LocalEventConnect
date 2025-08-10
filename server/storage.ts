@@ -22,6 +22,78 @@ import {
 import { db } from "./db";
 import { eq, and, or, ne, sql, desc, asc, gte, lte, between, gt, inArray } from "drizzle-orm";
 
+// Mock data for development
+const mockEvents: EventWithOrganizer[] = [
+  {
+    id: 1,
+    title: "Tech Meetup 2024",
+    description: "Join us for an exciting tech meetup with industry experts!",
+    category: "Technology",
+    subCategory: null,
+    date: "2024-12-20",
+    time: "18:00:00",
+    location: "Downtown Conference Center",
+    latitude: null,
+    longitude: null,
+    organizerId: "dev-user-123",
+    isActive: true,
+    isPrivateChat: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    organizer: {
+      id: "dev-user-123",
+      email: "organizer@example.com",
+      firstName: "John",
+      lastName: "Doe",
+      profileImageUrl: "https://via.placeholder.com/150",
+      customAvatarUrl: null,
+      animeAvatarSeed: "seed_dev-user-123",
+      location: null,
+      interests: null,
+      personality: null,
+      aiSignature: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      skippedEvents: [],
+      eventsShownSinceSkip: 0,
+    }
+  },
+  {
+    id: 2,
+    title: "Art Gallery Opening",
+    description: "Experience amazing local art at our gallery opening!",
+    category: "Arts",
+    subCategory: null,
+    date: "2024-12-21",
+    time: "19:00:00",
+    location: "Modern Art Gallery",
+    latitude: null,
+    longitude: null,
+    organizerId: "dev-user-123",
+    isActive: true,
+    isPrivateChat: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    organizer: {
+      id: "dev-user-123",
+      email: "organizer@example.com",
+      firstName: "John",
+      lastName: "Doe",
+      profileImageUrl: "https://via.placeholder.com/150",
+      customAvatarUrl: null,
+      animeAvatarSeed: "seed_dev-user-123",
+      location: null,
+      interests: null,
+      personality: null,
+      aiSignature: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      skippedEvents: [],
+      eventsShownSinceSkip: 0,
+    }
+  }
+];
+
 // Interface for storage operations
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -79,6 +151,205 @@ export interface IStorage {
   createPrivateChat(user1Id: string, user2Id: string): Promise<Event>;
   getPrivateChat(user1Id: string, user2Id: string): Promise<EventWithOrganizer | undefined>;
   getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]>;
+}
+
+// Mock storage for development
+export class MockStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    return {
+      id,
+      email: "dev@example.com",
+      firstName: "Development",
+      lastName: "User",
+      profileImageUrl: "https://via.placeholder.com/150",
+      customAvatarUrl: null,
+      animeAvatarSeed: `seed_${id}`,
+      location: null,
+      interests: null,
+      personality: null,
+      aiSignature: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      skippedEvents: [],
+      eventsShownSinceSkip: 0,
+    };
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    return {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      skippedEvents: [],
+      eventsShownSinceSkip: 0,
+    };
+  }
+
+  async getEvents(userId?: string, category?: string, timeFilter?: string, limit = 20, excludePastEvents = false, timezoneOffset = 0): Promise<EventWithOrganizer[]> {
+    console.log("🔧 Mock storage: returning sample events");
+    return mockEvents.slice(0, limit);
+  }
+
+  async getEvent(id: number, userId?: string): Promise<EventWithOrganizer | undefined> {
+    return mockEvents.find(event => event.id === id);
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const newEvent: Event = {
+      ...event,
+      id: Math.floor(Math.random() * 1000) + 100,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    return newEvent;
+  }
+
+  async createExternalEvent(eventData: any): Promise<Event> {
+    const newEvent: Event = {
+      ...eventData,
+      id: Math.floor(Math.random() * 1000) + 100,
+      organizerId: "dev-user-123",
+      isActive: true,
+      isPrivateChat: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    return newEvent;
+  }
+
+  async updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event> {
+    return { ...event, id, createdAt: new Date(), updatedAt: new Date() } as Event;
+  }
+
+  async deleteEvent(id: number): Promise<void> {
+    console.log(`🔧 Mock storage: deleted event ${id}`);
+  }
+
+  async getUserEvents(userId: string, type: 'organized' | 'attending', pastOnly = false): Promise<EventWithOrganizer[]> {
+    return mockEvents.filter(event => event.organizerId === userId);
+  }
+
+  async createRsvp(rsvp: InsertRsvp): Promise<EventRsvp> {
+    return { ...rsvp, id: Math.floor(Math.random() * 1000) + 100, createdAt: new Date(), updatedAt: new Date() };
+  }
+
+  async updateRsvp(eventId: number, userId: string, status: string): Promise<EventRsvp> {
+    return { eventId, userId, status, id: Math.floor(Math.random() * 1000) + 100, createdAt: new Date(), updatedAt: new Date() };
+  }
+
+  async deleteRsvp(eventId: number, userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: deleted RSVP for event ${eventId}, user ${userId}`);
+  }
+
+  async getUserRsvp(eventId: number, userId: string): Promise<EventRsvp | undefined> {
+    return undefined;
+  }
+
+  async leaveEventChat(eventId: number, userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} left chat for event ${eventId}`);
+  }
+
+  async getChatMessages(eventId: number, limit = 1000): Promise<ChatMessageWithUser[]> {
+    return [];
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    return { ...message, id: Math.floor(Math.random() * 1000) + 100, createdAt: new Date(), updatedAt: new Date() };
+  }
+
+  async deleteChatMessage(messageId: number, userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: deleted message ${messageId} by user ${userId}`);
+  }
+
+  async getUnreadCounts(userId: string): Promise<{totalUnread: number, unreadByEvent: Array<{eventId: number, eventTitle: string, unreadCount: number}>}> {
+    return { totalUnread: 0, unreadByEvent: [] };
+  }
+
+  async markEventAsRead(eventId: number, userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: marked event ${eventId} as read for user ${userId}`);
+  }
+
+  async markMessagesAsReadBeforeTime(eventId: number, userId: string, timestamp: string): Promise<void> {
+    console.log(`🔧 Mock storage: marked messages as read before ${timestamp} for event ${eventId}, user ${userId}`);
+  }
+
+  async getUserEventIds(userId: string): Promise<number[]> {
+    return mockEvents.filter(event => event.organizerId === userId).map(event => event.id);
+  }
+
+  async addSkippedEvent(userId: string, eventId: number): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} skipped event ${eventId}`);
+  }
+
+  async incrementEventsShown(userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: incremented events shown for user ${userId}`);
+  }
+
+  async resetSkippedEvents(userId: string): Promise<void> {
+    console.log(`🔧 Mock storage: reset skipped events for user ${userId}`);
+  }
+
+  async getEventAttendees(eventId: number): Promise<User[]> {
+    return [];
+  }
+
+  async getFavoriteMessages(eventId: number, userId: string): Promise<ChatMessageWithUser[]> {
+    return [];
+  }
+
+  async addFavoriteMessage(userId: string, messageId: number): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} favorited message ${messageId}`);
+  }
+
+  async removeFavoriteMessage(userId: string, messageId: number): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} unfavorited message ${messageId}`);
+  }
+
+  async checkMessageFavorite(userId: string, messageId: number): Promise<boolean> {
+    return false;
+  }
+
+  async getSavedEvents(userId: string): Promise<EventWithOrganizer[]> {
+    return [];
+  }
+
+  async addSavedEvent(userId: string, eventId: number): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} saved event ${eventId}`);
+  }
+
+  async removeSavedEvent(userId: string, eventId: number): Promise<void> {
+    console.log(`🔧 Mock storage: user ${userId} unsaved event ${eventId}`);
+  }
+
+  async checkEventSaved(userId: string, eventId: number): Promise<boolean> {
+    return false;
+  }
+
+  async createPrivateChat(user1Id: string, user2Id: string): Promise<Event> {
+    return {
+      id: Math.floor(Math.random() * 1000) + 100,
+      title: `Private Chat: ${user1Id} & ${user2Id}`,
+      description: "Private chat between users",
+      category: "Private",
+      date: new Date().toISOString().split('T')[0],
+      time: "00:00:00",
+      location: "Private",
+      organizerId: user1Id,
+      organizerEmail: "private@example.com",
+      isActive: true,
+      isPrivateChat: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  async getPrivateChat(user1Id: string, user2Id: string): Promise<EventWithOrganizer | undefined> {
+    return undefined;
+  }
+
+  async getUserPrivateChats(userId: string): Promise<EventWithOrganizer[]> {
+    return [];
+  }
 }
 
 export class DatabaseStorage implements IStorage {

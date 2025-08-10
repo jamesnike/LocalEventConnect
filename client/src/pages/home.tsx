@@ -1,12 +1,12 @@
 import { useState, useEffect, startTransition, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft, Edit, Navigation } from "lucide-react";
+import { MapPin, Bell, Music, Activity, Palette, UtensilsCrossed, Laptop, X, Heart, RotateCcw, ArrowRight, ArrowLeft, Edit, Navigation, RefreshCw, Filter, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from '@shared/authUtils';
+import { apiRequest } from '@shared/queryClient';
 import SwipeCard from "@/components/SwipeCard";
 import EventDetailCard from "@/components/EventDetailCard";
 import EventContentCard from "@/components/EventContentCard";
@@ -98,6 +98,13 @@ export default function Home() {
   const [editingLocation, setEditingLocation] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  
+  // New enhanced features
+  const [showCategoryFilters, setShowCategoryFilters] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   const availableInterests = [
     { id: 'music', name: 'Music', icon: Music },
@@ -112,7 +119,7 @@ export default function Home() {
     { id: 'reading', name: 'Reading', icon: Activity },
   ];
 
-  const { data: events, isLoading } = useQuery({
+  const { data: events, isLoading, refetch } = useQuery({
     queryKey: ["/api/events"],
     queryFn: async () => {
       // For home page swipe interface, show all events for broader discovery
@@ -222,8 +229,8 @@ export default function Home() {
         setSelectedEvent(null);
         
         // Set the active tab
-        if (eventContentTab) {
-          setLastActiveTab(eventContentTab as 'chat' | 'similar' | 'favorites');
+        if (eventContentTab === 'chat' || eventContentTab === 'similar') {
+          setLastActiveTab(eventContentTab);
         }
         
         console.log('🏠 Home page - showing EventContent for event:', event.id);
@@ -618,7 +625,7 @@ export default function Home() {
     saveHomeState(stateToSave);
   }, [currentEventIndex, swipedEvents, showDetailCard, showContentCard, lastActiveTab]);
 
-  const availableEvents = events?.filter(event => 
+  const availableEvents = filteredEvents?.filter((event: EventWithOrganizer) => 
     !swipedEvents.has(event.id) && 
     event.organizerId !== user?.id && 
     event.userRsvpStatus !== 'going' && 
@@ -678,6 +685,54 @@ export default function Home() {
     }
   }, [events, availableEvents.length, swipedEvents.size]);
 
+  // Enhanced refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      // Reset state for fresh experience
+      setCurrentEventIndex(0);
+      setSwipedEvents(new Set());
+      setShowDetailCard(false);
+      setShowContentCard(false);
+      setSelectedCategories(new Set());
+      clearHomeState();
+      toast({
+        title: "Refreshed!",
+        description: "New events loaded for you to discover.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Couldn't load new events. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Enhanced category filtering
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategories((prev: Set<string>) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  // Filter events by selected categories
+  const filteredEvents = useMemo(() => {
+    if (selectedCategories.size === 0) return events || [];
+    return (events || []).filter((event: EventWithOrganizer) => 
+      selectedCategories.has(event.category) || selectedCategories.has(event.subCategory)
+    );
+  }, [events, selectedCategories]);
+
   const handleSwipeLeft = async () => {
     if (!currentEvent || isTransitioning) return;
     
@@ -687,10 +742,14 @@ export default function Home() {
       return;
     }
     
+    // Show swipe direction feedback
+    setSwipeDirection('left');
+    setTimeout(() => setSwipeDirection(null), 300);
+    
     if (showContentCard) {
       // From content card, go back to main and move to next event
       setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-      setCurrentEventIndex(prev => prev + 1);
+      setCurrentEventIndex((prev: number) => prev + 1);
       
       // Increment events shown counter in database
       if (user) {
@@ -764,7 +823,7 @@ export default function Home() {
       // Add to local swiped events and move to next event
       startTransition(() => {
         setSwipedEvents(prev => new Set(prev).add(eventIdToSkip));
-        setCurrentEventIndex(prev => prev + 1);
+        setCurrentEventIndex((prev: number) => prev + 1);
       });
     }
     
@@ -775,7 +834,7 @@ export default function Home() {
   const handleContentSwipeRight = async () => {
     // From content card, move to next event
     setSwipedEvents(prev => new Set(prev).add(currentEvent.id));
-    setCurrentEventIndex(prev => prev + 1);
+    setCurrentEventIndex((prev: number) => prev + 1);
     
     // Increment events shown counter in database
     if (user) {
@@ -792,6 +851,11 @@ export default function Home() {
 
   const handleSwipeRight = async () => {
     if (!currentEvent || isTransitioning) return;
+    
+    // Show swipe direction feedback
+    setSwipeDirection('right');
+    setTimeout(() => setSwipeDirection(null), 300);
+    
     if (showDetailCard) {
       // From detail card, RSVP and show celebration
       if (user) {
@@ -858,17 +922,91 @@ export default function Home() {
         newSet.delete(lastSwipedEvent);
         return newSet;
       });
-      setCurrentEventIndex(prev => Math.max(0, prev - 1));
+      setCurrentEventIndex((prev: number) => Math.max(0, prev - 1));
     }
   };
 
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (showContentCard || showDetailCard) return; // Don't interfere with modal views
+      
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          handleSwipeLeft();
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          handleSwipeRight();
+          break;
+        case 'Escape':
+          if (showDetailCard) {
+            setShowDetailCard(false);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showContentCard, showDetailCard, currentEvent, isTransitioning]);
+
+  // Hide swipe hint after first interaction
+  useEffect(() => {
+    if (swipedEvents.size > 0 || showDetailCard || showContentCard) {
+      setShowSwipeHint(false);
+    }
+  }, [swipedEvents.size, showDetailCard, showContentCard]);
+
   if (isLoading) {
     return (
-      <div className="max-w-sm mx-auto bg-white min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="max-w-sm mx-auto bg-white min-h-screen flex flex-col">
+        {/* Header skeleton */}
+        <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </header>
+        
+        {/* Content skeleton */}
+        <div className="flex-1 bg-gray-50 flex items-center justify-center">
+          <div className="w-full max-w-sm mx-4">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+              <div className="h-64 bg-gray-200"></div>
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Bottom nav skeleton */}
+        <div className="bg-white border-t border-gray-200 px-4 py-3">
+          <div className="flex justify-around">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
+
+  const handleTabChange = (tab: 'chat' | 'similar' | 'favorites') => {
+    if (tab === 'chat' || tab === 'similar') {
+      setLastActiveTab(tab);
+    }
+  };
 
   return (
     <div className="max-w-sm mx-auto bg-white h-screen flex flex-col">
@@ -887,7 +1025,7 @@ export default function Home() {
             {/* User Signature */}
             <div className="flex items-center space-x-1">
               {user?.aiSignature ? (
-                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-[10px] italic leading-tight">
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-gray-700 px-2 py-1 rounded-full text-[10px] italic leading-tight border border-purple-200">
                   "{user.aiSignature}"
                 </div>
               ) : (
@@ -900,10 +1038,10 @@ export default function Home() {
           <div className="flex items-center space-x-3">
             <button 
               onClick={handleEditLocation}
-              className="flex items-center space-x-1 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              className="flex items-center space-x-1 hover:bg-gray-100 px-2 py-1 rounded transition-colors group"
             >
-              <MapPin className="w-3 h-3 text-primary" />
-              <span className="text-xs font-medium text-gray-600">
+              <MapPin className="w-3 h-3 text-primary group-hover:text-primary/80" />
+              <span className="text-xs font-medium text-gray-600 group-hover:text-gray-800">
                 {user?.location || "Set location"}
               </span>
             </button>
@@ -913,27 +1051,124 @@ export default function Home() {
             >
               <Bell className="w-5 h-5 text-gray-600" />
               {totalUnread > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium animate-pulse">
                   {totalUnread > 9 ? '9+' : totalUnread}
                 </span>
               )}
             </button>
           </div>
         </div>
+        
+        {/* Enhanced Category Filters */}
+        <div className="mt-3 flex items-center justify-between">
+          <button
+            onClick={() => setShowCategoryFilters(!showCategoryFilters)}
+            className="flex items-center space-x-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+            {selectedCategories.size > 0 && (
+              <span className="bg-primary text-white text-xs rounded-full px-2 py-0.5">
+                {selectedCategories.size}
+              </span>
+            )}
+          </button>
+          
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center space-x-2 text-xs text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
+        
+        {/* Category Filter Pills */}
+        {showCategoryFilters && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {availableInterests.map((interest) => (
+              <button
+                key={interest.id}
+                onClick={() => toggleCategory(interest.id)}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  selectedCategories.has(interest.id)
+                    ? 'bg-primary text-white shadow-md scale-105'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:scale-105'
+                }`}
+              >
+                <interest.icon className="w-3 h-3" />
+                <span>{interest.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Swipe Area */}
       <div className="flex-1 relative bg-gray-50 overflow-hidden">
         {availableEvents.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full px-4">
             <div className="text-center">
               <div className="text-6xl mb-4">🎉</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">All caught up!</h3>
-              <p className="text-gray-600">No more events to discover right now.</p>
+              <p className="text-gray-600 mb-4">No more events to discover right now.</p>
+              
+              {/* Enhanced empty state actions */}
+              <div className="space-y-3">
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="flex items-center justify-center space-x-2 bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span>Refresh Events</span>
+                </button>
+                
+                {selectedCategories.size > 0 && (
+                  <button
+                    onClick={() => setSelectedCategories(new Set())}
+                    className="flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span>Clear Filters</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {/* Swipe Hint Overlay */}
+            {showSwipeHint && availableEvents.length > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div className="bg-black/80 text-white px-6 py-4 rounded-2xl text-center animate-pulse">
+                  <div className="flex items-center justify-center space-x-8 mb-2">
+                    <div className="flex items-center space-x-2">
+                      <X className="w-6 h-6 text-red-400" />
+                      <span className="text-sm">Skip</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <ArrowRight className="w-6 h-6 text-blue-400" />
+                      <span className="text-sm">Details</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-300">Swipe left or right to get started</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Swipe Direction Feedback */}
+            {swipeDirection && (
+              <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-20 ${
+                swipeDirection === 'left' ? 'animate-slide-out-left' : 'animate-slide-out-right'
+              }`}>
+                <div className={`text-6xl ${swipeDirection === 'left' ? 'text-red-500' : 'text-green-500'}`}>
+                  {swipeDirection === 'left' ? '👎' : '👍'}
+                </div>
+              </div>
+            )}
+
             {/* Main Event Card */}
             <div className={`absolute inset-0 ${
               isFromMessagesTab ? 'transition-none' : 'transition-all duration-300 ease-in-out'
@@ -997,7 +1232,7 @@ export default function Home() {
                       setSelectedEvent(event);
                     }}
                     initialTab={lastActiveTab}
-                    onTabChange={setLastActiveTab}
+                    onTabChange={handleTabChange}
                     showBackButton={isFromMyEvents || isFromBrowse || isFromMessagesTab}
                     showKeepExploring={!isFromMyEvents && !isFromBrowse && !isFromMessagesTab}
                     onBackClick={() => {
@@ -1041,7 +1276,8 @@ export default function Home() {
             <button
               onClick={handleSwipeLeft}
               disabled={buttonStates.skipDisabled}
-              className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center justify-center bg-red-500/80 text-white rounded-full w-20 h-20 shadow-lg hover:bg-red-600/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95"
+              aria-label="Skip event"
             >
               <X className="w-8 h-8" />
             </button>
@@ -1049,7 +1285,8 @@ export default function Home() {
             <button
               onClick={handleSwipeRight}
               disabled={buttonStates.detailsDisabled}
-              className={buttonStates.detailsClassName}
+              className={`${buttonStates.detailsClassName} transform hover:scale-105 active:scale-95`}
+              aria-label={showDetailCard ? "RSVP to event" : "View event details"}
             >
               {buttonStates.detailsIcon === 'heart' ? (
                 <Heart className="w-8 h-8" />
@@ -1057,6 +1294,13 @@ export default function Home() {
                 <ArrowRight className="w-8 h-8" />
               )}
             </button>
+          </div>
+          
+          {/* Keyboard Shortcuts Hint */}
+          <div className="text-center mt-4">
+            <p className="text-xs text-gray-500">
+              💡 Use <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">←</kbd> and <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">→</kbd> keys to navigate
+            </p>
           </div>
         </div>
       )}

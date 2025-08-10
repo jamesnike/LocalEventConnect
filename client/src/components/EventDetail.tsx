@@ -4,11 +4,12 @@ import { ArrowLeft, Share, Heart, MapPin, Clock, Check, MessageCircle, Music, Ac
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from '@shared/authUtils';
+import { apiRequest } from '@shared/queryClient';
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
 import CelebrationAnimation from "./CelebrationAnimation";
+import { User } from "@shared/schema";
 
 interface EventDetailProps {
   event: EventWithOrganizer;
@@ -553,9 +554,7 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
       });
       
       // Navigate to the chat after rejoining
-      if (onNavigateToContent) {
-        onNavigateToContent();
-      }
+      setLocation(`/event/${event.id}?tab=chat`);
     },
     onError: (error) => {
       console.error('Failed to rejoin chat:', error);
@@ -705,7 +704,7 @@ export default function EventDetail({ event, onClose, showGroupChatButton = fals
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
                 {/* Show attendees (organizer already included in backend) */}
-                {attendees.slice(0, 10).map((attendee, index) => (
+                {attendees.slice(0, 10).map((attendee: User, index: number) => (
                   <AnimeAvatar 
                     key={attendee.id}
                     seed={attendee.animeAvatarSeed} 

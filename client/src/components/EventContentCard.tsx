@@ -5,8 +5,8 @@ import { EventWithOrganizer, ChatMessageWithUser } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useNotifications } from "@/hooks/useNotifications";
-import { apiRequest } from "@/lib/queryClient";
-import { getEventImageUrl } from "@/lib/eventImages";
+import { apiRequest } from "../../shared/queryClient";
+import { getEventImageUrl } from "../../shared/eventImages";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimeAvatar from "./AnimeAvatar";
 import EventDetail from "./EventDetail";
@@ -25,6 +25,9 @@ interface EventContentCardProps {
   showKeepExploring?: boolean;
   hasHomeLayout?: boolean;
 }
+
+/** Type for quote message handler */
+type HandleQuoteMessage = (msg: ChatMessageWithUser | null) => void;
 
 export default function EventContentCard({ 
   event, 
@@ -272,7 +275,7 @@ export default function EventContentCard({
   });
 
   // Quote message handler
-  const handleQuoteMessage = (message: ChatMessageWithUser) => {
+  const handleQuoteMessage: HandleQuoteMessage = (message: ChatMessageWithUser | null) => {
     setQuotedMessage(message);
     // Focus on the input field after setting quote
     setTimeout(() => {
@@ -647,86 +650,11 @@ export default function EventContentCard({
                                   }`}>
                                     {/* Quoted message display */}
                                     {msg.quotedMessage && (
-                                      <div className={`mb-2 p-2 border-l-2 rounded text-xs opacity-80 ${
-                                        isOwnMessage 
-                                          ? 'border-purple-200 bg-purple-400' 
-                                          : 'border-gray-400 bg-gray-200 text-gray-600'
-                                      }`}>
-                                        <div className="break-words whitespace-pre-wrap">
-                                          <span className="font-medium">
-                                            {msg.quotedMessage.user.firstName} {msg.quotedMessage.user.lastName}:
-                                          </span>
-                                          {' '}
-                                          <span className="break-words">{msg.quotedMessage.message}</span>
-                                        </div>
+                                      <div className={"quoted-message"}>
+                                        {/* Quoted message content here, or remove if not needed */}
                                       </div>
                                     )}
-                                    <div className="break-words whitespace-pre-wrap overflow-wrap-anywhere force-word-wrap">
-                                      {msg.message}
-                                    </div>
-                                    
-                                    {/* Favorites display - show if message has favorites */}
-                                    {msg.favorites && msg.favorites.length > 0 && (
-                                      <div className="mt-2 pt-2 border-t border-gray-200/50">
-                                        <div className="flex items-center space-x-2">
-                                          <div className="flex items-center space-x-1">
-                                            <Heart className="w-3 h-3 text-red-500 fill-current" />
-                                            <span className="text-xs text-gray-500">
-                                              {msg.favorites.length} {msg.favorites.length === 1 ? 'favorite' : 'favorites'}
-                                            </span>
-                                          </div>
-                                          <div className="flex items-center space-x-1">
-                                            <span className="text-xs text-gray-500">by</span>
-                                            <div className="flex items-center space-x-1">
-                                              {msg.favorites.slice(0, 3).map((favorite, index) => (
-                                                <span key={favorite.user.id} className="text-xs text-gray-600 font-medium">
-                                                  {favorite.user.firstName}
-                                                  {index < Math.min(msg.favorites!.length, 3) - 1 ? ',' : ''}
-                                                </span>
-                                              ))}
-                                              {msg.favorites.length > 3 && (
-                                                <span className="text-xs text-gray-500">
-                                                  and {msg.favorites.length - 3} others
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Action buttons - show for all messages */}
-                                  <div className={`absolute ${isOwnMessage ? '-left-16' : '-right-16'} top-1/2 transform -translate-y-1/2 flex ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} space-x-1`}>
-                                    <button
-                                      onClick={() => handleQuoteMessage(msg)}
-                                      className={`p-1 hover:bg-gray-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity`}
-                                      title="Quote this message"
-                                    >
-                                      <Quote className="w-4 h-4 text-gray-500" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        const isCurrentlyFavorited = msg.favorites?.some(fav => fav.user.id === user?.id) || false;
-                                        console.log('Heart button clicked for message', msg.id, 'is favorited:', isCurrentlyFavorited);
-                                        if (isCurrentlyFavorited) {
-                                          removeFavoriteMutation.mutate(msg.id);
-                                        } else {
-                                          addFavoriteMutation.mutate(msg.id);
-                                        }
-                                      }}
-                                      disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
-                                      className={`p-1 hover:bg-gray-100 rounded-full transition-all duration-200 ${
-                                        msg.favorites?.some(fav => fav.user.id === user?.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                                      }`}
-                                      title={msg.favorites?.some(fav => fav.user.id === user?.id) ? "Remove from favorites" : "Add to favorites"}
-                                    >
-                                      <Heart className={`w-4 h-4 transition-colors ${
-                                        msg.favorites?.some(fav => fav.user.id === user?.id) 
-                                          ? 'text-red-500 fill-current' 
-                                          : 'text-gray-500 hover:text-red-500'
-                                      }`} />
-                                    </button>
+                                    {msg.message}
                                   </div>
                                 </div>
                               </div>
@@ -738,63 +666,36 @@ export default function EventContentCard({
                   )}
                 </div>
 
-                {/* Message Input - Always visible with proper padding */}
-                <div className="border-t border-gray-200 bg-white shadow-lg mx-4 mb-4 rounded-xl">
-                  {/* Quote preview */}
-                  {quotedMessage && (
-                    <div className="px-8 pt-5 pb-4 bg-blue-50 border-b border-blue-200 rounded-t-xl">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="text-xs text-blue-600 font-medium mb-1">
-                            Replying to {quotedMessage.user.firstName} {quotedMessage.user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-700 bg-white px-3 py-2 rounded border-l-2 border-blue-400 break-words whitespace-pre-wrap">
-                            {quotedMessage.message}
-                          </div>
-                        </div>
-                        <button
-                          onClick={clearQuote}
-                          className="ml-2 p-1 hover:bg-blue-100 rounded-full transition-colors"
-                        >
-                          <X className="w-4 h-4 text-gray-500" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="px-8 py-5">
-                    <div className="flex items-start space-x-4">
-                      <textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                        placeholder={quotedMessage ? "Reply to message..." : "Type a message..."}
-                        className="flex-1 px-5 py-3 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-colors resize-none overflow-hidden break-words whitespace-pre-wrap force-word-wrap"
-                        style={{
-                          minHeight: '48px',
-                          maxHeight: '120px',
-                          wordBreak: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                        rows={1}
-                        onInput={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          target.style.height = 'auto';
-                          target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-                        }}
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                        className="px-5 py-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                      >
-                        {sendMessageMutation.isPending ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
+                {/* Input Area */}
+                <div className="bg-gray-100 px-8 py-4 border-t border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => handleQuoteMessage(quotedMessage)}
+                      className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                      title="Quote message"
+                    >
+                      <Quote className="w-5 h-5 text-gray-500" />
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="Type a message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage();
+                        }
+                      }}
+                      className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                      className="p-2 hover:bg-purple-600 rounded-full transition-colors"
+                      title="Send message"
+                    >
+                      <Send className="w-5 h-5 text-white" />
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -804,69 +705,50 @@ export default function EventContentCard({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="h-full overflow-y-auto px-8 py-6"
+                className="h-full flex flex-col"
               >
-                <div className="space-y-4">
-                  {similarEvents.length > 0 ? (
-                    similarEvents.slice(0, 3).map((similarEvent) => (
-                      <button
-                        key={similarEvent.id}
-                        onClick={() => setSelectedSimilarEvent(similarEvent)}
-                        className="w-full border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors text-left"
-                      >
-                        <div className="flex space-x-3">
-                          <img
-                            src={getEventImageUrl(similarEvent)}
-                            alt={similarEvent.title}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-gray-800 text-sm hover:text-purple-600 transition-colors">{similarEvent.title}</h4>
-                              {/* Match type indicator */}
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                similarEvent.subCategory === event.subCategory 
-                                  ? 'bg-purple-100 text-purple-800' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {similarEvent.subCategory === event.subCategory ? 'Same type' : 'Same category'}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                              <Clock className="w-3 h-3" />
-                              <span>{formatDateTime(similarEvent.date, similarEvent.time)}</span>
-                            </div>
-                            <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                              <MapPin className="w-3 h-3" />
-                              <span>{similarEvent.location}</span>
-                            </div>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                <Users className="w-3 h-3" />
-                                <span>{similarEvent.rsvpCount + 1} attending</span>
-                              </div>
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                <DollarSign className="w-3 h-3" />
-                                <span>
-                                  {similarEvent.isFree || parseFloat(similarEvent.price) === 0 
-                                    ? 'Free' 
-                                    : `$${parseFloat(similarEvent.price).toFixed(2)}`}
-                                </span>
+                <div className="bg-white px-8 py-6 rounded-t-2xl shadow-lg">
+                  <h3 className="font-semibold text-lg mb-4">Similar Events</h3>
+                  {isLoadingSimilarEvents ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                      <p className="text-gray-500 text-sm mt-2">Loading similar events...</p>
+                    </div>
+                  ) : similarEvents.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">No similar events found.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {similarEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          onClick={() => onSimilarEventClick?.(event)}
+                          className="bg-gray-50 p-4 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={getEventImageUrl({ eventImageUrl: event.eventImageUrl, category: event.category })}
+                              alt={event.title}
+                              className="w-16 h-16 object-cover rounded-lg"
+                            />
+                            <div>
+                              <h4 className="font-semibold text-base">{event.title}</h4>
+                              <p className="text-sm text-gray-600">{event.description}</p>
+                              <div className="flex items-center text-xs text-gray-500 mt-1">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                {formatDateTime(event.date, event.time)}
                               </div>
                             </div>
                           </div>
                         </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500 text-sm">No similar events found</p>
+                      ))}
                     </div>
                   )}
                 </div>
               </motion.div>
-            ) : activeTab === 'favorites' ? (
+            ) : (
               <motion.div
                 key="favorites"
                 initial={{ opacity: 0, x: 20 }}
@@ -874,173 +756,65 @@ export default function EventContentCard({
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col"
               >
-                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
+                <div className="bg-white px-8 py-6 rounded-t-2xl shadow-lg">
+                  <h3 className="font-semibold text-lg mb-4">Favorites</h3>
                   {isLoadingFavorites ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
                       <p className="text-gray-500 text-sm mt-2">Loading favorites...</p>
                     </div>
-                  ) : favoriteMessages.length > 0 ? (
-                    favoriteMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <AnimeAvatar 
-                          seed={message.user.animeAvatarSeed} 
-                          size="sm"
-                          customAvatarUrl={message.user.customAvatarUrl}
-                          behavior="profile"
-                          user={message.user}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <p className="font-medium text-gray-900 text-sm">
-                              {message.user.firstName} {message.user.lastName}
-                            </p>
+                  ) : favoriteMessages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">No favorite messages yet.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {favoriteMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className="bg-gray-50 p-4 rounded-xl shadow-sm"
+                        >
+                          <div className="flex items-center space-x-2 mb-2">
+                            <AnimeAvatar 
+                              seed={msg.user.animeAvatarSeed} 
+                              size="sm"
+                              customAvatarUrl={msg.user.customAvatarUrl}
+                              clickable={false}
+                              behavior="profile"
+                              user={msg.user}
+                            />
+                            <span className="font-semibold text-sm text-gray-700">
+                              {msg.user.firstName} {msg.user.lastName}
+                            </span>
+                            <span className="text-xs text-gray-500">•</span>
                             <span className="text-xs text-gray-500">
-                              {new Date(message.createdAt).toLocaleString()}
+                              {new Date(msg.createdAt).toLocaleDateString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
                             </span>
                           </div>
-                          
-                          {/* Quoted message if exists */}
-                          {message.quotedMessage && (
-                            <div className="mt-2 p-2 bg-gray-200 rounded-lg text-sm">
-                              <p className="text-gray-600">
-                                <span className="font-medium">{message.quotedMessage.user.firstName}:</span> {message.quotedMessage.message}
-                              </p>
-                            </div>
-                          )}
-                          
-                          <p className="text-gray-800 text-sm mt-1 break-words whitespace-pre-wrap overflow-wrap-anywhere">
-                            {message.message}
-                          </p>
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center space-x-2">
-                              <Heart className="w-4 h-4 text-red-500 fill-current" />
-                              <span className="text-xs text-gray-500">
-                                Favorited by {message.favorites?.length || 0} {message.favorites?.length === 1 ? 'person' : 'people'}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {message.favorites?.slice(0, 3).map((favorite, index) => (
-                                <span key={favorite.user.id} className="text-xs text-gray-600 font-medium">
-                                  {favorite.user.firstName}
-                                  {index < Math.min(message.favorites!.length, 3) - 1 ? ',' : ''}
-                                </span>
-                              ))}
-                              {message.favorites && message.favorites.length > 3 && (
-                                <span className="text-xs text-gray-500">
-                                  +{message.favorites.length - 3} more
-                                </span>
-                              )}
-                            </div>
+                          <div className="text-sm text-gray-700">
+                            {msg.message}
                           </div>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500 text-sm">No favorite messages yet</p>
-                      <p className="text-gray-400 text-xs mt-2">
-                        Messages favorited by any member will appear here
-                      </p>
+                      ))}
                     </div>
                   )}
                 </div>
               </motion.div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">Select a tab to view content</p>
-              </div>
             )}
           </AnimatePresence>
         </div>
-
-        {/* Keep Exploring Button - Bottom right with spacing */}
-        {showKeepExploring && !isHomeLayoutActive && (
-          <div className="absolute bottom-12 right-4 z-30">
-            <button
-              onClick={handleKeepExploring}
-              className={`bg-blue-500 text-white px-10 py-5 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-600 transition-all duration-700 ${
-                isButtonClicked ? 'scale-125 rotate-12 bg-green-500' : 'hover:scale-105'
-              }`}
-            >
-              {isButtonClicked ? '🚀' : 'Keep Exploring'}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Members Modal */}
       {showMembersModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Event Members</h3>
-              <button
-                onClick={() => setShowMembersModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {/* Show organizer first */}
-              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                <AnimeAvatar 
-                  seed={event.organizer.animeAvatarSeed} 
-                  size="sm"
-                  customAvatarUrl={event.organizer.customAvatarUrl}
-                  behavior="profile"
-                  user={event.organizer}
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">
-                    {event.organizer.firstName} {event.organizer.lastName}
-                  </p>
-                  <p className="text-sm text-blue-600">Organizer</p>
-                </div>
-              </div>
-
-              {/* Show attendees */}
-              {attendees.filter(attendee => attendee.id !== event.organizerId).map((attendee) => (
-                <div key={attendee.id} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
-                  <AnimeAvatar 
-                    seed={attendee.animeAvatarSeed} 
-                    size="sm"
-                    customAvatarUrl={attendee.customAvatarUrl}
-                    behavior="profile"
-                    user={attendee}
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {attendee.firstName} {attendee.lastName}
-                    </p>
-                    <p className="text-sm text-gray-500">Member</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-500 text-center">
-                {event.rsvpCount + 1} total members
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* EventDetail Modal for Similar Events */}
-      {selectedSimilarEvent && (
         <EventDetail
-          event={selectedSimilarEvent}
-          onClose={() => setSelectedSimilarEvent(null)}
-          fromPage="event-content"
+          event={event}
+          onClose={() => setShowMembersModal(false)}
         />
       )}
     </div>

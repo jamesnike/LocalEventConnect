@@ -1,7 +1,7 @@
 import { MapPin, DollarSign, Clock, Calendar } from "lucide-react";
 import { EventWithOrganizer } from "@shared/schema";
 import AnimeAvatar from "./AnimeAvatar";
-import { getEventImageUrl } from "@/lib/eventImages";
+import { getEventImageUrl } from '@shared/eventImages';
 import { useState, useRef, useEffect } from "react";
 
 interface EventDetailCardProps {
@@ -205,7 +205,7 @@ export default function EventDetailCard({ event, onSwipeLeft, onSwipeRight, isAc
               <div className="flex items-center text-gray-600 mb-2">
                 <DollarSign className="w-4 h-4 mr-0.5" />
                 <span className="text-base">
-                  {event.isFree || parseFloat(event.price) === 0 ? 'Free' : `${parseFloat(event.price).toFixed(2)}`}
+                  {event.isFree || parseFloat(event.price ?? '0') === 0 ? 'Free' : `${parseFloat(event.price ?? '0').toFixed(2)}`}
                 </span>
               </div>
               <div className="text-base text-gray-600">

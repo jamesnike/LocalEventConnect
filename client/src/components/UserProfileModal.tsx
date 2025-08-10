@@ -2,7 +2,7 @@ import { X, MapPin, Calendar, Star, Heart, MessageCircle } from 'lucide-react';
 import { User } from '@shared/schema';
 import AnimeAvatar from './AnimeAvatar';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@shared/queryClient';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 
@@ -198,10 +198,12 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
   }) : [];
 
   // Get user's personality traits with icons
-  const userPersonalityTraits = user.personalityTraits ? user.personalityTraits.map(traitId => {
-    const trait = availablePersonalityTraits.find(t => t.id === traitId);
-    return trait || { id: traitId, name: traitId, icon: '🔸' };
-  }) : [];
+  const userPersonalityTraits = Array.isArray(user.personality)
+    ? user.personality.map((traitId: string) => {
+        const trait = availablePersonalityTraits.find(t => t.id === traitId);
+        return trait || { id: traitId, name: traitId, icon: '🔷' };
+      })
+    : [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -276,10 +278,7 @@ export default function UserProfileModal({ isOpen, onClose, user }: UserProfileM
               </h3>
               <div className="flex flex-wrap gap-2">
                 {userPersonalityTraits.map((trait) => (
-                  <span
-                    key={trait.id}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                  >
+                  <span key={trait.id} className="inline-flex items-center px-2 py-1 bg-gray-200 rounded-full text-xs font-medium text-gray-700 mr-2 mb-2">
                     <span className="mr-1">{trait.icon}</span>
                     {trait.name}
                   </span>

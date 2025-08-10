@@ -5,9 +5,9 @@ import { Calendar, MapPin, MessageCircle, Clock, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
+import { isUnauthorizedError } from '@shared/authUtils';
+import { apiRequest } from '@shared/queryClient';
+import { queryClient } from '@shared/queryClient';
 import BottomNav from "@/components/BottomNav";
 import EventCard from "@/components/EventCard";
 import EventDetail from "@/components/EventDetail";
@@ -447,8 +447,7 @@ export default function MyEvents() {
             // Only show loading if no cached data and currently loading
             (((activeTab === 'organized' && isLoadingOrganized) || 
               (activeTab === 'attending' && isLoadingAttending) ||
-              (activeTab === 'saved' && isLoadingSaved) ||
-              (activeTab === 'messages' && isLoadingGroupChats)) && !currentEvents) ? (
+              (activeTab === 'saved' && isLoadingSaved)) && !currentEvents) ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
                 <p className="text-gray-500 text-sm mt-2">Loading events...</p>
@@ -505,18 +504,6 @@ export default function MyEvents() {
           showGroupChatButton={true}
           fromPage="my-events"
           onBack={() => setSelectedEvent(null)}
-          onNavigateToContent={() => {
-            // Navigate to Home page with the event content
-            // Store the event ID in localStorage so Home page can pick it up
-            localStorage.setItem('eventContentId', selectedEvent.id.toString());
-            // Set preferred tab to chat for group chat access
-            localStorage.setItem('preferredTab', 'chat');
-            // Store flag to indicate coming from MyEvents for back button
-            localStorage.setItem('fromMyEvents', 'true');
-            // Store current tab to return to the correct tab
-            localStorage.setItem('returnToMyEventsTab', activeTab);
-            setLocation('/');
-          }}
         />
       )}
     </div>
