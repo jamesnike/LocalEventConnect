@@ -5,6 +5,7 @@
 
 EXPO_LOG="expo-server.log"
 EXPO_PID_FILE="expo-server.pid"
+EXPO_PORT="${EXPO_PORT}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -32,15 +33,35 @@ print_header() {
     echo -e "${BLUE}================================${NC}"
 }
 
+# Find a free TCP port starting at 8081
+find_free_port() {
+    local start=8081
+    local end=8090
+    for ((p=start; p<=end; p++)); do
+        if command -v fuser >/dev/null 2>&1; then
+            if ! fuser -n tcp "$p" >/dev/null 2>&1; then
+                echo "$p"
+                return 0
+            fi
+        else
+            # Fallback: optimistically return first candidate
+            echo "$p"
+            return 0
+        fi
+    done
+    # Fallback default if none found in range
+    echo 8085
+}
+
 # Function to check if Expo server is running
 check_status() {
     if [ -f "$EXPO_PID_FILE" ]; then
         PID=$(cat "$EXPO_PID_FILE")
         if ps -p $PID > /dev/null 2>&1; then
             echo -e "${GREEN}✅ Expo server is running (PID: $PID)${NC}"
-            echo "📍 Server URL: exp://192.168.1.188:8081"
-            echo "🌐 Local URL: http://localhost:8081"
-            echo "📱 QR Code: Open qr-code.html in your browser"
+            echo "🌐 Local: http://localhost:${EXPO_PORT:-unknown}"
+            echo "🔗 Tunnel: check 'Public URL' in logs below or run './manage-expo.sh logs'"
+            echo "📱 QR Code: For public access, open qr-code.html after updating it to the tunnel URL"
             return 0
         else
             echo -e "${RED}❌ Expo server is not running (stale PID file)${NC}"
@@ -59,11 +80,15 @@ start_server() {
         print_warning "Expo server is already running!"
         return 1
     fi
+
+    if [ -z "$EXPO_PORT" ]; then
+        EXPO_PORT=$(find_free_port)
+    fi
     
-    print_status "Starting Expo server in background..."
+    print_status "Starting Expo server with public tunnel in background on port ${EXPO_PORT}..."
     
-    # Start Expo server in background
-    npx expo start --clear > "$EXPO_LOG" 2>&1 &
+    # Start Expo server in background with tunnel for a public URL
+    CI=1 npx expo start --clear --tunnel --port ${EXPO_PORT} > "$EXPO_LOG" 2>&1 &
     EXPO_PID=$!
     
     # Save PID to file
@@ -73,15 +98,15 @@ start_server() {
     print_status "Logs are being written to: $EXPO_LOG"
     
     # Wait a moment for server to start
-    sleep 3
+    sleep 6
     
     if check_status > /dev/null 2>&1; then
-        print_status "Server is ready! 🚀"
+        print_status "Server is starting up. Tunnel URL will appear in logs once ready. 🚀"
         echo ""
-        echo "📱 To connect your mobile device:"
-        echo "   1. Open qr-code.html in your browser"
-        echo "   2. Scan the QR code with Expo Go app"
-        echo "   3. Or manually enter: exp://192.168.1.188:8081"
+        echo "📱 To connect your mobile device (public):"
+        echo "   1. Run './manage-expo.sh logs'"
+        echo "   2. Look for a line like 'Tunnel ready' or 'Public URL' (exp+https://...)"
+        echo "   3. Open that URL in Expo Go or scan the QR shown in your terminal"
         echo ""
         echo "📊 To monitor logs: ./manage-expo.sh logs"
         echo "🛑 To stop server: ./manage-expo.sh stop"
@@ -121,9 +146,9 @@ stop_server() {
 # Function to show logs
 show_logs() {
     if [ -f "$EXPO_LOG" ]; then
-        print_status "Showing last 20 lines of Expo server logs:"
+        print_status "Showing last 50 lines of Expo server logs (look for 'Tunnel' or 'Public URL'):"
         echo "----------------------------------------"
-        tail -20 "$EXPO_LOG"
+        tail -50 "$EXPO_LOG"
         echo "----------------------------------------"
         echo ""
         echo "📝 Full logs: tail -f $EXPO_LOG"
