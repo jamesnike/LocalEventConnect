@@ -12,11 +12,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { Ionicons } from '@expo/vector-icons';
 
-interface ProfileScreenProps {
-  navigation: any;
-}
-
-export default function ProfileScreen({ navigation }: ProfileScreenProps) {
+export default function ProfileScreen() {
   const { user, isAuthenticated, isLoading, login, logout } = useAuth();
 
   const handleLogin = () => {
@@ -39,11 +35,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   const handleEditProfile = () => {
-    navigation.navigate('EditProfile');
+    // TODO: Implement edit profile functionality
+    Alert.alert('Edit Profile', 'Edit profile feature coming soon!');
   };
 
   const handleEditInterests = () => {
-    navigation.navigate('EditInterests');
+    // TODO: Implement edit interests functionality
+    Alert.alert('Edit Interests', 'Edit interests feature coming soon!');
   };
 
   if (isLoading) {

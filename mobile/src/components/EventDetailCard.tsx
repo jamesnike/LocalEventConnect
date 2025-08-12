@@ -83,10 +83,13 @@ const EventDetailCard: React.FC<EventDetailCardProps> = ({
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header with close button */}
+        {/* Header with back and close buttons */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color="white" />
+          <TouchableOpacity style={styles.backButton} onPress={onClose}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareButton} onPress={onShare}>
+            <Ionicons name="share-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
@@ -226,7 +229,7 @@ const EventDetailCard: React.FC<EventDetailCardProps> = ({
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.shareButton} onPress={onShare}>
+        <TouchableOpacity style={styles.shareButtonAction} onPress={onShare}>
           <Ionicons name="share-outline" size={20} color="#6366f1" />
           <Text style={styles.shareButtonText}>Share</Text>
         </TouchableOpacity>
@@ -256,9 +259,19 @@ const styles = StyleSheet.create({
     zIndex: 10,
     paddingTop: 50,
     paddingHorizontal: 20,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  closeButton: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shareButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -478,7 +491,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
   },
-  shareButton: {
+  shareButtonAction: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',

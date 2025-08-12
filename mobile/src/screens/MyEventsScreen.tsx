@@ -16,11 +16,9 @@ import { useAuth } from '../hooks/useAuth';
 import EventDetailCard from '../components/EventDetailCard';
 import { apiRequest, API_CONFIG } from '../config/api';
 
-interface MyEventsScreenProps {
-  navigation: any;
-}
 
-export default function MyEventsScreen({ navigation }: MyEventsScreenProps) {
+
+export default function MyEventsScreen() {
   const { user } = useAuth();
   const [myEvents, setMyEvents] = useState<any[]>([]);
   const [rsvpEvents, setRsvpEvents] = useState<any[]>([]);

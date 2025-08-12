@@ -23,7 +23,8 @@ export default function BottomNav({
   onCreateEvent,
   unreadCount = 0,
 }: BottomNavProps) {
-  const tabs = [
+  // Match web app navigation structure exactly
+  const leftNavItems = [
     {
       id: 'home',
       label: 'Home',
@@ -36,6 +37,9 @@ export default function BottomNav({
       icon: 'calendar' as const,
       activeIcon: 'calendar' as const,
     },
+  ];
+
+  const rightNavItems = [
     {
       id: 'browse',
       label: 'Browse',
@@ -52,10 +56,14 @@ export default function BottomNav({
 
   return (
     <View style={styles.container}>
-      {tabs.map((tab) => (
+      {/* Left navigation items */}
+      {leftNavItems.map((tab) => (
         <TouchableOpacity
           key={tab.id}
-          style={styles.tab}
+          style={[
+            styles.tab,
+            activeTab === tab.id && styles.activeTab
+          ]}
           onPress={() => onTabPress(tab.id)}
         >
           <View style={styles.iconContainer}>
@@ -83,7 +91,7 @@ export default function BottomNav({
         </TouchableOpacity>
       ))}
       
-      {/* Create Event Button - Prominent Red Circle */}
+      {/* Create Event Button - Prominent Red Circle (matches web app) */}
       {onCreateEvent && (
         <TouchableOpacity
           style={styles.createButton}
@@ -92,6 +100,34 @@ export default function BottomNav({
           <Ionicons name="add" size={24} color="white" />
         </TouchableOpacity>
       )}
+      
+      {/* Right navigation items */}
+      {rightNavItems.map((tab) => (
+        <TouchableOpacity
+          key={tab.id}
+          style={[
+            styles.tab,
+            activeTab === tab.id && styles.activeTab
+          ]}
+          onPress={() => onTabPress(tab.id)}
+        >
+          <View style={styles.iconContainer}>
+            <Ionicons
+              name={activeTab === tab.id ? tab.activeIcon : tab.icon}
+              size={20}
+              color={activeTab === tab.id ? '#FF0000' : '#6b7280'}
+            />
+          </View>
+          <Text
+            style={[
+              styles.tabLabel,
+              activeTab === tab.id && styles.activeTabLabel,
+            ]}
+          >
+            {tab.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
@@ -113,8 +149,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
     position: 'relative',
-    maxWidth: 384, // Match web max-width
-    alignSelf: 'center',
     width: '100%',
   },
   tab: {
@@ -122,6 +156,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+  },
+  activeTab: {
+    backgroundColor: '#fef2f2',
   },
   iconContainer: {
     position: 'relative',

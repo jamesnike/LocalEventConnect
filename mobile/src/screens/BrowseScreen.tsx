@@ -16,11 +16,9 @@ import { useAuth } from '../hooks/useAuth';
 import EventDetailCard from '../components/EventDetailCard';
 import { apiRequest, API_CONFIG } from '../config/api';
 
-interface BrowseScreenProps {
-  navigation: any;
-}
 
-export default function BrowseScreen({ navigation }: BrowseScreenProps) {
+
+export default function BrowseScreen() {
   const { user } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<any[]>([]);

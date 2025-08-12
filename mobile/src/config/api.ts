@@ -132,7 +132,16 @@ export const apiRequest = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    // Check if response is JSON before trying to parse it
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      // If not JSON, return the text content
+      const textContent = await response.text();
+      console.log('Non-JSON response received:', textContent.substring(0, 200));
+      throw new Error('Non-JSON response received from server');
+    }
   } catch (error) {
     console.error('API request failed:', error);
     throw error;
