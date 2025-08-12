@@ -19,7 +19,7 @@ import { apiRequest, API_CONFIG } from '../config/api';
 
 
 export default function MyEventsScreen() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [myEvents, setMyEvents] = useState<any[]>([]);
   const [rsvpEvents, setRsvpEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,22 +28,29 @@ export default function MyEventsScreen() {
   const [activeTab, setActiveTab] = useState<'messages' | 'attending' | 'organizing' | 'saved'>('messages');
 
   useEffect(() => {
-    fetchMyEvents();
-  }, []);
+    if (!authLoading) {
+      fetchMyEvents();
+    }
+  }, [authLoading]);
 
   const fetchMyEvents = async () => {
     setIsLoading(true);
     try {
-      // Fetch user's attending events
-      const attendingData = await apiRequest('/api/users/me/events/attending');
-      setRsvpEvents(attendingData);
+      if (!user?.id) {
+        setRsvpEvents([]);
+        setMyEvents([]);
+        return;
+      }
+
+      // Fetch events (public endpoint) then split into attending placeholder and created
+      const allEvents = await apiRequest(API_CONFIG.ENDPOINTS.EVENTS, { method: 'GET' });
+      const eventsArray = Array.isArray(allEvents) ? allEvents : [];
+      setRsvpEvents(eventsArray);
       
-      // For created events, filter from all events where user is organizer
-      const allEvents = await apiRequest(API_CONFIG.ENDPOINTS.EVENTS);
-      const createdEvents = allEvents.filter((event: any) => event.organizerId === 'user-1');
+      const createdEvents = eventsArray.filter((event: any) => event.organizerId === user.id);
       setMyEvents(createdEvents);
       
-      console.log('Fetched my events from API - Created:', createdEvents.length, 'RSVP\'d:', attendingData.length);
+      console.log('Fetched my events from API - Created:', createdEvents.length, "RSVP'd:", eventsArray.length);
     } catch (error) {
       console.error('Failed to fetch my events:', error);
       Alert.alert('Error', 'Failed to fetch events');
@@ -64,7 +71,7 @@ export default function MyEventsScreen() {
       await apiRequest(API_CONFIG.ENDPOINTS.EVENT_RSVP(selectedEvent.id.toString()), {
         method: 'POST',
         body: JSON.stringify({ status }),
-      });
+      }, true);
       Alert.alert('Success', 'RSVP updated successfully!');
       fetchMyEvents(); // Refresh the list
     } catch (error) {
@@ -86,7 +93,7 @@ export default function MyEventsScreen() {
             try {
               await apiRequest(`/api/events/${eventId}`, {
                 method: 'DELETE',
-              });
+              }, true);
               setMyEvents(prev => prev.filter(event => event.id !== eventId));
               Alert.alert('Success', 'Event deleted successfully!');
             } catch (error) {
