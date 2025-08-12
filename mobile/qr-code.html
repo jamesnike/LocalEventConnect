@@ -5,48 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expo QR Code</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .qr-code {
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-        }
-        .instructions {
-            text-align: left;
-            margin: 20px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        .url {
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            margin: 10px 0;
-        }
-        .step {
-            margin: 15px 0;
-            padding: 10px;
-            background: white;
-            border-left: 4px solid #007bff;
-            border-radius: 0 5px 5px 0;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .qr-code { margin: 20px 0; padding: 20px; background: white; border: 2px solid #ddd; border-radius: 8px; }
+        .instructions { text-align: left; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        .url { background: #e9ecef; padding: 10px; border-radius: 5px; font-family: monospace; margin: 10px 0; word-break: break-all; }
+        .step { margin: 15px 0; padding: 10px; background: white; border-left: 4px solid #007bff; border-radius: 0 5px 5px 0; }
+        input { width: 100%; padding: 10px; margin-top: 8px; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -54,56 +19,44 @@
         <h1>📱 Expo Development Server QR Code</h1>
         
         <div class="qr-code">
-            <h2>Scan this QR code with your mobile device:</h2>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=exp://192.168.1.188:8081" 
-                 alt="Expo QR Code" 
-                 style="border: 1px solid #ddd; border-radius: 5px;">
+            <h2>Paste your public tunnel URL:</h2>
+            <p>Run <strong>./manage-expo.sh logs</strong> and copy the <strong>Public URL</strong> (looks like <code>exp+https://...</code>).</p>
+            <input id="tunnelUrl" placeholder="exp+https://your-tunnel-url.example.exp.direct" />
+            <div id="qr"></div>
         </div>
 
         <div class="instructions">
             <h3>📋 Connection Instructions:</h3>
-            
             <div class="step">
                 <strong>1. Install Expo Go app:</strong><br>
-                • <strong>Android:</strong> Download "Expo Go" from Google Play Store<br>
-                • <strong>iOS:</strong> Download "Expo Go" from App Store
+                • <strong>Android:</strong> Google Play Store<br>
+                • <strong>iOS:</strong> App Store
             </div>
-
             <div class="step">
                 <strong>2. Scan the QR code:</strong><br>
-                • Open Expo Go app<br>
-                • Tap "Scan QR Code"<br>
-                • Point camera at the QR code above
+                • Open Expo Go app → Scan QR Code
             </div>
-
             <div class="step">
-                <strong>3. Manual connection (if QR doesn't work):</strong><br>
-                • Open Expo Go app<br>
-                • Tap "Enter URL manually"<br>
-                • Enter: <span class="url">exp://192.168.1.188:8081</span>
+                <strong>3. Manual connection (optional):</strong><br>
+                • Enter the same <span class="url">exp+https://...</span> URL manually in Expo Go
             </div>
-
-            <div class="step">
-                <strong>4. Test the connection:</strong><br>
-                • Your mobile app will load<br>
-                • It will connect to your local backend at <span class="url">http://localhost:3001</span><br>
-                • You should see the events data from your API
-            </div>
-        </div>
-
-        <div class="instructions">
-            <h3>🔧 Current Configuration:</h3>
-            <p><strong>Local Backend:</strong> <span class="url">http://localhost:3001</span> ✅ Running</p>
-            <p><strong>Expo Server:</strong> <span class="url">exp://192.168.1.188:8081</span> ✅ Running</p>
-            <p><strong>API Endpoint:</strong> <span class="url">http://localhost:3001/api/events</span> ✅ Responding</p>
-        </div>
-
-        <div class="instructions">
-            <h3>🌐 To test Replit backend instead:</h3>
-            <p>1. Go to <a href="https://replit.com/@jamesnikess/LocalEventConnect" target="_blank">https://replit.com/@jamesnikess/LocalEventConnect</a></p>
-            <p>2. Click the "Run" button</p>
-            <p>3. Update your mobile app's API config to use the Replit URL</p>
         </div>
     </div>
+
+    <script>
+        const input = document.getElementById('tunnelUrl');
+        const qrDiv = document.getElementById('qr');
+        const render = (value) => {
+            if (!value || !value.startsWith('exp+http')) { qrDiv.innerHTML = ''; return; }
+            const encoded = encodeURIComponent(value);
+            const img = new Image();
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
+            img.style.border = '1px solid #ddd';
+            img.style.borderRadius = '5px';
+            qrDiv.innerHTML = '';
+            qrDiv.appendChild(img);
+        };
+        input.addEventListener('input', (e) => render(e.target.value.trim()));
+    </script>
 </body>
 </html>
